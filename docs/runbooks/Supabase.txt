@@ -1,0 +1,4 @@
+Project name "AKRA-WEB's Project"
+Project ID "deboelqdfpxayzqnrnjb"
+Publishable key "sb_publishable_CtQvPkC-3oRL7GSqrBFvAg_h4lA_pRq"
+API URL "https://deboelqdfpxayzqnrnjb.supabase.co/rest/v1/"

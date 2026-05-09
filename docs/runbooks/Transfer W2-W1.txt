@@ -1,0 +1,68 @@
+-- ==========================================
+-- 📦 ส่วนที่ 1: ระบบบริหารจัดการคลังสินค้า W5
+-- ==========================================
+
+-- 1. ตารางเก็บฐานข้อมูลสินค้าหลัก (w5_products)
+CREATE TABLE w5_products (
+    id SERIAL PRIMARY KEY,                -- รหัสสินค้า รันเลขอัตโนมัติ (1, 2, 3...)
+    name VARCHAR(255) NOT NULL,           -- ชื่อสินค้า
+    stock INTEGER DEFAULT 0,              -- ยอดคงเหลือ (ค่าเริ่มต้น 0)
+    unit VARCHAR(50) DEFAULT 'ชิ้น',        -- หน่วยนับ
+    created_at TIMESTAMPTZ DEFAULT NOW()  -- วันที่บันทึกข้อมูลเข้าฐานข้อมูล
+);
+
+-- 2. ตารางประวัติการเบิก-รับ (w5_transactions_log)
+CREATE TABLE w5_transactions_log (
+    id BIGSERIAL PRIMARY KEY,             -- รหัสรายการ
+    created_at TIMESTAMPTZ DEFAULT NOW(), -- วันที่และเวลาที่ทำรายการ (แทน Date/Time ในชีทเดิม)
+    transaction_type VARCHAR(10) CHECK (transaction_type IN ('in', 'out')), -- ประเภทรายการ (รับเข้า/เบิกออก)
+    product_id INTEGER REFERENCES w5_products(id) ON DELETE CASCADE, -- โยงกับรหัสสินค้าใน w5_products
+    qty INTEGER NOT NULL,                 -- จำนวนที่เบิก/รับ
+    user_name VARCHAR(100)                -- ชื่อผู้ทำรายการ
+);
+
+-- 3. ตารางใบจัดสินค้า/รายการรอเบิก (w5_picklists)
+CREATE TABLE w5_picklists (
+    pick_id VARCHAR(50) PRIMARY KEY,      -- รหัสใบจัด
+    product_id INTEGER REFERENCES w5_products(id) ON DELETE CASCADE, -- โยงรหัสสินค้า
+    qty INTEGER NOT NULL,                 -- จำนวนที่ต้องจัด
+    requested_by VARCHAR(100),            -- ชื่อผู้สั่งจัด
+    created_at TIMESTAMPTZ DEFAULT NOW()  -- วันที่สร้างใบจัด
+);
+
+
+-- ==========================================
+-- 🚚 ส่วนที่ 2: ระบบเบิกจ่ายสินค้าระหว่างสาขา TRD-AKRA
+-- ==========================================
+
+-- 4. ตารางบันทึกการเบิกสินค้า (trd_requests)
+CREATE TABLE trd_requests (
+    id VARCHAR(50) PRIMARY KEY,           -- รหัสคำสั่งเบิก (เช่น REQ-1234)
+    created_at TIMESTAMPTZ DEFAULT NOW(), -- วันที่และเวลาที่สั่งเบิก
+    item_name VARCHAR(255) NOT NULL,      -- ชื่อรายการสินค้าที่สั่ง
+    request_qty INTEGER NOT NULL,         -- จำนวนที่สั่งเบิก
+    storage_capacity INTEGER DEFAULT 0,   -- ความจุหน้าร้านที่เก็บได้
+    old_expiry VARCHAR(50),               -- วันหมดอายุล็อตเก่า (เก็บเป็น text ตามฟอร์แมตหน้าบ้าน)
+    status VARCHAR(50) DEFAULT 'สั่งเบิก',   -- สถานะของบิลเบิก
+    receive_qty INTEGER,                  -- จำนวนที่จัดส่งจริง
+    receive_note TEXT,                    -- หมายเหตุการส่ง (ครบ/ขาด/เกิน)
+    new_expiry VARCHAR(50),               -- วันหมดอายุล็อตใหม่
+    w2_note TEXT                          -- โน้ตจากฝั่งคลังถึงหน้าร้าน
+);
+
+-- ==========================================
+-- 🔐 การตั้งค่าความปลอดภัย (Row Level Security - RLS) เบื้องต้น
+-- ==========================================
+-- สำคัญมากสำหรับ Supabase: ถ้าใช้ API ต้องเปิด RLS และตั้ง Policies
+-- ด้านล่างนี้คือการเปิด RLS ไว้ก่อน (เพื่อความปลอดภัย)
+
+ALTER TABLE w5_products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE w5_transactions_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE w5_picklists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE trd_requests ENABLE ROW LEVEL SECURITY;
+
+-- สร้าง Policy อนุญาตให้ทุกการเชื่อมต่อแบบ Authenticated/Anon อ่านเขียนได้ (ให้แก้ไขตามระบบ Auth จริงอีกครั้ง)
+CREATE POLICY "Allow all actions for authenticated users" ON w5_products FOR ALL USING (true);
+CREATE POLICY "Allow all actions for authenticated users" ON w5_transactions_log FOR ALL USING (true);
+CREATE POLICY "Allow all actions for authenticated users" ON w5_picklists FOR ALL USING (true);
+CREATE POLICY "Allow all actions for authenticated users" ON trd_requests FOR ALL USING (true);

@@ -1,0 +1,59 @@
+-- ==========================================
+-- 🚚 ส่วนที่ 1: ระบบเบิกย้าย W1
+-- ==========================================
+
+-- ตารางฐานข้อมูลสินค้าของ W1
+CREATE TABLE w1_products (
+    id SERIAL PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- ตารางประวัติการเบิกย้าย W1 (อิงจากชีต เบิกย้ายW1)
+CREATE TABLE w1_requests (
+    id VARCHAR(50) PRIMARY KEY,              -- รหัสการเบิก (เช่น REQ-1234)
+    created_at TIMESTAMPTZ DEFAULT NOW(),    -- วันที่และเวลาที่ทำรายการ (แทน timestamp)
+    item_name VARCHAR(255) NOT NULL,
+    request_qty INTEGER NOT NULL DEFAULT 0,
+    status VARCHAR(50),
+    old_expiry VARCHAR(100),                 -- วันหมดอายุเดิม
+    new_expiry VARCHAR(100),                 -- วันหมดอายุใหม่
+    receive_qty INTEGER,                     -- จำนวนที่จัดส่งจริง
+    receive_note TEXT,                       -- หมายเหตุรับ
+    w2_note TEXT,                            -- หมายเหตุจากคลัง
+    storage_capacity INTEGER DEFAULT 0       -- ความจุหน้าร้าน
+);
+
+-- ==========================================
+-- 📦 ส่วนที่ 2: W5 Warehouse App
+-- ==========================================
+
+-- ตารางฐานข้อมูลสินค้า W5
+CREATE TABLE w5_inventory (
+    id SERIAL PRIMARY KEY,                   -- ใช้เป็น productId
+    name VARCHAR(255) NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    unit VARCHAR(50) DEFAULT 'ชิ้น',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ตารางประวัติการเบิก-รับ-ปรับสต็อก (Log) ของ W5
+CREATE TABLE w5_history (
+    id BIGSERIAL PRIMARY KEY,
+    transaction_timestamp TIMESTAMPTZ DEFAULT NOW(), -- แทนที่ date และ time
+    transaction_type VARCHAR(20) CHECK (transaction_type IN ('in', 'out', 'adjust')), 
+    product_id INTEGER REFERENCES w5_inventory(id) ON DELETE SET NULL, -- ผูกกับตารางสินค้า W5
+    product_name VARCHAR(255),               -- เก็บชื่อไว้ด้วย กรณีที่มีการยกเลิกรายการด้วยการต่อท้าย string '[ยกเลิก]'
+    qty INTEGER NOT NULL,
+    user_name VARCHAR(100)
+);
+
+-- ตารางใบจัดสินค้า (Pick List)
+CREATE TABLE w5_picklists (
+    pick_id VARCHAR(50) PRIMARY KEY,
+    product_id INTEGER REFERENCES w5_inventory(id) ON DELETE CASCADE,
+    product_name VARCHAR(255),
+    qty INTEGER NOT NULL,                    -- จำนวนที่ขอเบิก
+    actual_qty INTEGER,                      -- จำนวนที่หยิบได้จริง
+    requested_by VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT NOW()     -- แทน timeStr
+);

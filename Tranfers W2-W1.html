@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบเบิกจ่ายสินค้า TRD-AKRA</title>
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#171C8F',
+                            orange: '#E35205',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --brand-blue: #171C8F;
+            --brand-orange: #E35205;
+        }
+
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Loading Overlay */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center; justify-content: center; flex-direction: column;
+        }
+
+        .akra-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 20px rgb(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+
+        .akra-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .akra-input:focus {
+            background-color: white;
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 4px rgba(23, 28, 143, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--brand-blue);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover { background-color: #121670; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-orange {
+            background-color: var(--brand-orange);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-orange:hover { background-color: #c94804; transform: translateY(-1px); }
+
+        @media (min-width: 768px) {
+            .app-container { max-width: 1024px; margin: 0 auto; }
+            .responsive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc]">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="flex">
+        <div class="animate-spin rounded-full h-10 w-10 border-[3px] border-brand-blue/20 border-t-brand-orange mb-4"></div>
+        <p class="text-brand-blue font-bold text-sm tracking-wide" id="loading-text">กำลังโหลดข้อมูล...</p>
+    </div>
+
+    <div id="app-root" class="min-h-screen flex justify-center">
+        <!-- Content will be injected here by JavaScript -->
+    </div>
+
+    <script>
+        // ==========================================
+        // 0. CONFIGURATION & AUTH (AKRA SSO v2)
+        // ==========================================
+        var APP_CONFIG = {
+            PORTAL_URL:     "./index.html",
+            STORAGE_KEY:    "akra_transfer_session_token",
+            REQUIRED_ROLES: ["ADMIN", "AKRA", "TRD", "WAREHOUSE"],
+            APP_NAME:       "ระบบเบิกจ่ายสินค้า (TRD-AKRA)"
+        };
+
+        var UI = {
+            showLoading: (text = 'กำลังตรวจสอบสิทธิ์...') => {
+                const loadingText = document.getElementById('loading-text');
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingText) loadingText.innerText = text;
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            },
+            showError: (message) => {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ปฏิเสธการเข้าถึง',
+                    text: message,
+                    confirmButtonText: 'กลับไปหน้าหลัก (Portal)',
+                    confirmButtonColor: '#171C8F'
+                }).then(() => {
+                    window.location.href = APP_CONFIG.PORTAL_URL;
+                });
+            },
+            showApp: (username) => {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+            }
+        };
+
+        var AuthGuard = {
+            init: async () => {
+                UI.showLoading();
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const ssoToken = urlParams.get('sso');
+                    if (ssoToken) {
+                        const data = await AKRA_API.login(ssoToken);
+                        if (data.status === 'success') {
+                            localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify({ name: data.user.name, id: data.user.id, roles: data.user.roles }));
+                            localStorage.setItem('akra_user_data', JSON.stringify({ name: data.user.name, roles: data.user.roles }));
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            AuthGuard.startApp(data.user);
+                            return;
+                        }
+                    }
+                    const cached = localStorage.getItem(APP_CONFIG.STORAGE_KEY) || localStorage.getItem('akra_user_data');
+                    if (!cached) { window.location.href = APP_CONFIG.PORTAL_URL; return; }
+                    let session = JSON.parse(cached);
+                    const hasPermission = APP_CONFIG.REQUIRED_ROLES.length === 0 || session.roles.some(r => APP_CONFIG.REQUIRED_ROLES.includes(r));
+                    if (!hasPermission) { UI.showError("คุณไม่มีสิทธิ์เข้าถึง"); return; }
+                    
+                    AuthGuard.startApp(session);
+                } catch (error) {
+                    UI.showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
+                }
+            },
+            startApp: (user) => {
+                window.currentUser = user.name;
+                window.appUser = user;
+                UI.showApp(user.name);
+                AuthGuard.bindEvents();
+                render(); 
+                fetchInitialData();
+            },
+            bindEvents: () => {
+                const logoutBtn = document.getElementById('logout-btn');
+                if(logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        localStorage.removeItem(APP_CONFIG.STORAGE_KEY);
+                        localStorage.removeItem('akra_user_data');
+                        window.location.href = APP_CONFIG.PORTAL_URL;
+                    });
+                }
+            },
+            logout: () => {
+                localStorage.removeItem(APP_CONFIG.STORAGE_KEY);
+                localStorage.removeItem('akra_user_data');
+                window.location.href = APP_CONFIG.PORTAL_URL;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', AuthGuard.init);
+
+        // UI Helpers
+        function showLoading(text = 'กำลังทำงาน...') {
+            const loadingText = document.getElementById('loading-text');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingText) loadingText.innerText = text;
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() { 
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) loadingOverlay.style.display = 'none'; 
+        }
+
+        function sendAppLog(action, details) {
+            AKRA_API.sendLog(action, APP_CONFIG.APP_NAME, details, window.currentUser);
+        }
+
+        // ==========================================
+        // 1. CONFIGURATION & STATE
+        // ==========================================
+        let state = {
+            view: 'home', 
+            w1Tab: 'request', 
+            w2Tab: 'tasks', 
+            dashboardFilter: 'week', 
+            selectedReceiveId: null, 
+            items: [], 
+            products: [] 
+        };
+
+        // ==========================================
+        // 2. API FUNCTIONS (FETCH) & DATE FORMATTERS
+        // ==========================================
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+
+            const optionsDate = { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric' };
+            const optionsTime = { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false };
+            
+            let datePart = d.toLocaleDateString('th-TH', optionsDate).replace(/\//g, '-'); 
+            let timePart = d.toLocaleTimeString('th-TH', optionsTime);
+
+            return `${datePart} / ${timePart} น.`;
+        }
+
+        function convertToCE(dateStr) {
+            if (!dateStr) return dateStr;
+            const regex = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/;
+            const match = dateStr.trim().match(regex);
+            if (match) {
+                let day = match[1].padStart(2, '0');
+                let month = match[2].padStart(2, '0');
+                let year = parseInt(match[3], 10);
+                if (year > 2500) year -= 543;
+                return `${day}-${month}-${year}`; 
+            }
+            return dateStr; 
+        }
+
+        function formatExpiryDate(val) {
+            if (!val || val === 'ไม่ได้ระบุ') return val;
+            if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}T/)) {
+                const d = new Date(val);
+                if (!isNaN(d.getTime())) {
+                    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear() + 543}`;
+                }
+            }
+            if (typeof val === 'string') {
+                const regex = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/;
+                const match = val.trim().match(regex);
+                if (match) {
+                    let year = parseInt(match[3], 10);
+                    if (year > 1900 && year < 2500) year += 543;
+                    return `${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}-${year}`;
+                }
+            }
+            return val;
+        }
+
+        function parseCustomDate(dateStr) {
+            if (!dateStr) return new Date(0);
+            const isoTry = new Date(dateStr);
+            if (!isNaN(isoTry.getTime()) && String(dateStr).includes('T')) return isoTry;
+
+            try {
+                const parts = String(dateStr).split('/');
+                if (parts.length >= 1) {
+                    const dSplit = parts[0].trim().split('-');
+                    if (dSplit.length === 3) {
+                        const day = parseInt(dSplit[0], 10);
+                        const month = parseInt(dSplit[1], 10) - 1;
+                        let year = parseInt(dSplit[2], 10);
+                        if (year > 2500) year -= 543; 
+
+                        let hrs = 0, mins = 0;
+                        if (parts.length > 1) {
+                            const tSplit = parts[1].replace('น.', '').trim().split(':');
+                            if (tSplit.length >= 2) { 
+                                hrs = parseInt(tSplit[0], 10); 
+                                mins = parseInt(tSplit[1], 10); 
+                            }
+                        }
+                        const pDate = new Date(year, month, day, hrs, mins);
+                        if (!isNaN(pDate.getTime())) return pDate;
+                    }
+                }
+            } catch(e) {}
+            return new Date();
+        }
+
+        async function fetchInitialData(isRefresh = false) {
+            if(isRefresh) showLoading('กำลังรีเฟรชข้อมูล...');
+            try {
+                const res = await AKRA_API.call('getTransfers');
+                if (res.success) {
+                    state.items = (res.items || []).map(item => {
+                        return {
+                            ...item,
+                            id: item.id,
+                            itemName: item.item_name,
+                            requestQty: item.request_qty,
+                            status: item.status,
+                            oldExpiry: formatExpiryDate(item.old_expiry),
+                            newExpiry: formatExpiryDate(item.new_expiry),
+                            receiveQty: item.receive_qty,
+                            receiveNote: item.receive_note,
+                            w2Note: item.w2_note,
+                            storageCapacity: parseInt(item.storage_capacity) || 0,
+                            rawDate: parseCustomDate(item.created_at),
+                            timestamp: formatDateTime(item.created_at)
+                        };
+                    });
+
+                    state.products = (res.products || []).map(p => {
+                        if (typeof p === 'object' && p !== null) return p.product_name || p.name || p[0] || '';
+                        return String(p).trim();
+                    }).filter(p => p !== '');
+
+                    render();
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                alert('ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            } finally { hideLoading(); }
+        }
+
+        async function syncDataToSheet() {
+            showLoading('กำลังบันทึกข้อมูล...');
+            try {
+                // In Supabase, we might want to upsert or submit specific items
+                // For now, mapping to a generic submitTransfer
+                await AKRA_API.call('submitTransfer', state.items);
+            } catch (error) {
+                console.error('Error saving data:', error); alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            } finally { hideLoading(); }
+        }
+        // ==========================================
+        // 3. AUTOCOMPLETE SEARCH LOGIC
+        // ==========================================
+        function filterProducts(query) {
+            const listDiv = document.getElementById('autocomplete-list');
+            if (!listDiv) return;
+
+            const q = query.toLowerCase().trim();
+            let filtered = !q ? state.products.slice(0, 50) : state.products.filter(p => p.toLowerCase().includes(q)).slice(0, 50);
+
+            if (filtered.length === 0) {
+                listDiv.innerHTML = state.products.length === 0 ? 
+                    `<div class="p-5 text-center"><i data-lucide="alert-circle" class="w-8 h-8 text-rose-300 mx-auto mb-2"></i><p class="text-sm font-semibold text-rose-500">ไม่พบฐานข้อมูลสินค้า</p></div>` : 
+                    `<div class="p-4 text-sm text-slate-400 text-center">ไม่พบสินค้าที่ค้นหา</div>`;
+            } else {
+                listDiv.innerHTML = filtered.map(p => `
+                    <div onmousedown="selectProduct(decodeURIComponent('${encodeURIComponent(p)}'))" 
+                         class="px-4 py-3 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b border-slate-50 text-sm text-slate-700 last:border-0 truncate flex items-center gap-3 transition-colors">
+                        <i data-lucide="package" class="w-4 h-4 text-brand-blue/40 shrink-0"></i> ${p}
+                    </div>
+                `).join('');
+            }
+            listDiv.classList.remove('hidden');
+            lucide.createIcons({ root: listDiv });
+        }
+
+        function selectProduct(name) {
+            const input = document.getElementById('w1-itemName');
+            if (input) input.value = name;
+            document.getElementById('autocomplete-list').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 4. ACTION HANDLERS
+        // ==========================================
+        function setView(viewName) { state.view = viewName; state.selectedReceiveId = null; render(); }
+        function setW1Tab(tabName) { state.w1Tab = tabName; state.selectedReceiveId = null; render(); }
+        function setW2Tab(tabName) { state.w2Tab = tabName; state.selectedReceiveId = null; render(); }
+        function setDashboardFilter(val) { state.dashboardFilter = val; render(); }
+
+        async function handleW1Submit(event) {
+            event.preventDefault();
+            const itemName = document.getElementById('w1-itemName').value;
+            const qty = document.getElementById('w1-qty').value;
+            const storageCapacity = document.getElementById('w1-storageCapacity').value; // ความจุหน้าร้าน
+            const oldExpiryInput = document.getElementById('w1-oldExpiry').value;
+
+            if (!itemName || !qty) return;
+
+            const now = new Date();
+            const newItem = {
+                id: `REQ-${Math.floor(Math.random() * 9000) + 1000}`,
+                rawDate: now,
+                timestamp: formatDateTime(now.toISOString()),
+                itemName: itemName,
+                requestQty: parseInt(qty),
+                storageCapacity: storageCapacity ? parseInt(storageCapacity) : 0, // บันทึกค่าความจุ
+                status: 'สั่งเบิก',
+                oldExpiry: oldExpiryInput ? convertToCE(oldExpiryInput) : 'ไม่ได้ระบุ',
+                newExpiry: '', receiveQty: null, receiveNote: '', w2Note: '' 
+            };
+
+            state.items.unshift(newItem); 
+            state.w1Tab = 'pending'; 
+            render(); 
+            
+            await syncDataToSheet(); 
+            alert('ส่งคำขอเบิกสินค้าเรียบร้อยแล้ว!');
+            sendAppLog("สั่งเบิกสินค้า (TRD)", `เบิก: ${itemName} จำนวน ${qty} ชิ้น (ความจุ: ${storageCapacity})`);
+        }
+
+        function openReceiveForm(id) { state.selectedReceiveId = id; render(); }
+
+        async function handleDispatchSubmit(event, id, reqQty) {
+            event.preventDefault();
+            const dispatchQty = parseInt(document.getElementById(`disp-qty-${id}`).value);
+            const newExpiryInput = document.getElementById(`disp-exp-${id}`).value;
+            const noteInput = document.getElementById(`w2-note-${id}`);
+            const w2NoteValue = noteInput ? noteInput.value : '';
+            
+            const newExpiry = newExpiryInput ? convertToCE(newExpiryInput) : 'ไม่ได้ระบุ';
+
+            let note = 'ครบ';
+            if (dispatchQty < reqQty) note = `ขาด ${reqQty - dispatchQty}`;
+            if (dispatchQty > reqQty) note = `เกิน ${dispatchQty - reqQty}`;
+
+            let dispatchedItemName = "";
+
+            state.items = state.items.map(item => {
+                if (item.id === id) {
+                    dispatchedItemName = item.itemName;
+                    return { ...item, status: 'จัดส่งแล้ว', receiveQty: dispatchQty, receiveNote: note, newExpiry: newExpiry, w2Note: w2NoteValue || item.w2Note };
+                }
+                return item;
+            });
+
+            state.selectedReceiveId = null;
+            render();
+            await syncDataToSheet();
+            sendAppLog("จัดส่งสินค้า (AKRA)", `จัดส่ง: ${dispatchedItemName} ยอด ${dispatchQty} (${note})`);
+        }
+
+        async function updateItemStatus(id, newStatus) {
+            const noteInput = document.getElementById(`w2-note-${id}`);
+            const w2NoteValue = noteInput ? noteInput.value : '';
+            let targetItemName = "";
+
+            state.items = state.items.map(item => {
+                if (item.id === id) {
+                    targetItemName = item.itemName;
+                    return { ...item, status: newStatus, w2Note: w2NoteValue || item.w2Note };
+                }
+                return item;
+            });
+            render();
+            await syncDataToSheet();
+            sendAppLog("เปลี่ยนสถานะ (AKRA)", `สถานะ: ${newStatus} (${targetItemName}) หมายเหตุ: ${w2NoteValue}`);
+        }
+
+        // ==========================================
+        // 5. UI RENDERING LOGIC
+        // ==========================================
+        function getStatusBadge(status) {
+            const styles = {
+                'สั่งเบิก': 'bg-brand-blue/10 text-brand-blue border-brand-blue/20',
+                'กำลังจัดสินค้า': 'bg-brand-orange text-white shadow-sm shadow-brand-orange/30',
+                'จัดส่งแล้ว': 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+                'สินค้าหมด': 'bg-rose-50 text-rose-700 border-rose-200/60',
+                'ยกเลิกรายการ': 'bg-slate-50 text-slate-400 border-slate-200'
+            };
+            return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border ${styles[status] || 'bg-slate-100'}">${status}</span>`;
+        }
+
+        function renderEmptyState(message, iconName) {
+            return `<div class="flex flex-col items-center justify-center py-16 text-slate-400">
+                    <div class="bg-white p-4 rounded-full shadow-sm mb-3 text-slate-300"><span class="material-icons-round" style="font-size: 40px;">${iconName}</span></div>
+                    <p class="text-sm font-medium tracking-wide">${message}</p>
+                </div>`;
+        }
+
+        function renderHistoryList(role) {
+            const historyItems = state.items.filter(i => ['จัดส่งแล้ว', 'สินค้าหมด', 'ยกเลิกรายการ'].includes(i.status));
+            if (historyItems.length === 0) return renderEmptyState('ไม่มีประวัติย้อนหลัง', 'history_toggle_off');
+
+            return `<div class="space-y-4">
+                ${historyItems.map(item => `
+                    <div class="bg-white p-5 rounded-[1.5rem] shadow-[0_4px_16px_rgb(0,0,0,0.03)] border border-slate-100 opacity-95 hover:opacity-100 transition-opacity">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="pr-2">
+                                <h3 class="font-bold text-brand-blue text-[15px] leading-tight">${item.itemName}</h3>
+                                <p class="text-[10px] text-slate-400 font-mono tracking-wider mt-1">ID: ${item.id}</p>
+                            </div>
+                            <div class="flex-shrink-0">${getStatusBadge(item.status)}</div>
+                        </div>
+                        <div class="flex justify-between items-end border-t border-slate-50 pt-3 mt-1">
+                            <div class="text-xs text-slate-500 space-y-1">
+                                <p class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-icons-round text-[12px]">schedule</span> ${item.timestamp}</p>
+                                ${item.status === 'จัดส่งแล้ว' ? `
+                                    <p class="mt-1">เบิก <span class="font-medium text-slate-700">${item.requestQty}</span> (ความจุ ${item.storageCapacity || 0}) • ส่งจริง <span class="font-medium text-emerald-600">${item.receiveQty}</span></p>
+                                    ${role === 'w1' ? `<p class="text-[11px] text-brand-blue font-medium">EXP ใหม่: ${item.newExpiry}</p>` : ''}
+                                ` : ''}
+                            </div>
+                            ${item.status === 'จัดส่งแล้ว' && item.receiveNote && item.receiveNote !== 'ครบ' ? `<div class="text-[10px] font-medium text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md border border-brand-orange/20">จัดส่ง${item.receiveNote}</div>` : ''}
+                        </div>
+                        ${item.w2Note ? `<p class="text-[11px] mt-3 text-amber-700 bg-amber-50 px-3 py-2 rounded-xl border border-amber-100/50"><span class="font-bold">โน้ต:</span> ${item.w2Note}</p>` : ''}
+                    </div>
+                `).join('')}</div>`;
+        }
+
+        // --- Render Dashboard (สถิติวิเคราะห์เชิงลึก AI) ---
+        function getInsightDetails(itemName, qty, count, capacity) {
+            const avgQty = Math.round(qty / count);
+            const maxCapacity = capacity || 30;
+
+            if (count >= 3 && qty >= maxCapacity * 1.5) {
+                return { 
+                    icon: 'local_fire_department', 
+                    title: 'ขายไว / ควรขยายพื้นที่', 
+                    desc: `ความจุหน้าร้านเก็บได้ ${maxCapacity} ชิ้น แต่เบิกรวมไปถึง ${qty} ชิ้น (ออกบ่อย ${count} รอบ) สินค้าหมดเชลฟ์ไวมาก แนะนำขยายพื้นที่จัดเก็บ`,
+                    color: 'text-brand-orange', bg: 'bg-brand-orange/5', border: 'border-brand-orange/20'
+                };
+            }
+
+            if (avgQty > maxCapacity) {
+                return {
+                    icon: 'shopping_cart', 
+                    title: 'เบิกเกินความจุ (Overstock)', 
+                    desc: `เบิกเฉลี่ย ${avgQty} ชิ้น/บิล ซึ่งล้นความจุหน้าร้าน (${maxCapacity} ชิ้น) อาจมีโปรโมชั่นหรือจัดพื้นที่สต๊อคนอกเชลฟ์`,
+                    color: 'text-brand-blue', bg: 'bg-brand-blue/5', border: 'border-brand-blue/20'
+                };
+            }
+
+            if (count >= 3 && avgQty <= maxCapacity / 2) {
+                return { 
+                    icon: 'inventory_2', 
+                    title: 'ทยอยเติม (ตามพื้นที่)', 
+                    desc: `เบิกบ่อย ${count} บิล ทีละ ${avgQty} ชิ้น (เต็มความจุ ${maxCapacity} ชิ้น) พนักงานต้องคอยเติมเรื่อยๆ เป็นการเบิกตามพื้นที่วางโชว์`,
+                    color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100'
+                };
+            }
+
+            if (qty >= maxCapacity * 0.5 && qty <= maxCapacity * 1.2) {
+                return {
+                    icon: 'store', 
+                    title: 'เบิกเติมเต็ม (Restock)', 
+                    desc: `เบิกรวม ${qty} ชิ้น ใกล้เคียงกับความจุหน้าร้าน (${maxCapacity} ชิ้น) เป็นการทยอยเติมและจัดการสต๊อคที่สมดุลดีมาก`,
+                    color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100'
+                };
+            }
+
+            return { 
+                icon: 'check_circle', 
+                title: 'การเคลื่อนไหวปกติ', 
+                desc: `ยอดเบิกเฉลี่ย ${avgQty} ชิ้น ความจุหน้าร้าน ${maxCapacity} ชิ้น อยู่ในระดับมาตรฐานการจัดการทั่วไป`,
+                color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200'
+            };
+        }
+
+        function renderDashboard() {
+            const filter = state.dashboardFilter;
+            const now = new Date();
+            let startDate = new Date(now);
+
+            if (filter === 'week') {
+                const day = startDate.getDay();
+                const diff = startDate.getDate() - day + (day === 0 ? -6 : 1); 
+                startDate.setDate(diff);
+                startDate.setHours(0,0,0,0);
+            } else {
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1); 
+            }
+
+            const dispatchedItems = state.items.filter(i => {
+                const d = i.rawDate ? new Date(i.rawDate) : new Date(0);
+                return (i.status === 'จัดส่งแล้ว' || i.status === 'รับสินค้าแล้ว') && d >= startDate;
+            });
+            
+            let totalQty = 0;
+            let totalOrders = dispatchedItems.length;
+            const itemStats = {};
+
+            dispatchedItems.forEach(item => {
+                const qty = parseInt(item.receiveQty) || 0;
+                const capacity = parseInt(item.storageCapacity) || 0;
+                totalQty += qty;
+
+                if (!itemStats[item.itemName]) {
+                    itemStats[item.itemName] = { count: 0, qty: 0, capacity: 0 };
+                }
+                itemStats[item.itemName].count += 1;
+                itemStats[item.itemName].qty += qty;
+                if(capacity > itemStats[item.itemName].capacity) {
+                    itemStats[item.itemName].capacity = capacity;
+                }
+            });
+
+            const topItems = Object.keys(itemStats).map(key => ({
+                name: key, count: itemStats[key].count, qty: itemStats[key].qty, capacity: itemStats[key].capacity
+            })).sort((a, b) => b.qty - a.qty).slice(0, 10); 
+
+            return `
+                <div class="w-full max-w-md bg-[#f8fafc] min-h-screen flex flex-col relative animate-fade-in">
+                    <header class="bg-brand-blue text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-md">
+                        <div class="flex items-center gap-2">
+                            <button onclick="setView('home')" class="p-1.5 rounded-full hover:bg-black/10 transition-colors text-white">
+                                <span class="material-icons-round">arrow_back</span>
+                            </button>
+                            <h1 class="text-[17px] font-bold tracking-wide flex items-center gap-1.5"><span class="material-icons-round text-[20px] text-white">insights</span> ข้อมูลเชิงลึก (Analytics)</h1>
+                        </div>
+                        <button onclick="fetchInitialData(true)" class="p-1.5 rounded-full hover:bg-black/10 transition-colors text-white" title="รีเฟรชข้อมูล">
+                            <span class="material-icons-round text-[20px]">refresh</span>
+                        </button>
+                    </header>
+
+                    <div class="bg-white px-4 py-3 shadow-sm sticky top-[60px] z-10 border-b border-slate-100 flex justify-center">
+                        <div class="bg-slate-100 p-1 rounded-xl flex w-full max-w-[250px]">
+                            <button onclick="setDashboardFilter('week')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${filter === 'week' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}">สัปดาห์นี้</button>
+                            <button onclick="setDashboardFilter('month')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${filter === 'month' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}">เดือนนี้</button>
+                        </div>
+                    </div>
+
+                    <main class="flex-1 overflow-y-auto p-5 pb-24 space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-brand-blue p-4 rounded-[1.5rem] shadow-lg shadow-brand-blue/20 text-white relative overflow-hidden">
+                                <span class="material-icons-round absolute -right-2 -bottom-2 text-[60px] opacity-10">inventory</span>
+                                <p class="text-[11px] font-semibold text-white/80 uppercase tracking-wider mb-1">ยอดจัดส่งรวม</p>
+                                <p class="text-2xl font-bold">${totalQty.toLocaleString()} <span class="text-xs font-medium text-white/80">ชิ้น</span></p>
+                            </div>
+                            <div class="bg-brand-orange p-4 rounded-[1.5rem] shadow-lg shadow-brand-orange/20 text-white relative overflow-hidden">
+                                <span class="material-icons-round absolute -right-2 -bottom-2 text-[60px] opacity-10">receipt_long</span>
+                                <p class="text-[11px] font-semibold text-white/80 uppercase tracking-wider mb-1">จำนวนบิลเบิก</p>
+                                <p class="text-2xl font-bold">${totalOrders.toLocaleString()} <span class="text-xs font-medium text-white/80">รายการ</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-bold text-brand-blue mb-3 flex items-center gap-2 px-1">
+                                <span class="material-icons-round text-brand-orange text-[18px]">lightbulb</span> วิเคราะห์พฤติกรรมการเบิก (Insights)
+                            </h3>
+                            ${topItems.length === 0 ? renderEmptyState('ไม่มีข้อมูลในช่วงเวลานี้', 'analytics') : `
+                                <div class="space-y-4">
+                                    ${topItems.map((item, idx) => {
+                                        const insight = getInsightDetails(item.name, item.qty, item.count, item.capacity);
+                                        return `
+                                            <div class="bg-white p-4 rounded-[1.5rem] shadow-[0_4px_16px_rgb(0,0,0,0.03)] border border-slate-100">
+                                                <div class="flex justify-between items-start mb-3">
+                                                    <div class="flex-1 pr-3">
+                                                        <span class="text-[10px] font-bold text-slate-400">อันดับ ${idx + 1}</span>
+                                                        <h4 class="font-bold text-brand-blue text-[15px] leading-tight mt-0.5">${item.name}</h4>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p class="font-bold text-brand-orange text-lg leading-none">${item.qty.toLocaleString()} <span class="text-[10px] font-medium text-brand-orange/80">ชิ้น</span></p>
+                                                        <p class="text-[10px] text-slate-400 font-medium mt-1">${item.count} บิลสั่งเบิก</p>
+                                                    </div>
+                                                </div>
+                                                <div class="${insight.bg} ${insight.border} border p-3 rounded-xl flex gap-3 items-start mt-2">
+                                                    <span class="material-icons-round ${insight.color} text-[18px] mt-0.5">${insight.icon}</span>
+                                                    <div>
+                                                        <p class="text-xs font-bold ${insight.color} mb-0.5">${insight.title}</p>
+                                                        <p class="text-[10px] text-slate-600 leading-snug">${insight.desc}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
+                        </div>
+
+                        <div class="pt-2">
+                            <h3 class="text-sm font-bold text-brand-blue mb-3 flex items-center gap-2 px-1">
+                                <span class="material-icons-round text-brand-orange text-[18px]">history</span> รายการบิลเบิกย้ายล่าสุด
+                            </h3>
+                            ${dispatchedItems.length === 0 ? renderEmptyState('ไม่มีบิลจัดส่ง', 'receipt') : `
+                                <div class="bg-white rounded-[1.5rem] shadow-[0_4px_16px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+                                    ${dispatchedItems.slice(0, 20).map((bill, index) => `
+                                        <div class="p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+                                            <div class="flex justify-between items-center mb-1.5">
+                                                <span class="text-[10px] font-mono font-semibold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded">${bill.id}</span>
+                                                <span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-icons-round text-[12px]">calendar_today</span> ${bill.timestamp.split(' / ')[0]}</span>
+                                            </div>
+                                            <p class="text-sm font-bold text-slate-800 mb-1 truncate">${bill.itemName}</p>
+                                            <div class="flex justify-between items-end">
+                                                <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-1">
+                                                    <span class="material-icons-round text-[12px] text-slate-400">inventory_2</span> 
+                                                    ความจุหน้าร้าน: <span class="font-medium text-slate-700">${bill.storageCapacity || 0} ชิ้น</span>
+                                                </div>
+                                                <span class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-2 py-1 rounded-lg">
+                                                    ส่ง ${bill.receiveQty} ชิ้น
+                                                </span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                    ${dispatchedItems.length > 20 ? `<div class="p-3 text-center text-[10px] text-slate-400 bg-slate-50 border-t border-slate-100">แสดงข้อมูล 20 รายการล่าสุด</div>` : ''}
+                                </div>
+                            `}
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        // --- Render Screens ---
+        function renderHome() {
+            return `
+                <div class="w-full max-w-lg flex flex-col items-center justify-center p-6 animate-fade-in">
+                    <div class="akra-card w-full p-8 md:p-12 text-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 rounded-full -mr-16 -mt-16"></div>
+                        
+                        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-brand-blue text-white shadow-lg rotate-3">
+                            <i data-lucide="truck" class="w-10 h-10"></i>
+                        </div>
+                        
+                        <h1 class="text-3xl font-black text-brand-blue mb-2">TRD-AKRA</h1>
+                        <p class="text-slate-400 mb-10 text-sm font-medium">ระบบบริหารจัดการการเบิกจ่ายสินค้า</p>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="setView('w1')" class="btn-primary w-full py-5 text-lg group">
+                                <i data-lucide="store" class="w-6 h-6 opacity-50 group-hover:scale-110 transition-transform"></i>
+                                พนักงานหน้าร้าน (W1)
+                            </button>
+                            
+                            <button onclick="setView('w2')" class="btn-primary w-full py-5 text-lg group">
+                                <i data-lucide="warehouse" class="w-6 h-6 opacity-50 group-hover:scale-110 transition-transform"></i>
+                                พนักงานคลังสินค้า (W2)
+                            </button>
+
+                            <div class="flex items-center gap-4 my-4">
+                                <div class="h-px bg-slate-100 flex-1"></div>
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Analytics</span>
+                                <div class="h-px bg-slate-100 flex-1"></div>
+                            </div>
+
+                            <button onclick="setView('dashboard')" class="btn-orange w-full py-5 text-lg group">
+                                <i data-lucide="bar-chart-3" class="w-6 h-6 opacity-70 group-hover:scale-110 transition-transform"></i>
+                                วิเคราะห์ข้อมูลการเบิก
+                            </button>
+                        </div>
+
+                        <div class="mt-12 pt-8 border-t border-slate-50 flex items-center justify-center gap-3">
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Logged in as</p>
+                                <p class="text-xs font-bold text-brand-blue">${window.currentUser}</p>
+                            </div>
+                            <button onclick="AuthGuard.logout()" class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHeader(title, icon, role) {
+            return `
+                <header class="bg-brand-blue text-white sticky top-0 z-30 shadow-lg">
+                    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <button onclick="setView('home')" class="flex items-center gap-1.5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors text-sm font-bold border border-white/20 bg-black/10">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                <span class="hidden sm:inline">เลือกสาขา</span>
+                            </button>
+                            <div class="w-px h-5 bg-white/20 mx-1 hidden sm:block"></div>
+                            <div class="bg-white/10 p-1.5 rounded-lg hidden sm:block">
+                                <i data-lucide="${icon}" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                            </div>
+                            <h1 class="font-bold text-sm sm:text-base tracking-tight truncate max-w-[120px] sm:max-w-none">${title}</h1>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <button onclick="fetchInitialData(true)" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                            <div class="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1"></div>
+                            <button onclick="AuthGuard.logout()" class="flex items-center gap-2 bg-red-500/80 hover:bg-red-500 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border border-red-400/30">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                <span class="hidden sm:inline">ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+            `;
+        }
+
+        function renderW1() {
+            let content = '';
+            if (state.w1Tab === 'request') {
+                content = `
+                    <form onsubmit="handleW1Submit(event)" class="akra-card p-6 space-y-5 animate-fade-in">
+                        <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2 mb-6">
+                            <div class="bg-brand-blue/10 text-brand-blue p-2 rounded-xl flex items-center justify-center">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            </div>
+                            สร้างรายการเบิก (TRD)
+                        </h2>
+                        
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">ชื่อรายการสินค้า <span class="text-brand-orange">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="w1-itemName" autocomplete="off" required 
+                                    oninput="filterProducts(this.value)" onfocus="filterProducts(this.value)"
+                                    onblur="setTimeout(() => { const el = document.getElementById('autocomplete-list'); if(el) el.classList.add('hidden'); }, 200)"
+                                    class="akra-input text-sm" placeholder="ค้นหาหรือพิมพ์ชื่อสินค้า...">
+                                <div id="autocomplete-list" class="hidden absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto custom-scrollbar"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">จำนวนเบิก <span class="text-brand-orange">*</span></label>
+                                <input type="number" id="w1-qty" required min="1" class="akra-input text-lg font-bold text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">ความจุหน้าร้าน</label>
+                                <input type="number" id="w1-storageCapacity" min="0" class="akra-input text-lg font-bold text-center" placeholder="MAX">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">วันหมดอายุเดิม (ถ้ามี)</label>
+                            <input type="text" id="w1-oldExpiry" class="akra-input text-sm" placeholder="วว-ดด-ปป">
+                        </div>
+                        <button type="submit" class="btn-primary w-full py-4 mt-6">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            ยืนยันการสั่งเบิก
+                        </button>
+                    </form>`;
+            } else if (state.w1Tab === 'pending') {
+                const pendingItems = state.items.filter(i => ['สั่งเบิก', 'กำลังจัดสินค้า'].includes(i.status));
+                if (pendingItems.length === 0) {
+                    content = renderEmptyState('ไม่มีรายการรอรับ', 'package-search');
+                } else {
+                    content = `<div class="space-y-4 animate-fade-in">` + pendingItems.map(item => `
+                        <div class="akra-card p-5">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="pr-2">
+                                    <h3 class="font-bold text-brand-blue text-[16px] leading-snug">${item.itemName}</h3>
+                                    <span class="text-[10px] text-slate-300 font-mono mt-1 block tracking-wider">ID: ${item.id}</span>
+                                </div>
+                                <div class="flex-shrink-0">${getStatusBadge(item.status)}</div>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-4 mb-4 flex justify-between items-center border border-slate-100">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">ยอดเบิก / ความจุ</p>
+                                    <p class="font-bold text-brand-blue text-lg">${item.requestQty} <span class="text-[10px] font-medium opacity-50">ชิ้น</span> / ${item.storageCapacity || 0} <span class="text-[10px] font-medium opacity-50">ชิ้น</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">เวลาเบิก</p>
+                                    <p class="text-xs text-slate-600 font-bold">${item.timestamp.split(' / ')[1] || '-'}</p>
+                                </div>
+                            </div>
+                            ${item.w2Note ? `<div class="text-xs mb-4 text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100 flex items-start gap-2"><i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${item.w2Note}</span></div>` : ''}
+                            ${item.status === 'สั่งเบิก' ? `<div class="flex justify-end"><button onclick="if(confirm('ต้องการยกเลิกรายการเบิกนี้ใช่หรือไม่?')) updateItemStatus('${item.id}', 'ยกเลิกรายการ')" class="text-[11px] font-bold text-red-400 hover:text-red-500 flex items-center gap-1 transition-colors"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i> ยกเลิกการเบิก</button></div>` : ''}
+                        </div>
+                    `).join('') + `</div>`;
+                }
+            } else if (state.w1Tab === 'history') { content = renderHistoryList('w1'); }
+
+            return `
+                <div class="w-full flex flex-col min-h-screen">
+                    ${renderHeader('หน้าร้าน W1', 'store', 'w1')}
+                    
+                    <div class="flex bg-white shadow-sm sticky top-[56px] z-20 border-b border-slate-100 px-4">
+                        <button onclick="setW1Tab('request')" class="flex-1 py-4 text-xs font-bold border-b-2 transition-all ${state.w1Tab === 'request' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-300'}">เบิกสินค้า</button>
+                        <button onclick="setW1Tab('pending')" class="flex-1 py-4 text-xs font-bold border-b-2 transition-all ${state.w1Tab === 'pending' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-300'}">รอรับ</button>
+                        <button onclick="setW1Tab('history')" class="flex-1 py-4 text-xs font-bold border-b-2 transition-all ${state.w1Tab === 'history' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-300'}">ประวัติ</button>
+                    </div>
+                    
+                    <main class="flex-1 p-5 pb-24 app-container">${content}</main>
+                </div>`;
+        }
+
+        function renderW2() {
+            const hasTasks = state.items.some(i => ['สั่งเบิก', 'กำลังจัดสินค้า'].includes(i.status));
+            let content = '';
+            if (state.w2Tab === 'tasks') {
+                const activeTasks = state.items.filter(i => ['สั่งเบิก', 'กำลังจัดสินค้า'].includes(i.status));
+                if (activeTasks.length === 0) {
+                    content = renderEmptyState('ไม่มีงานจัดสินค้า', 'clipboard-check');
+                } else {
+                    content = `<div class="space-y-4 animate-fade-in">` + activeTasks.map(item => `
+                        <div class="akra-card p-5 border-l-4 border-l-brand-blue">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="pr-2">
+                                    <h3 class="font-bold text-brand-blue text-[16px] leading-snug">${item.itemName}</h3>
+                                    <span class="text-[10px] text-slate-300 font-mono mt-1 block tracking-wider">ID: ${item.id}</span>
+                                </div>
+                                <div class="flex-shrink-0">${getStatusBadge(item.status)}</div>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-4 mb-4 flex justify-between items-center border border-slate-100">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">ยอดสั่งเบิก / ความจุ</p>
+                                    <p class="font-bold text-brand-blue text-lg">${item.requestQty} / ${item.storageCapacity || 0} <span class="text-[10px] font-medium opacity-50 uppercase">qty</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">หมดอายุเดิม</p>
+                                    <p class="text-xs text-slate-600 font-bold">${item.oldExpiry}</p>
+                                </div>
+                            </div>
+                            <div class="mb-5">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">โน้ตแจ้งหน้าร้าน</label>
+                                <input type="text" id="w2-note-${item.id}" value="${item.w2Note || ''}" class="akra-input text-sm" placeholder="ระบุเหตุผลหากส่งไม่ครบ...">
+                            </div>
+                            ${state.selectedReceiveId !== item.id ? `
+                                <div class="flex flex-col gap-3">
+                                    <button onclick="openReceiveForm('${item.id}')" class="btn-orange w-full py-4 shadow-lg shadow-brand-orange/20">
+                                        <i data-lucide="package" class="w-5 h-5"></i>
+                                        เริ่มจัดสินค้าส่ง
+                                    </button>
+                                    <div class="flex gap-2 mt-1">
+                                        <button onclick="if(confirm('ยืนยันแจ้งสินค้าหมด?')) updateItemStatus('${item.id}', 'สินค้าหมด')" class="flex-1 py-3 text-[11px] font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors">ของหมด</button>
+                                        <button onclick="if(confirm('ต้องการยกเลิกรายการนี้?')) updateItemStatus('${item.id}', 'ยกเลิกรายการ')" class="flex-1 py-3 text-[11px] font-bold text-slate-400 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">ยกเลิก</button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <form onsubmit="handleDispatchSubmit(event, '${item.id}', ${item.requestQty})" class="mt-4 pt-5 border-t border-slate-100 animate-fade-in space-y-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-1.5 h-6 bg-brand-orange rounded-full"></div>
+                                        <h4 class="font-bold text-slate-800 text-sm">ยืนยันการจัดส่ง</h4>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">ยอดที่ส่งจริง (ชิ้น)</label>
+                                        <input type="number" id="disp-qty-${item.id}" required min="0" value="${item.requestQty}" class="akra-input text-center text-2xl font-black text-brand-orange border-brand-orange/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">วันหมดอายุใหม่</label>
+                                        <input type="text" id="disp-exp-${item.id}" class="akra-input text-sm" placeholder="วว-ดด-ปป">
+                                    </div>
+                                    <div class="flex gap-3 pt-2">
+                                        <button type="button" onclick="openReceiveForm(null)" class="flex-1 py-4 text-xs font-bold text-slate-400">ยกเลิก</button>
+                                        <button type="submit" class="flex-[2] btn-orange py-4">ยืนยันส่งสินค้า</button>
+                                    </div>
+                                </form>
+                            `}
+                        </div>
+                    `).join('') + `</div>`;
+                }
+            } else if (state.w2Tab === 'history') { content = renderHistoryList('w2'); }
+
+            return `
+                <div class="w-full flex flex-col min-h-screen">
+                    ${renderHeader('คลังสินค้า W2', 'warehouse', 'w2')}
+                    
+                    <div class="flex bg-white shadow-sm sticky top-[56px] z-20 border-b border-slate-100 px-4">
+                        <button onclick="setW2Tab('tasks')" class="flex-1 py-4 text-xs font-bold border-b-2 transition-all relative ${state.w2Tab === 'tasks' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-300'}">
+                            งานจัดสินค้า
+                            ${hasTasks ? `<span class="absolute top-4 right-4 w-1.5 h-1.5 bg-brand-orange rounded-full"></span>` : ''}
+                        </button>
+                        <button onclick="setW2Tab('history')" class="flex-1 py-4 text-xs font-bold border-b-2 transition-all ${state.w2Tab === 'history' ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-300'}">ประวัติการส่ง</button>
+                    </div>
+                    
+                    <main class="flex-1 p-5 pb-24 app-container">${content}</main>
+                </div>`;
+        }
+
+        function renderDashboard() {
+            const filter = state.dashboardFilter;
+            const now = new Date();
+            let startDate = new Date(now);
+
+            if (filter === 'week') {
+                const day = startDate.getDay();
+                const diff = startDate.getDate() - day + (day === 0 ? -6 : 1); 
+                startDate.setDate(diff);
+                startDate.setHours(0,0,0,0);
+            } else {
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1); 
+            }
+
+            const dispatchedItems = state.items.filter(i => {
+                const d = i.rawDate ? new Date(i.rawDate) : new Date(0);
+                return (i.status === 'จัดส่งแล้ว' || i.status === 'รับสินค้าแล้ว') && d >= startDate;
+            });
+            
+            let totalQty = 0;
+            let totalOrders = dispatchedItems.length;
+            const itemStats = {};
+
+            dispatchedItems.forEach(item => {
+                const qty = parseInt(item.receiveQty) || 0;
+                const capacity = parseInt(item.storageCapacity) || 0;
+                totalQty += qty;
+
+                if (!itemStats[item.itemName]) {
+                    itemStats[item.itemName] = { count: 0, qty: 0, capacity: 0 };
+                }
+                itemStats[item.itemName].count += 1;
+                itemStats[item.itemName].qty += qty;
+                if(capacity > itemStats[item.itemName].capacity) {
+                    itemStats[item.itemName].capacity = capacity;
+                }
+            });
+
+            const topItems = Object.keys(itemStats).map(key => ({
+                name: key, count: itemStats[key].count, qty: itemStats[key].qty, capacity: itemStats[key].capacity
+            })).sort((a, b) => b.qty - a.qty).slice(0, 10); 
+
+            return `
+                <div class="w-full flex flex-col min-h-screen animate-fade-in">
+                    ${renderHeader('Analytics', 'bar-chart-3', 'admin')}
+
+                    <div class="bg-white px-4 py-3 shadow-sm sticky top-[56px] z-20 border-b border-slate-100 flex justify-center">
+                        <div class="bg-slate-100 p-1 rounded-2xl flex w-full max-w-[280px]">
+                            <button onclick="setDashboardFilter('week')" class="flex-1 py-2 text-[11px] font-bold rounded-xl transition-all ${filter === 'week' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400'}">สัปดาห์นี้</button>
+                            <button onclick="setDashboardFilter('month')" class="flex-1 py-2 text-[11px] font-bold rounded-xl transition-all ${filter === 'month' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400'}">เดือนนี้</button>
+                        </div>
+                    </div>
+
+                    <main class="flex-1 p-5 pb-24 space-y-6 app-container">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-brand-blue p-5 rounded-[2rem] shadow-xl shadow-brand-blue/10 text-white relative overflow-hidden">
+                                <i data-lucide="package" class="absolute -right-4 -bottom-4 w-24 h-24 opacity-10"></i>
+                                <p class="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">ยอดส่งรวม</p>
+                                <p class="text-3xl font-black">${totalQty.toLocaleString()} <span class="text-[10px] font-normal text-white/70">ชิ้น</span></p>
+                            </div>
+                            <div class="bg-brand-orange p-5 rounded-[2rem] shadow-xl shadow-brand-orange/10 text-white relative overflow-hidden">
+                                <i data-lucide="file-text" class="absolute -right-4 -bottom-4 w-24 h-24 opacity-10"></i>
+                                <p class="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">จำนวนบิล</p>
+                                <p class="text-3xl font-black">${totalOrders.toLocaleString()} <span class="text-[10px] font-normal text-white/70">ใบ</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xs font-black text-brand-blue mb-4 flex items-center gap-2 px-1 uppercase tracking-widest">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-brand-orange"></i> Insights วิเคราะห์การเบิก
+                            </h3>
+                            ${topItems.length === 0 ? renderEmptyState('ไม่มีข้อมูลในช่วงเวลานี้', 'database') : `
+                                <div class="space-y-4">
+                                    ${topItems.map((item, idx) => {
+                                        const insight = getInsightDetails(item.name, item.qty, item.count, item.capacity);
+                                        return `
+                                            <div class="akra-card p-5">
+                                                <div class="flex justify-between items-start mb-4">
+                                                    <div class="flex-1 pr-3">
+                                                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Rank #${idx + 1}</span>
+                                                        <h4 class="font-bold text-brand-blue text-base leading-tight mt-1">${item.name}</h4>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p class="font-black text-brand-orange text-xl leading-none">${item.qty.toLocaleString()}</p>
+                                                        <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">${item.count} orders</p>
+                                                    </div>
+                                                </div>
+                                                <div class="${insight.bg} ${insight.border} border-2 border-dashed p-4 rounded-2xl flex gap-4 items-start">
+                                                    <div class="bg-white p-2 rounded-xl shadow-sm">
+                                                        <i data-lucide="${insight.icon === 'local_fire_department' ? 'flame' : insight.icon === 'shopping_cart' ? 'shopping-cart' : insight.icon === 'inventory_2' ? 'package' : insight.icon === 'store' ? 'store' : 'check-circle'}" class="${insight.color} w-5 h-5"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-xs font-black ${insight.color} mb-1">${insight.title}</p>
+                                                        <p class="text-[10px] text-slate-500 leading-relaxed font-medium">${insight.desc}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `}
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        // Main Render Function
+        function render() {
+            const root = document.getElementById('app-root');
+            if (state.view === 'home') { root.innerHTML = renderHome(); } 
+            else if (state.view === 'w1') { root.innerHTML = renderW1(); } 
+            else if (state.view === 'w2') { root.innerHTML = renderW2(); }
+            else if (state.view === 'dashboard') { root.innerHTML = renderDashboard(); }
+            
+            AuthGuard.bindEvents();
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 6. INITIALIZATION
+        // ==========================================
+        window.onload = async function() {
+            const authorized = await AuthGuard.init();
+            if (authorized) {
+                showLoading('กำลังโหลดข้อมูลเบิกจ่าย...');
+                await fetchInitialData();
+            }
+        };
+
+        // Hook into render to create icons
+        const originalRender = render;
+        render = function() {
+            originalRender();
+            lucide.createIcons();
+        };
+
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>KPI Dashboard | AKRA Premium</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    
+    <style>
+        :root {
+            --brand-blue: #171C8F;
+            --brand-blue-hover: #11146B;
+            --brand-orange: #E35205;
+            --sidebar-width: clamp(72px, 8vw, 76px);
+            --header-height: 4rem;
+            --bg-main: #f4f7fe;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --card-radius: 1.5rem;
+            --border-color: #E9EDF7;
+            --fluid-8xl: clamp(2.5rem, 6vw, 4.5rem);
+            --fluid-xl: clamp(1rem, 2vw, 1.25rem);
+        }
+        body { font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #2B3674; overflow: hidden; letter-spacing: -0.01em; touch-action: manipulation; }
+        
+        /* Premium Sidebar (Desktop Only) */
+        .sidebar { width: var(--sidebar-width); background: white; transition: all 0.3s ease; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        @media (max-width: 1024px) { .sidebar { display: none; } }
+        
+        .nav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 1rem 0; color: #A3AED0; transition: all 0.2s ease; cursor: pointer; position: relative; }
+        .nav-link.active { color: var(--brand-blue); }
+        .nav-link.active::after { content: ''; position: absolute; right: 0; top: 20%; bottom: 20%; width: 4px; background: var(--brand-blue); border-radius: 4px 0 0 4px; }
+        .nav-link i { font-size: 1.2rem; }
+        .nav-link span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Mobile Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding-bottom: var(--safe-bottom); z-index: 100; box-shadow: 0 -10px 25px rgba(0,0,0,0.03); }
+        .mobile-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 0.75rem 0; color: #A3AED0; transition: all 0.2s; }
+        .mobile-link.active { color: var(--brand-blue); }
+        .mobile-link i { font-size: 1.25rem; }
+        .mobile-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        @media (min-width: 1025px) { .bottom-nav { display: none; } }
+
+        .card { background: white; border-radius: var(--card-radius); padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @media (min-width: 768px) { .card { border-radius: 2rem; padding: 2rem; } }
+        .card:hover { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04); transform: translateY(-2px); }
+        
+        .stat-card-red { background: linear-gradient(135deg, #FF6B6B 0%, #FF4D4D 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(255, 77, 77, 0.15); }
+        .stat-card-orange { background: linear-gradient(135deg, #FFD93D 0%, #FF9F0A 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(255, 159, 10, 0.15); }
+        .stat-card-purple { background: linear-gradient(135deg, #A78BFA 0%, #6366F1 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(99, 102, 241, 0.15); }
+        
+        .circle-progress { position: relative; width: 90px; height: 90px; }
+        @media (min-width: 768px) { .circle-progress { width: 100px; height: 100px; } }
+        .circle-progress svg { transform: rotate(-90deg); }
+        .circle-progress circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+        .circle-progress .bg { stroke: rgba(255,255,255,0.15); }
+        .circle-progress .bar { stroke: white; transition: stroke-dashoffset 1s ease-in-out; }
+
+        .progress-bar-container { background: #EFF4FB; border-radius: 12px; height: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 12px; transition: width 1s ease-in-out; }
+
+        .btn-action { background: #2B3674; color: white; border-radius: 1.25rem; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(43, 54, 116, 0.12); cursor: pointer; min-height: 48px; }
+        .btn-action:active { transform: scale(0.96); opacity: 0.9; }
+
+        .toast { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translate(-50%, 150%); opacity: 0; }
+        .toast.show { transform: translate(-50%, -20px); opacity: 1; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }
+    </style>
+</head>
+<body class="antialiased h-screen flex">
+
+    <!-- Auth Loading Overlay -->
+    <div id="auth-loading" class="fixed inset-0 bg-white z-[9999] flex flex-col justify-center items-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-slate-100 border-t-[#171C8F]"></div>
+        <p class="text-slate-400 font-medium text-xs mt-6 tracking-widest animate-pulse">กำลังตรวจสอบข้อมูล...</p>
+    </div>
+
+    <!-- Security Error Overlay -->
+    <div id="auth-error" class="fixed inset-0 bg-white z-[9999] hidden flex flex-col justify-center items-center p-6 text-center">
+        <div class="card p-10 max-w-sm shadow-2xl border-rose-50 border">
+            <i class="fa-solid fa-lock text-rose-500 text-4xl mb-6"></i>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">ไม่สามารถเข้าถึงได้</h2>
+            <p id="error-message" class="text-slate-400 text-sm mb-8 px-4">ระบบไม่พบสิทธิ์การใช้งานของคุณ</p>
+            <button onclick="window.location.href='./index.html'" class="w-full h-12 bg-[#2B3674] text-white rounded-2xl font-bold transition active:scale-95">กลับสู่หน้าหลัก</button>
+        </div>
+    </div>
+
+    <!-- Main Sidebar (Desktop Only) -->
+    <aside id="main-sidebar" class="sidebar flex flex-col h-full z-50">
+        <div class="p-6 flex justify-center">
+            <div class="w-12 h-12 bg-[#171C8F] rounded-2xl flex items-center justify-center shadow-lg text-white font-black text-xl italic">A</div>
+        </div>
+        <nav class="flex-1 mt-6">
+            <div onclick="switchTab('record')" id="nav-record" class="nav-link active">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>บันทึก</span>
+            </div>
+            <div onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>วิเคราะห์</span>
+            </div>
+            <div onclick="switchTab('admin-dash')" id="nav-admin-dash" class="nav-link hidden">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>ภาพรวม</span>
+            </div>
+            <div onclick="switchTab('admin')" id="nav-admin" class="nav-link hidden">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>จัดการ</span>
+            </div>
+        </nav>
+        <div class="p-8 flex flex-col items-center gap-6">
+            <button onclick="syncDataFromSheet()" class="text-[#A3AED0] hover:text-[#171C8F] transition-colors"><i class="fa-solid fa-rotate"></i></button>
+            <button id="logout-btn-desktop" class="text-rose-300 hover:text-rose-600 transition-colors"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+    </aside>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div onclick="switchTab('record')" id="mob-record" class="mobile-link active">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>บันทึก</span>
+        </div>
+        <div onclick="switchTab('dashboard')" id="mob-dashboard" class="mobile-link">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>วิเคราะห์</span>
+        </div>
+        <div onclick="switchTab('admin-dash')" id="mob-admin-dash" class="mobile-link hidden">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>ภาพรวม</span>
+        </div>
+        <div onclick="switchTab('admin')" id="mob-admin" class="mobile-link hidden">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>จัดการ</span>
+        </div>
+        <div id="logout-btn-mobile" class="mobile-link text-rose-300">
+            <i class="fa-solid fa-power-off"></i>
+            <span>ออก</span>
+        </div>
+    </nav>
+
+    <!-- App Container Wrapper -->
+    <div id="app-content" class="hidden flex flex-1 h-screen w-full overflow-hidden">
+        <main class="flex-1 h-full flex flex-col overflow-hidden relative">
+            
+            <!-- Optimized Top Bar -->
+            <header class="h-14 md:h-16 flex items-center justify-between px-6 md:px-10 bg-[#F4F7FE]/80 backdrop-blur-xl sticky top-0 z-30">
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:block">
+                        <p class="text-xs font-bold text-[#707EAE] uppercase tracking-wider mb-0.5">ระบบปฏิบัติงาน</p>
+                        <h2 class="text-base md:text-lg font-bold text-[#2B3674] tracking-tight" id="page-title">บันทึกข้อมูล</h2>
+                    </div>
+                    <div class="sm:hidden">
+                        <h2 class="text-base font-bold text-[#2B3674] tracking-tight" id="page-title-mobile">บันทึกข้อมูล</h2>
+                        <p id="header-branch-name-mobile" class="text-xs font-bold text-[#A3AED0] uppercase leading-none mt-1">...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="syncDataFromSheet()" class="sm:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm text-[#A3AED0]"><i class="fa-solid fa-rotate text-xs"></i></button>
+                    <div class="flex items-center gap-3 bg-white p-1.5 rounded-full shadow-sm border border-white/50 pr-4">
+                        <div class="flex flex-col items-end hidden sm:flex">
+                            <p id="display-username" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
+                            <p id="header-branch-name" class="text-[8px] font-bold text-[#A3AED0] uppercase tracking-widest leading-none">...</p>
+                        </div>
+                        <div class="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center shadow-inner border border-white text-[#2B3674] text-xs font-bold">AK</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Viewport -->
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 pb-24 md:pb-12">
+                
+                <!-- [VIEW] RECORD -->
+                <section id="view-record" class="fade-in space-y-6 md:space-y-8 max-w-5xl mx-auto block">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+                        <div class="lg:col-span-4 space-y-6 md:space-y-8">
+                            <div class="card p-4 md:p-5">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">วันที่ทำรายการ</label>
+                                <input type="date" id="record-date" class="w-full h-11 px-4 bg-[#F4F7FE] border-0 rounded-xl outline-none font-bold text-[#171C8F] text-base">
+                                <button id="btn-switch-branch" onclick="location.reload()" class="w-full mt-4 h-10 bg-slate-50 text-slate-400 font-bold rounded-xl hover:bg-slate-100 text-xs hidden">สลับจุดปฏิบัติงาน</button>
+                            </div>
+                            
+                            <div id="zone-2-container" class="space-y-4 hidden">
+                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest ml-4">ปริมาณงาน (Quota)</h3>
+                                <div class="grid grid-cols-1 gap-3 md:gap-4" id="volume-fields-grid"></div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-8 space-y-6 md:space-y-8">
+                            <div class="card p-5 md:p-6 border-t-[6px] border-t-rose-500">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 class="text-lg md:text-xl font-bold text-[#2B3674]">บันทึกความผิดพลาด</h3>
+                                        <p class="text-xs text-[#A3AED0] mt-0.5">ระบุเหตุการณ์ที่พบระหว่างวัน</p>
+                                    </div>
+                                    <button onclick="addErrorEntryRow()" class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shadow-md active:scale-95"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                                <div id="error-entries-container" class="space-y-4 md:space-y-6"></div>
+                            </div>
+
+                            <div class="card p-5 md:p-6 border-t-[6px] border-t-indigo-600">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 class="text-lg md:text-xl font-bold text-[#2B3674]">แผนงานสัปดาห์นี้</h3>
+                                        <p class="text-xs text-[#A3AED0] mt-0.5">ความคืบหน้าของโครงการ</p>
+                                    </div>
+                                    <button onclick="addTaskEntryRow()" class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-md active:scale-95"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                                <div id="task-entries-container" class="space-y-4 md:space-y-6"></div>
+                            </div>
+
+                            <button onclick="saveDailyRecord()" id="btn-save" class="btn-action w-full h-14 md:h-15 text-base md:text-lg shadow-xl flex justify-center items-center gap-4 italic tracking-wide">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- [VIEW] DASHBOARD -->
+                <section id="view-dashboard" class="hidden fade-in space-y-6 md:space-y-8">
+                    <!-- Metrics Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <div id="dash-team-kpi-container"></div>
+                        
+                        <div class="stat-card-red p-4 md:p-5 flex flex-col justify-between min-h-[110px] group">
+                            <p class="text-xs font-bold uppercase opacity-80">ความผิดพลาด</p>
+                            <h4 id="dash-total-errors" class="text-[var(--fluid-8xl)] font-bold tracking-tighter">0</h4>
+                            <p id="dash-err-compare" class="text-xs opacity-60 italic">ข้อมูลเรียลไทม์</p>
+                        </div>
+
+                        <div id="dash-vol-card" class="stat-card-orange p-4 md:p-5 flex flex-col justify-between min-h-[110px] group">
+                            <p class="text-xs font-bold uppercase opacity-80">ปริมาณงานรวม</p>
+                            <h4 id="dash-total-volume" class="text-[var(--fluid-8xl)] font-bold tracking-tighter">0</h4>
+                            <p id="dash-err-percent" class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded-full w-fit">อัตราผิดพลาด 0%</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8">
+                        <div class="xl:col-span-8 space-y-6 md:space-y-8">
+                            <div class="card p-6 md:p-8 bg-white border border-slate-50">
+                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-lightbulb text-indigo-400"></i> สรุปผลอัจฉริยะ</h3>
+                                <div id="dash-smart-summary" class="text-sm text-[#707EAE] space-y-4 md:space-y-6 font-medium italic leading-relaxed"></div>
+                            </div>
+                            
+                            <div class="card p-6 md:p-8">
+                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-users text-blue-400"></i> ประสิทธิภาพรายบุคคล</h3>
+                                <div id="dash-emp-breakdown" class="space-y-6 md:space-y-8 custom-scroll overflow-y-auto max-h-[400px]"></div>
+                            </div>
+
+                            <div class="card p-6 md:p-8">
+                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-history text-rose-500"></i> ประวัติเหตุการณ์</h3>
+                                <div id="dash-error-notes" class="space-y-4 md:space-y-6 custom-scroll overflow-y-auto max-h-[450px]"></div>
+                            </div>
+                        </div>
+
+                        <div class="xl:col-span-4 space-y-6 md:space-y-8">
+                            <div class="card p-6 md:p-8">
+                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6">ความคืบหน้าแผนงาน</h3>
+                                <div id="dash-weekly-tasks" class="space-y-4"></div>
+                            </div>
+
+                            <div class="card p-6 md:p-8">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest">บันทึกเพิ่มเติม</h3>
+                                    <span id="dash-customer-notes-count" class="bg-[#F4F7FE] text-[#171C8F] px-3 py-1 rounded-full text-xs font-bold">0</span>
+                                </div>
+                                <div id="dash-customer-notes" class="space-y-4 custom-scroll overflow-y-auto max-h-[400px]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- [VIEW] EXECUTIVE -->
+                <section id="view-admin-dash" class="hidden fade-in space-y-6 md:space-y-8">
+                    <div class="card p-8 md:p-10 relative overflow-hidden">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-bold text-[#2B3674] tracking-tight">สรุปภาพรวมผู้บริหาร</h2>
+                                <p class="text-xs text-[#A3AED0] font-bold mt-1">วิเคราะห์ประสิทธิภาพรายเดือนระดับองค์กร</p>
+                            </div>
+                            <button onclick="exportAdminDataCSV()" class="btn-action px-8 h-12 flex items-center gap-3 text-xs">
+                                <i class="fa-solid fa-file-export text-lg"></i> ส่งออกข้อมูล (CSV)
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 bg-[#F4F7FE] p-6 md:p-8 rounded-3xl relative z-10 shadow-inner">
+                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">เลือกเดือน</label><input type="month" id="admin-dash-month" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#171C8F] text-base outline-none shadow-sm"></div>
+                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">สาขา</label><select id="admin-dash-branch" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#2B3674] text-sm outline-none shadow-sm" onchange="populateAdminEmpFilter(); renderAdminDashboard()"><option value="ALL">ทุกสาขา</option><option value="AKRA">คลัง AKRA</option><option value="TRD">หน้าร้าน TRD</option></select></div>
+                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">พนักงาน</label><select id="admin-dash-emp" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#2B3674] text-sm outline-none shadow-sm" onchange="renderAdminDashboard()"><option value="ALL">ทุกคน</option></select></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-center">
+                        <div class="card p-6 md:p-8 flex flex-col justify-center border-l-[12px] border-l-rose-500">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">ความผิดพลาดสะสม (Global)</p>
+                            <h4 class="text-5xl md:text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-err">0</h4>
+                        </div>
+                        <div class="card p-6 md:p-8 flex flex-col justify-center border-l-[12px] border-l-blue-600">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">ปริมาณงานสะสม (Global)</p>
+                            <h4 class="text-5xl md:text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-vol">0</h4>
+                        </div>
+                    </div>
+                    <div class="card overflow-hidden">
+                        <div class="px-8 py-5 bg-[#F4F7FE] border-b border-slate-50 flex justify-between items-center"><span class="font-bold text-xs text-[#707EAE] uppercase tracking-wider">กระแสข้อมูลล่าสุด</span><span id="admin-log-count" class="text-xs font-bold text-[#171C8F]">0 รายการ</span></div>
+                        <div id="admin-data-log" class="p-6 md:p-8 space-y-6 max-h-[800px] overflow-y-auto custom-scroll"></div>
+                    </div>
+                </section>
+
+                <!-- [VIEW] PERSONNEL -->
+                <section id="view-admin" class="hidden fade-in space-y-8 max-w-6xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div class="lg:col-span-5 card p-8 md:p-10 relative overflow-hidden group border-t-[12px] border-t-[#171C8F]">
+                            <h2 class="text-xl md:text-2xl font-bold text-[#2B3674] mb-8 tracking-tight">ลงทะเบียนบุคลากร</h2>
+                            <div class="space-y-6">
+                                <div class="space-y-2"><label class="text-xs font-bold text-slate-400 uppercase ml-2">รหัสพนักงาน (UID)</label><input type="text" id="admin-input-uid" class="w-full h-13 px-5 bg-[#F4F7FE] rounded-2xl outline-none font-bold text-[#171C8F] text-xl shadow-inner uppercase tracking-tighter" placeholder="UID-X"></div>
+                                <div class="space-y-2"><label class="text-xs font-bold text-slate-400 uppercase ml-2">ชื่อเรียก (Name)</label><input type="text" id="admin-input-name" class="w-full h-13 px-5 bg-[#F4F7FE] rounded-2xl outline-none font-bold text-[#2B3674] text-xl shadow-inner" placeholder="ชื่อเล่นหรือชื่อจริง"></div>
+                                <div class="pt-4"><label class="text-xs font-bold text-slate-400 uppercase text-center block mb-6 italic">สังกัดหน่วยงาน</label><div class="grid grid-cols-2 gap-4"><label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-8 rounded-[2rem] active:scale-95 transition-all"><input type="checkbox" id="admin-input-branch-akra" value="AKRA" class="rounded-lg text-[#171C8F]"><span class="text-xs font-bold text-slate-500 uppercase">AKRA HUB</span></label><label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-8 rounded-[2rem] active:scale-95 transition-all"><input type="checkbox" id="admin-input-branch-trd" value="TRD" class="rounded-lg text-[#171C8F]"><span class="text-xs font-bold text-slate-500 uppercase">TRD NODE</span></label></div></div>
+                                <div class="pt-8 flex flex-col gap-4"><button onclick="saveEmployeeFromAdmin()" id="btn-submit-emp" class="btn-action w-full h-14 text-lg italic tracking-wider"><i class="fa-solid fa-plus-circle mr-3"></i> บันทึกข้อมูลลงทะเบียน</button><button onclick="cancelEditAdminEmp()" id="btn-cancel-emp" class="hidden w-full h-12 bg-slate-50 text-slate-300 font-bold rounded-xl text-xs">ยกเลิก</button></div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-7 flex flex-col h-full gap-8">
+                            <div class="card p-8 md:p-10 flex-1 shadow-lg min-h-[600px] flex flex-col border-t-[12px] border-t-indigo-600">
+                                <div class="flex justify-between items-center mb-8"><div><h3 class="text-3xl font-bold text-[#2B3674] tracking-tighter uppercase">ทำเนียบพนักงาน</h3></div><span id="admin-emp-count" class="bg-[#F4F7FE] text-[#171C8F] px-6 py-2 rounded-full font-black text-2xl italic shadow-inner">0</span></div>
+                                <div id="admin-employee-list" class="space-y-4 overflow-y-auto custom-scroll flex-grow pr-2"></div>
+                            </div>
+                            <button onclick="saveAdminConfig()" class="w-full h-14 bg-[#1B2559] text-white font-bold rounded-2xl shadow-xl active:scale-95 tracking-wide italic"><i class="fa-solid fa-save mr-3 opacity-30"></i> บันทึกโครงสร้างระบบถาวร</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- UI Notification Hub -->
+            <div id="toast" class="toast fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-[#1B2559]/95 backdrop-blur-xl text-white px-10 py-5 rounded-full shadow-2xl flex items-center gap-5 min-w-[300px] border border-white/10">
+                <div class="p-2.5 bg-emerald-500 rounded-full"><i class="fa-solid fa-check text-xs"></i></div>
+                <span id="toast-msg" class="text-xs font-bold uppercase tracking-wide">สำเร็จ</span>
+            </div>
+
+            <div id="custom-modal" class="hidden fixed inset-0 bg-indigo-900/40 z-[110] flex items-center justify-center p-6 backdrop-blur-xl transition-opacity duration-300">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 p-8 text-center" id="custom-modal-content">
+                    <div id="custom-modal-icon" class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl bg-slate-50 text-[#171C8F]"></div>
+                    <h3 id="custom-modal-title" class="text-xl font-bold text-[#2B3674] mb-3">แจ้งเตือน</h3>
+                    <p id="custom-modal-text" class="text-slate-400 mb-8 text-xs italic px-2"></p>
+                    <div id="custom-modal-actions" class="flex flex-col gap-3"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- UI Logic Controller -->
+    <script>
+        const CURRENT_APP_NAME = "KPITRACKER"; 
+
+        // [Logic Base] - Configuration & Master Data
+        let GLOBAL_CONFIG_LIST = [
+            { uid: "250013", name: "เฉิน", branches: "AKRA,TRD" }, { uid: "hhsawyer", name: "Herehorr", branches: "AKRA,TRD" }, { uid: "stamp111", name: "Stamp", branches: "AKRA,TRD" },
+            { uid: "250007", name: "หยอง", branches: "AKRA" }, { uid: "250022", name: "บรรเลง", branches: "AKRA" }, { uid: "250025", name: "พุช", branches: "AKRA" },
+            { uid: "250005", name: "ท็อป", branches: "TRD" }, { uid: "250019", name: "เปา", branches: "TRD" }, { uid: "250020", name: "หมี", branches: "TRD" },
+            { uid: "250008", name: "น้องใหม่", branches: "TRD" }, { uid: "250024", name: "บอย", branches: "TRD" }, { uid: "250027", name: "เจมส์", branches: "TRD" },
+            { uid: "250023", name: "มะปราง", branches: "TRD" }, { uid: "250028", name: "แสน", branches: "TRD" }, { uid: "250010", name: "เอี้ยง", branches: "TRD" }
+        ]; 
+
+        let BRANCH_CONFIG = {
+            "AKRA": { employees: [], showZone2: true, errorTypes: [{ group: "หมวดหมู่หลัก", options: ["แก้ไขได้ก่อนจัดส่ง", "ส่งถึงหน้าร้านแล้ว", "ส่งถึงลูกค้าแล้ว", "ผิดพลาดในการรับลงสินค้า", "สินค้าขาดสต๊อก", "ความผิดอื่น ๆ"] }] },
+            "TRD": { employees: [], showZone2: false, errorTypes: [
+                { group: "1. หน้าร้าน / ในร้าน", options: ["จัดบิลผิด", "หยิบของผิด", "จำนวนไม่ครบ", "ลูกค้ารอสินค้านานเกิน 15 นาที", "ปล่อยของผิดถึงลูกค้า (Checker)", "ไม่ช่วยใส่ถุง", "ไม่แนะนำสินค้า", "ไม่เดินดูแลลูกค้าเดินช้อป", "บริการไม่สุภาพ", "ปล่อยชั้นวางว่าง (เรียงของเติม)"] },
+                { group: "2. แคชเชียร์/แอดมิน", options: ["คิดเงินทอนเงินผิด", "ตอบแชทช้า", "ให้ข้อมูลสินค้าผิด", "เปิดบิลผิด", "คิดเงินพลาด", "ของหมดไม่แจ้ง (เห็นผ่านหน้าระบบ)"] },
+                { group: "3. คลังหน้าร้าน", options: ["สต๊อคสินค้าไม่พอใช้", "ของหมดไม่แจ้ง"] },
+                { group: "4. อื่น ๆ", options: ["ความผิดอื่น ๆ"] }
+            ]}
+        };
+
+        const HP_PENALTY = {
+            'แก้ไขได้ก่อนจัดส่ง': 5, 'ผิดพลาดในการรับลงสินค้า': 10, 'ส่งถึงหน้าร้านแล้ว': 15, 'ส่งถึงลูกค้าแล้ว': 30, 'สินค้าขาดสต๊อก': 10,
+            'จัดบิลผิด': 5, 'หยิบของผิด': 5, 'จำนวนไม่ครบ': 5, 'ลูกค้ารอสินค้านานเกิน 15 นาที': 10, 'ปล่อยของผิดถึงลูกค้า (Checker)': 30,
+            'คิดเงินทอนเงินผิด': 15, 'ตอบแชทช้า': 10, 'ให้ข้อมูลสินค้าผิด': 5, 'เปิดบิลผิด': 10, 'คิดเงินพลาด': 15, 'ของหมดไม่แจ้ง (เห็นผ่านหน้าระบบ)': 5,
+            'ไม่ช่วยใส่ถุง': 5, 'ไม่แนะนำสินค้า': 5, 'ไม่เดินดูแลลูกค้าเดินช้อป': 5, 'บริการไม่สุภาพ': 20, 'ปล่อยชั้นวางว่าง (เรียงของเติม)': 10,
+            'สต๊อคสินค้าไม่พอใช้': 10, 'ของหมดไม่แจ้ง': 10
+        };
+
+        function refreshConfigsFromList() {
+            BRANCH_CONFIG.AKRA.employees = GLOBAL_CONFIG_LIST.filter(e => e.branches.includes('AKRA')).map(e => e.name);
+            BRANCH_CONFIG.TRD.employees = GLOBAL_CONFIG_LIST.filter(e => e.branches.includes('TRD')).map(e => e.name);
+        }
+
+        // [Logic] Security Node Controller (AuthGuard)
+        var APP_CONFIG = { PORTAL_URL: "./index.html", STORAGE_KEY: "akra_kpi_session_token" };
+        var AuthGuard = {
+            init: async () => {
+                const loadingEl = document.getElementById('auth-loading');
+                if(loadingEl) loadingEl.classList.remove('hidden');
+                try {
+                    const localConfig = localStorage.getItem('kpi_local_config');
+                    if (localConfig) { try { GLOBAL_CONFIG_LIST = JSON.parse(localConfig); } catch(e) {} }
+                    refreshConfigsFromList();
+                    
+                    const urlParams = new URLSearchParams(window.location.search), ssoToken = urlParams.get('sso');
+                    if (ssoToken) {
+                        const data = await AKRA_API.login(ssoToken);
+                        if (data && data.status === 'success') {
+                            const userMap = { name: data.user.name, id: data.user.id, roles: data.user.roles };
+                            localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify(userMap));
+                            localStorage.setItem('akra_user_data', JSON.stringify(userMap));
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            AuthGuard.startApp(data.user); return;
+                        }
+                    }
+                    
+                    const cached = localStorage.getItem(APP_CONFIG.STORAGE_KEY) || localStorage.getItem('akra_user_data');
+                    if (!cached) { window.location.href = APP_CONFIG.PORTAL_URL; return; }
+                    AuthGuard.startApp(JSON.parse(cached));
+                } catch (error) { 
+                    console.error("Critical Auth Hub Failure:", error);
+                    if(loadingEl) loadingEl.classList.add('hidden'); 
+                    const errEl = document.getElementById('auth-error');
+                    if(errEl) errEl.classList.remove('hidden'); 
+                }
+            },
+            startApp: (user) => {
+                if (!user) throw new Error("Null User Packet");
+                window.currentUserId = String(user.id || user.username || "").toLowerCase().trim();
+                window.currentUserName = String(user.name || "").trim();
+                window.currentRoles = Array.isArray(user.roles) ? user.roles : [];
+                
+                const loadingEl = document.getElementById('auth-loading'); if(loadingEl) loadingEl.classList.add('hidden'); 
+                const appContent = document.getElementById('app-content'); if(appContent) appContent.classList.remove('hidden');
+                
+                const nameDisplay = document.getElementById('display-username'); if(nameDisplay) nameDisplay.innerText = window.currentUserName || "ผู้ใช้งาน";
+                const dateInput = document.getElementById('record-date'); if(dateInput) dateInput.valueAsDate = new Date();
+                
+                window.IS_ADMIN = window.currentRoles.some(r => String(r).toUpperCase() === 'ADMIN');
+                if(window.IS_ADMIN) { 
+                    ['nav-admin', 'nav-admin-dash', 'mob-admin', 'mob-admin-dash'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }); 
+                    renderAdminPanel(); syncAllBranchesForAdmin(); 
+                }
+                
+                applyRolePermissions(); 
+                AuthGuard.bindEvents(); 
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+            bindEvents: () => {
+                const term = () => { localStorage.removeItem(APP_CONFIG.STORAGE_KEY); window.location.href = APP_CONFIG.PORTAL_URL; };
+                const btnD = document.getElementById('logout-btn-desktop'); if(btnD) btnD.onclick = term;
+                const btnM = document.getElementById('logout-btn-mobile'); if(btnM) btnM.onclick = term;
+            }
+        };
+
+        const PORTAL_URL = APP_CONFIG.PORTAL_URL;
+        let currentBranch = sessionStorage.getItem('active_branch') || "", viewOffsetWeek = 0;
+
+        // [Logic] UI Control
+        function switchTab(tab) { 
+            ['record', 'dashboard', 'admin-dash', 'admin'].forEach(v => { 
+                const el = document.getElementById('view-' + v); if(el) el.classList.add('hidden'); 
+                const nav = document.getElementById('nav-' + v); if(nav) nav.classList.remove('active');
+                const mob = document.getElementById('mob-' + v); if(mob) mob.classList.remove('active');
+            }); 
+            const target = document.getElementById('view-' + tab); if(target) target.classList.remove('hidden'); 
+            const nav = document.getElementById('nav-' + tab); if(nav) nav.classList.add('active'); 
+            const mob = document.getElementById('mob-' + tab); if(mob) mob.classList.add('active'); 
+            
+            const titles = { 'record': 'บันทึกข้อมูลหน้างาน', 'dashboard': 'วิเคราะห์ประสิทธิภาพทีม', 'admin-dash': 'สรุปข้อมูลผู้บริหาร', 'admin': 'จัดการรายชื่อบุคลากร' };
+            const pageTitle = document.getElementById('page-title'); if(pageTitle) pageTitle.innerText = titles[tab] || 'ระบบ KPI';
+            const pageTitleM = document.getElementById('page-title-mobile'); if(pageTitleM) pageTitleM.innerText = titles[tab] || 'ระบบ KPI';
+
+            if(tab === 'dashboard') loadDashboardData(); 
+            else if (tab === 'admin-dash') renderAdminDashboard(); 
+            else if (tab === 'admin') renderAdminPanel(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+
+        // [Logic] Business Rules & Utils
+        function formatDisplayDate(dateStr) { if (!dateStr) return ""; let cleanStr = String(dateStr).split('T')[0]; if (cleanStr.includes('-')) { const [y, m, d] = cleanStr.split('-'); return `${d}/${m}/${y.substring(2)}`; } return cleanStr; }
+        function normalizeEmpName(name) { let n = (name || "").trim(); return n === "บันเลง" ? "บรรเลง" : n; }
+        function getStartOfWeek(d) { d = new Date(d); var day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
+
+        function applyRolePermissions() {
+            let perms = []; 
+            const upperRoles = (window.currentRoles || []).map(r => String(r).toUpperCase());
+            if (upperRoles.includes('ADMIN')) { perms = ['AKRA', 'TRD']; } 
+            else {
+                const staff = GLOBAL_CONFIG_LIST.find(e => 
+                    (window.currentUserId && String(e.uid).toLowerCase().trim() === window.currentUserId) || 
+                    (window.currentUserName && String(e.name).trim() === window.currentUserName)
+                );
+                if (staff && staff.branches) perms = staff.branches.split(',').map(b => b.trim());
+            }
+            if (perms.length === 0) { 
+                const authErr = document.getElementById('auth-error'); if(authErr) authErr.classList.remove('hidden'); 
+                const errMsg = document.getElementById('error-message'); if(errMsg) errMsg.innerText = `ตรวจพบสิทธิ์ไม่ถูกต้อง (User: ${window.currentUserName || 'ไม่ระบุ'})\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อลงทะเบียน`; 
+                return; 
+            }
+            if (currentBranch && perms.includes(currentBranch)) initApp(currentBranch, perms);
+            else selectBranch(perms[0], perms);
+        }
+
+        function selectBranch(branch, perms) { currentBranch = branch; sessionStorage.setItem('active_branch', branch); initApp(branch, perms); }
+
+        function showModal(title, message, type = 'alert', onConfirm = null) {
+            const modal = document.getElementById('custom-modal'), iconEl = document.getElementById('custom-modal-icon'), titleEl = document.getElementById('custom-modal-title'), textEl = document.getElementById('custom-modal-text'), actionsEl = document.getElementById('custom-modal-actions');
+            if(!modal) return;
+            titleEl.innerText = title; textEl.innerHTML = message;
+            const closeModal = () => { document.getElementById('custom-modal-content').classList.replace('scale-100', 'scale-95'); setTimeout(() => modal.classList.add('hidden'), 200); };
+            modal.classList.remove('hidden'); setTimeout(() => document.getElementById('custom-modal-content').classList.replace('scale-95', 'scale-100'), 10);
+            if (type === 'alert') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-indigo-50 text-[#171C8F] shadow-xl"; iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-3xl"></i>'; actionsEl.innerHTML = `<button id="modal-btn-ok" class="btn-action w-full h-14 rounded-2xl active:scale-95 transition-all text-sm font-bold">ตกลง</button>`; document.getElementById('modal-btn-ok').onclick = closeModal; }
+            else if (type === 'confirm') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-rose-50 text-rose-500 shadow-xl"; iconEl.innerHTML = '<i class="fa-solid fa-question text-3xl"></i>'; actionsEl.innerHTML = `<button id="modal-btn-confirm" class="btn-action w-full h-14 rounded-2xl active:scale-95 transition-all text-sm font-bold">ยืนยัน</button><button id="modal-btn-cancel" class="w-full h-14 bg-slate-50 text-slate-400 font-bold rounded-2xl active:scale-95 transition-all text-sm">ยกเลิก</button>`; document.getElementById('modal-btn-cancel').onclick = closeModal; document.getElementById('modal-btn-confirm').onclick = () => { closeModal(); if(onConfirm) onConfirm(); }; }
+        }
+
+        function showToast(message, isError = false) { const toast = document.getElementById('toast'); if(!toast) return; document.getElementById('toast-msg').innerText = message; toast.querySelector('.p-2.5').className = isError ? 'p-2.5 bg-rose-500 rounded-full shadow-lg' : 'p-2.5 bg-emerald-500 rounded-full shadow-lg'; toast.querySelector('i').className = isError ? 'fa-solid fa-xmark text-xs' : 'fa-solid fa-check text-xs'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+
+        async function syncDataFromSheet() { if(!currentBranch) return; try { const res = await AKRA_API.call('getKPIHistory'); if (res.success && res.history) { localStorage.setItem('kpiData_' + currentBranch, JSON.stringify(res.history.filter(h => h.branch === currentBranch))); if(!document.getElementById('view-dashboard').classList.contains('hidden')) loadDashboardData(); else if (!document.getElementById('view-admin-dash').classList.contains('hidden')) renderAdminDashboard(); else loadTasksForSelectedDate(); showToast("ซิงค์ข้อมูล Cloud สำเร็จ"); } } catch (error) { showToast("ทำงานในโหมด Offline", true); } }
+
+        function initApp(branch, perms) {
+            const hNode = document.getElementById('header-branch-name'); if(hNode) hNode.innerText = `จุดปฏิบัติงาน: ${branch}`; 
+            const hNodeM = document.getElementById('header-branch-name-mobile'); if(hNodeM) hNodeM.innerText = `หน่วยงาน: ${branch}`; 
+            const swBtn = document.getElementById('btn-switch-branch'); if(swBtn && perms.length > 1) swBtn.classList.remove('hidden');
+            const z2 = document.getElementById('zone-2-container'); if(z2) z2.classList.toggle('hidden', !BRANCH_CONFIG[branch].showZone2);
+            const vCard = document.getElementById('dash-vol-card'); if(vCard) vCard.classList.toggle('hidden', !BRANCH_CONFIG[branch].showZone2);
+            const volGrid = document.getElementById('volume-fields-grid');
+            if(volGrid && branch === 'AKRA') {
+                volGrid.innerHTML = [['vol-transfer', 'บิลย้ายคลัง', 'Inter-WH Sync'], ['vol-pickup', 'รับสินค้าหน้าคลัง', 'Self-Pickup'], ['vol-upcountry', 'ส่งต่างจังหวัด', 'Remote Logistics'], ['vol-inmarket', 'ส่งในตลาด', 'City Alpha Zone'], ['vol-outmarket', 'ส่งนอกตลาด', 'City Beta Zone']].map(([id, label, sub]) => `
+                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-50 transition-all hover:bg-slate-50 group"><div class="min-w-0 pr-2"><p class="text-xs font-bold text-[#171C8F] leading-none mb-0.5">${label}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">${sub}</p></div><div class="flex items-center gap-2 bg-[#F4F7FE] p-1 rounded-xl border border-white/50 shadow-inner group-hover:bg-white transition-all"><button onclick="adjVol('${id}', -1)" class="w-8 h-8 rounded-xl bg-white border border-slate-100 text-slate-300 hover:text-rose-500 transition-all shadow-sm active:scale-90"><i class="fa-solid fa-minus text-[10px]"></i></button><input type="number" id="${id}" value="0" class="w-10 text-center font-bold text-[#171C8F] bg-transparent outline-none text-lg tracking-tighter italic"><button onclick="adjVol('${id}', 1)" class="w-8 h-8 rounded-xl bg-white border border-slate-100 text-[#171C8F] transition-all shadow-sm active:scale-90"><i class="fa-solid fa-plus text-[10px]"></i></button></div></div>`).join('');
+            }
+            const errCont = document.getElementById('error-entries-container'); if(errCont) errCont.innerHTML = ''; 
+            addErrorEntryRow(); loadTasksForSelectedDate(); syncDataFromSheet();
+        }
+
+        function adjVol(id, val) { let el = document.getElementById(id); if(el) el.value = Math.max(0, (parseInt(el.value) || 0) + val); }
+
+        function addErrorEntryRow() {
+            const container = document.getElementById('error-entries-container'); if(!container) return;
+            const rowId = Date.now() + Math.floor(Math.random() * 1000), emps = BRANCH_CONFIG[currentBranch].employees;
+            const empsHtml = `<div class="flex flex-wrap gap-2.5 mt-3">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="emp-${rowId}-${i}" value="${emp}" class="hidden peer err-emp-cb"><label for="emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border-2 border-transparent rounded-xl px-4 py-2.5 text-xs font-bold text-[#707EAE] cursor-pointer peer-checked:bg-[#171C8F] peer-checked:text-white peer-checked:shadow-xl peer-checked:shadow-indigo-900/30 hover:bg-white hover:border-indigo-50 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
+            const row = document.createElement('div'); row.className = "p-6 md:p-8 bg-slate-50/50 border-2 border-slate-100 rounded-3xl relative animate-fade-in group shadow-sm transition-all hover:bg-white";
+            row.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-200 hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button><div class="mb-6 pr-10"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2 italic leading-none">ระบุตัวผู้รับผิดชอบ</label>${empsHtml}</div><div class="border-t border-slate-100 pt-6 space-y-6"><div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">ประเภทความผิดพลาด</label><select class="err-type w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-[#2B3674] outline-none cursor-pointer italic shadow-inner">${getErrorTypeOptionsHtml(currentBranch)}</select></div>${currentBranch === 'TRD' ? `<div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">จุดที่ตรวจพบ</label><select class="err-stage w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-orange-500 outline-none cursor-pointer shadow-inner"><option value="ถึงลูกค้าแล้ว">🚨 ถึงมือลูกค้าแล้ว</option><option value="แก้ไขได้ก่อนส่ง">🛡️ ตรวจเจอและแก้ไขทัน</option></select></div>` : ''}<div class="penalty-container hidden space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">ระดับบทลงโทษ</label><select class="err-penalty w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-rose-500 outline-none cursor-pointer shadow-inner"><option value="5">-5 HP (เบามาก)</option><option value="10">-10 HP (มาตรฐาน)</option><option value="15">-15 HP (รุนแรง)</option><option value="30">-30 HP (ร้ายแรง)</option></select></div><div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">รายละเอียดเพิ่มเติม</label><input type="text" class="err-note w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-[#2B3674] outline-none placeholder:text-slate-200 shadow-inner italic" placeholder="ระบุรายละเอียดเหตุการณ์..."></div></div>`;
+            container.appendChild(row); const select = row.querySelector('.err-type'); select.onchange = () => { row.querySelector('.penalty-container').classList.toggle('hidden', select.value !== 'ความผิดอื่น ๆ'); };
+        }
+
+        function getErrorTypeOptionsHtml(branch) { return BRANCH_CONFIG[branch].errorTypes.map(g => (g.group === "หมวดหมู่หลัก" ? "" : `<optgroup label="${g.group}" class="font-bold text-xs text-[#A3AED0]">`) + g.options.map(opt => `<option value="${opt}" class="text-sm font-bold">${opt}</option>`).join('') + (g.group === "หมวดหมู่หลัก" ? "" : `</optgroup>`)).join(''); }
+
+        function addTaskEntryRow(name = "", status = "ยังไม่เริ่ม", assignee = "") {
+            const container = document.getElementById('task-entries-container'); if(!container) return;
+            const rowId = 'task-' + Date.now(), emps = BRANCH_CONFIG[currentBranch].employees, assigneeArray = assignee ? assignee.split(',').map(a => a.trim()) : [];
+            const empsHtml = `<div class="flex flex-wrap gap-2.5 mt-4">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="task-emp-${rowId}-${i}" value="${emp}" class="hidden peer task-emp-cb" ${assigneeArray.includes(emp) ? 'checked' : ''}><label for="task-emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border-2 border-transparent rounded-xl px-5 py-2.5 text-xs font-bold text-[#707EAE] cursor-pointer peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-xl peer-checked:shadow-indigo-600/30 hover:bg-white hover:border-indigo-50 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
+            const row = document.createElement('div'); row.className = "p-6 md:p-8 bg-slate-50/50 border-2 border-slate-100 rounded-3xl relative animate-fade-in group shadow-sm transition-all hover:bg-white";
+            row.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-200 hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button><div class="space-y-3 mb-6"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">ชื่อแผนงาน</label><input type="text" class="task-name w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-base font-bold text-[#2B3674] outline-none shadow-inner" placeholder="ระบุสิ่งที่ต้องการทำ..." value="${name}"></div><div class="mb-8"><label class="text-xs font-bold text-slate-300 uppercase ml-3 block mb-2 leading-none italic">ผู้รับผิดชอบ</label>${empsHtml}</div><div class="space-y-3"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none italic">สถานะความคืบหน้า</label><select class="task-status w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-xs font-bold text-[#707EAE] outline-none cursor-pointer shadow-inner"><option value="ยังไม่เริ่ม" ${status==='ยังไม่เริ่ม'?'selected':''}>⚪ Standby (ยังไม่เริ่ม)</option><option value="กำลังทำ" ${status==='กำลังทำ'?'selected':''}>🔵 Active (กำลังทำ)</option><option value="เสร็จแล้ว" ${status==='เสร็จแล้ว'?'selected':''}>🟢 Finalized (สำเร็จ)</option></select></div>`;
+            container.appendChild(row);
+        }
+
+        async function saveDailyRecord() {
+            const btn = document.getElementById('btn-save'), dateInput = document.getElementById('record-date');
+            if(!dateInput || !dateInput.value) return showToast("กรุณาระบุวันที่ทำรายการ", true);
+            const date = dateInput.value;
+            let errors = []; document.querySelectorAll('#error-entries-container > div').forEach(entry => {
+                const checked = entry.querySelectorAll('.err-emp-cb:checked'), type = entry.querySelector('.err-type')?.value;
+                let note = entry.querySelector('.err-note')?.value; if(!type || !note) return;
+                const stage = entry.querySelector('.err-stage')?.value;
+                if (type === 'ความผิดอื่น ๆ') note = `[หัก ${entry.querySelector('.err-penalty').value} HP] ${note}`;
+                if (stage) note = `[${stage}] ${note}`; if (checked.length > 0 && note.trim()) checked.forEach(cb => errors.push({ employee_id: cb.value, error_type: type, note: note }));
+            });
+            let tasks = []; document.querySelectorAll('#task-entries-container > div').forEach(entry => {
+                const name = entry.querySelector('.task-name')?.value.trim(), checked = Array.from(entry.querySelectorAll('.task-emp-cb:checked')).map(cb => cb.value);
+                if (name) tasks.push({ task_name: name, status: entry.querySelector('.task-status').value, assignees: checked });
+            });
+            let vols = { vol_transfer: 0, vol_pickup: 0, vol_upcountry: 0, vol_inmarket: 0, vol_outmarket: 0 };
+            if (BRANCH_CONFIG[currentBranch].showZone2) {
+                ['transfer','pickup','upcountry','inmarket','outmarket'].forEach(k => { const el = document.getElementById('vol-'+k); if(el) vols['vol_'+k] = parseInt(el.value) || 0; });
+            }
+            if(!btn) return;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-sync fa-spin mr-3"></i> กำลังบันทึก...';
+            try { const res = await AKRA_API.call('submitKPI', { record: { branch: currentBranch, date: date, customer_notes: '', ...vols }, errors: errors, tasks: tasks }); if (res.success) { showToast("บันทึกข้อมูลสำเร็จ"); const ec = document.getElementById('error-entries-container'); if(ec) ec.innerHTML = ''; addErrorEntryRow(); if (BRANCH_CONFIG[currentBranch].showZone2) { ['transfer','pickup','upcountry','inmarket','outmarket'].forEach(k => { const el = document.getElementById('vol-'+k); if(el) el.value = '0'; }); } } else throw new Error(res.message); } catch(e) { showToast(e.message, true); } 
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-lg mr-3"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ'; }
+        }
+
+        function loadDashboardData() {
+            const rawData = JSON.parse(localStorage.getItem('kpiData_' + currentBranch) || '[]');
+            const start = getStartOfWeek(new Date()); start.setDate(start.getDate() + (viewOffsetWeek * 7));
+            const end = new Date(start); end.setDate(end.getDate() + 6);
+            const weekLbl = document.getElementById('dash-week-label'); if(weekLbl) weekLbl.innerText = viewOffsetWeek === 0 ? "สัปดาห์นี้" : (viewOffsetWeek === -1 ? "สัปดาห์ก่อน" : "ประวัติย้อนหลัง");
+            const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}/${String(d.getFullYear()).substring(2)}`;
+            const dRange = document.getElementById('dash-date-range'); if(dRange) dRange.innerText = `${fmt(start)} — ${fmt(end)}`;
+            let data = rawData.filter(d => { const id = new Date(d.date); return id >= start && id <= end; });
+            let totalVol = 0, totalErr = 0, lostHP = 0, empErrMap = {}, empHP = {}, categorized = {}, tasks = {};
+            BRANCH_CONFIG[currentBranch].employees.forEach(e => { empErrMap[e] = 0; empHP[e] = 100; categorized[e] = {}; });
+            data.forEach(day => {
+                totalVol += ((day.vol_transfer||0) + (day.vol_pickup||0) + (day.vol_upcountry||0) + (day.vol_inmarket||0) + (day.vol_outmarket||0));
+                totalErr += (day.error_logs || []).length;
+                (day.error_logs || []).forEach(e => {
+                    let name = normalizeEmpName(e.employee_id); if(empErrMap[name] === undefined) { empErrMap[name] = 0; empHP[name] = 100; categorized[name] = {}; }
+                    empErrMap[name]++; if(!categorized[name][e.error_type]) categorized[name][e.error_type] = [];
+                    let p = HP_PENALTY[e.error_type] || 10; if (e.note.includes('[ถึงลูกค้าแล้ว]')) p = 30; else if (e.note.includes('[แก้ไขได้ก่อนส่ง]')) p = 5;
+                    lostHP += p; empHP[name] -= p; categorized[name][e.error_type].push({ note: e.note, date: day.date });
+                });
+                if(day.tasks) day.tasks.forEach(t => tasks[t.task_name] = { status: t.status, assignee: Array.isArray(t.assignees) ? t.assignees.join(', ') : t.assignees });
+            });
+            let startHP = BRANCH_CONFIG[currentBranch].employees.length * 100, currentHP = Math.max(0, startHP - lostHP), pct = startHP > 0 ? Math.round((currentHP / startHP) * 100) : 0;
+            let grade = 'F'; if (pct === 100) grade = 'S'; else if (pct >= 90) grade = 'A'; else if (pct >= 75) grade = 'B'; else if (pct >= 60) grade = 'C';
+            
+            const dashKpi = document.getElementById('dash-team-kpi-container');
+            if(dashKpi) {
+                dashKpi.innerHTML = `
+                <div class="stat-card-purple p-4 md:p-5 flex items-center gap-4 relative overflow-hidden group shadow-xl min-h-[110px]">
+                    <div class="circle-progress flex items-center justify-center relative z-10 shrink-0">
+                        <svg width="90" height="90" viewBox="0 0 140 140"><circle class="bg" cx="70" cy="70" r="58"/><circle class="bar" cx="70" cy="70" r="58" style="stroke-dasharray: 364; stroke-dashoffset: ${364 - (364 * pct / 100)}"/></svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center transition-transform group-hover:scale-110">
+                            <span class="text-2xl md:text-3xl font-black leading-none italic">${grade}</span>
+                            <span class="text-[7px] font-bold uppercase opacity-60">Team Grade</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative z-10">
+                        <p class="text-xs font-bold uppercase opacity-80 mb-1 leading-none">ความสมบูรณ์ทีม</p>
+                        <h4 class="text-2xl md:text-3xl font-black tracking-tighter leading-none">${pct}%</h4>
+                        <div class="mt-3 flex flex-col gap-1">
+                            <span class="text-[10px] font-bold opacity-60 leading-none italic">${currentHP} / ${startHP} HP</span>
+                            <div class="w-full h-1 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full transition-all duration-1000" style="width: ${pct}%"></div></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            const tErr = document.getElementById('dash-total-errors'); if(tErr) tErr.innerText = totalErr; 
+            const tVol = document.getElementById('dash-total-volume'); if(tVol) tVol.innerText = totalVol; 
+            const tPct = document.getElementById('dash-err-percent'); if(tPct) tPct.innerText = totalVol > 0 ? 'อัตราผิดพลาด ' + ((totalErr / totalVol) * 100).toFixed(1) + '%' : 'ดีเยี่ยม 100%';
+            
+            let tHtml = ''; for (const [name, d] of Object.entries(tasks)) { 
+                let b_c = d.status === 'เสร็จแล้ว' ? 'bg-emerald-500' : (d.status === 'กำลังทำ' ? 'bg-blue-600 shadow-blue-500/30' : 'bg-slate-100 text-slate-400'); 
+                tHtml += `<div class="p-6 bg-[#F4F7FE]/40 rounded-2xl border border-slate-50 transition-all hover:bg-white group"><div class="flex flex-col mb-3"><p class="text-sm font-bold text-[#2B3674] tracking-tight truncate mb-1 italic group-hover:text-[#171C8F] transition-colors">${name}</p><p class="text-xs font-bold text-slate-400 uppercase truncate">${d.assignee}</p></div><div class="flex justify-between items-center"><span class="text-[8px] font-bold px-3 py-1.5 rounded-xl shadow-lg ${b_c} text-white leading-none">${d.status}</span><i class="fa-solid fa-chevron-right text-slate-100 group-hover:text-indigo-100 transition-colors"></i></div></div>`; 
+            }
+            const dashTasks = document.getElementById('dash-weekly-tasks'); if(dashTasks) dashTasks.innerHTML = tHtml || '<p class="text-center text-slate-200 py-10 font-bold uppercase text-xs italic">ไม่มีข้อมูล</p>';
+            
+            let eHtml = ''; BRANCH_CONFIG[currentBranch].employees.sort((a,b) => (empErrMap[b]||0) - (empErrMap[a]||0)).forEach(name => { 
+                let c = empErrMap[name] || 0, p = (c / (totalErr||1)) * 100; 
+                eHtml += `<div class="group"><div class="flex justify-between items-end text-xs font-bold mb-2 uppercase tracking-tighter italic"><span class="text-[#707EAE] group-hover:text-[#171C8F] transition-colors">${name}</span><span class="${c > 0 ? 'text-rose-500' : 'text-emerald-500'}">${c} ครั้ง</span></div><div class="progress-bar-container shadow-inner"><div class="progress-bar-fill ${c > 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-emerald-500 shadow-lg shadow-emerald-500/20'}" style="width: ${c > 0 ? p : 100}%"></div></div></div>`; 
+            });
+            const dashEmp = document.getElementById('dash-emp-breakdown'); if(dashEmp) dashEmp.innerHTML = eHtml || '<p class="text-center text-slate-200 py-12 font-bold text-xs italic">ไม่พบข้อมูล</p>';
+            
+            let nHtml = ''; for (const [name, types] of Object.entries(categorized)) { 
+                if (Object.keys(types).length === 0) continue; 
+                nHtml += `<div class="bg-[#F4F7FE]/30 p-6 rounded-3xl border border-slate-50 group hover:bg-white transition-all shadow-sm mb-4"><p class="text-xs font-bold text-[#171C8F] uppercase tracking-widest mb-4 border-b border-slate-100 pb-3">${name}</p><div class="space-y-4">`; 
+                for (const [type, list] of Object.entries(types)) { 
+                    list.forEach(n => { nHtml += `<div class="flex justify-between items-start gap-4"><div class="text-xs font-medium text-[#707EAE] leading-relaxed italic">${n.note}</div><span class="text-xs font-bold text-slate-200 uppercase whitespace-nowrap mt-1 leading-none">${fmt(new Date(n.date))}</span></div>`; }); 
+                } nHtml += `</div></div>`; 
+            }
+            const dashErrNotes = document.getElementById('dash-error-notes'); if(dashErrNotes) dashErrNotes.innerHTML = nHtml || '<p class="text-center text-slate-200 py-24 font-bold text-sm italic">รักษาระดับความสมบูรณ์สำเร็จ</p>';
+            const dashSmart = document.getElementById('dash-smart-summary'); if(dashSmart) dashSmart.innerHTML = '<p class="text-xs font-bold text-slate-400 tracking-wider leading-loose italic">เชื่อมต่อฐานข้อมูล Cloud สำเร็จ ระบบวิเคราะห์อัจฉริยะพร้อมใช้งาน</p>';
+        }
+
+        async function syncAllBranchesForAdmin() { if (!window.IS_ADMIN) return; const res = await AKRA_API.call('getKPIHistory'); if (res.success && res.history) { localStorage.setItem('kpiData_AKRA', JSON.stringify(res.history.filter(h => h.branch === 'AKRA'))); localStorage.setItem('kpiData_TRD', JSON.stringify(res.history.filter(h => h.branch === 'TRD'))); } }
+        function renderAdminDashboard() {
+            if (!window.IS_ADMIN) return; 
+            const monthEl = document.getElementById('admin-dash-month'); if(!monthEl) return;
+            const m = monthEl.value, b = document.getElementById('admin-dash-branch').value, f = document.getElementById('admin-dash-emp').value;
+            let all = []; if (b === 'ALL' || b === 'AKRA') all = all.concat(JSON.parse(localStorage.getItem('kpiData_AKRA') || '[]')); if (b === 'ALL' || b === 'TRD') all = all.concat(JSON.parse(localStorage.getItem('kpiData_TRD') || '[]'));
+            let data = all.filter(d => d.date && d.date.startsWith(m)), errs = 0, vols = 0, logs = '';
+            data.forEach(day => { vols += ((day.vol_transfer||0) + (day.vol_pickup||0) + (day.vol_upcountry||0) + (day.vol_inmarket||0) + (day.vol_outmarket||0)); (day.error_logs || []).forEach(e => { if (f !== 'ALL' && e.employee_id !== f) return; errs++; logs += `<div class="bg-white border-2 border-slate-50 p-5 md:p-6 rounded-3xl shadow-sm group animate-fade-in hover:shadow-xl"><div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4"><span class="text-xs font-bold text-slate-300 uppercase italic">${formatDisplayDate(day.date)}</span><span class="text-xs font-bold text-[#171C8F] bg-[#F4F7FE] px-4 py-1.5 rounded-full uppercase italic">${day.branch} HUB</span></div><div class="flex items-start gap-6"><div class="w-12 h-12 rounded-2xl bg-[#F4F7FE] flex items-center justify-center shrink-0 border border-white group-hover:bg-[#2B3674] group-hover:text-white transition-all italic"><i class="fa-solid fa-user-tag text-lg opacity-20 group-hover:opacity-100"></i></div><div class="min-w-0 pr-4"><p class="text-base md:text-lg font-bold text-[#2B3674] tracking-tighter uppercase italic group-hover:text-[#171C8F] transition-colors">${e.employee_id}</p><p class="text-xs font-bold text-rose-500 uppercase leading-none italic">${e.error_type}</p><p class="text-xs text-[#707EAE] mt-5 font-medium leading-relaxed bg-[#F4F7FE]/50 p-6 rounded-2xl shadow-inner border border-white">${e.note}</p></div></div></div>`; }); });
+            const s_err = document.getElementById('admin-stat-err'), s_vol = document.getElementById('admin-stat-vol'); if(s_err) s_err.innerText = errs; if(s_vol) s_vol.innerText = vols;
+            const logCont = document.getElementById('admin-data-log'); if(logCont) logCont.innerHTML = logs || '<p class="text-center py-40 text-slate-200 font-bold uppercase text-lg italic italic">ไม่มีข้อมูล</p>';
+        }
+
+        let editingIndex = -1; function renderAdminPanel() { const c = document.getElementById('admin-employee-list'); if(!c) return; document.getElementById('admin-emp-count').innerText = GLOBAL_CONFIG_LIST.length; c.innerHTML = GLOBAL_CONFIG_LIST.map((e, i) => `<div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 flex justify-between items-center group hover:bg-[#F4F7FE] transition-all animate-fade-in shadow-xl shadow-indigo-900/5"><div class="min-w-0 pr-6"><p class="text-base md:text-xl font-bold text-[#2B3674] tracking-tighter uppercase truncate leading-none italic group-hover:text-[#171C8F] transition-colors">${e.name}</p><p class="text-xs font-bold text-[#A3AED0] uppercase mt-3 leading-none">UID: ${e.uid} — LINK: ${e.branches}</p></div><div class="flex gap-3 md:gap-4"><button onclick="editEmployeeFromAdmin(${i})" class="w-12 h-12 rounded-xl bg-[#F4F7FE] text-[#171C8F] hover:bg-[#171C8F] hover:text-white transition-all flex items-center justify-center active:scale-90"><i class="fa-solid fa-pen text-lg"></i></button><button onclick="removeEmployeeFromAdmin(${i})" class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center active:scale-90"><i class="fa-solid fa-trash-can text-lg"></i></button></div></div>`).join('') || '<p class="text-center py-32 text-slate-200 font-bold uppercase text-lg italic italic">ไม่มีข้อมูลพนักงาน</p>'; }
+        function editEmployeeFromAdmin(i) { editingIndex = i; const e = GLOBAL_CONFIG_LIST[i]; document.getElementById('admin-input-uid').value = e.uid; document.getElementById('admin-input-name').value = e.name; document.getElementById('admin-input-branch-akra').checked = e.branches.includes('AKRA'); document.getElementById('admin-input-branch-trd').checked = e.branches.includes('TRD'); document.getElementById('btn-submit-emp').innerHTML = '<i class="fa-solid fa-save text-2xl mr-3"></i> แก้ไขข้อมูลบุคลากร'; document.getElementById('btn-cancel-emp').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function cancelEditAdminEmp() { editingIndex = -1; ['admin-input-uid', 'admin-input-name'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); ['admin-input-branch-akra', 'admin-input-branch-trd'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; }); document.getElementById('btn-submit-emp').innerHTML = '<i class="fa-solid fa-plus-circle text-2xl mr-3"></i> ลงทะเบียนบุคลากร'; document.getElementById('btn-cancel-emp').classList.add('hidden'); }
+        function saveEmployeeFromAdmin() { const u = document.getElementById('admin-input-uid').value.trim(), n = document.getElementById('admin-input-name').value.trim(), a = document.getElementById('admin-input-branch-akra').checked, t = document.getElementById('admin-input-branch-trd').checked; if(!u || !n || (!a && !t)) return showToast("กรุณากรอกข้อมูลให้ครบถ้วน", true); let b = []; if(a) b.push("AKRA"); if(t) b.push("TRD"); const d = { uid: u, name: n, branches: b.join(",") }; if(editingIndex >= 0) GLOBAL_CONFIG_LIST[editingIndex] = d; else GLOBAL_CONFIG_LIST.push(d); showToast("ปรับปรุงทำเนียบพนักงานสำเร็จ"); cancelEditAdminEmp(); refreshConfigsFromList(); renderAdminPanel(); }
+        function removeEmployeeFromAdmin(i) { showModal("ลบพนักงาน", "คุณแน่ใจหรือไม่ที่จะลบรายชื่อพนักงานท่านนี้ออกจากการลงทะเบียน?", "confirm", () => { GLOBAL_CONFIG_LIST.splice(i, 1); refreshConfigsFromList(); renderAdminPanel(); showToast("ลบข้อมูลสำเร็จ"); }); }
+        function saveAdminConfig() { localStorage.setItem('kpi_local_config', JSON.stringify(GLOBAL_CONFIG_LIST)); showToast("บันทึกข้อมูลถาวรแล้ว"); }
+        function changeWeek(o) { viewOffsetWeek += o; if(viewOffsetWeek > 0) viewOffsetWeek = 0; document.getElementById('btn-next-week').disabled = (viewOffsetWeek === 0); loadDashboardData(); }
+        function loadTasksForSelectedDate() { const dateInput = document.getElementById('record-date'); if(!dateInput || !dateInput.value) return; const date = dateInput.value; const start = getStartOfWeek(new Date(date)), end = new Date(start); end.setDate(end.getDate() + 6); const raw = JSON.parse(localStorage.getItem('kpiData_' + currentBranch) || '[]'); let weekly = {}; raw.filter(d => { const id = new Date(d.date); return id >= start && id <= end; }).forEach(day => { if(day.tasks) day.tasks.forEach(t => weekly[t.task_name] = { status: t.status, assignee: Array.isArray(t.assignees) ? t.assignees.join(', ') : t.assignees }); }); const taskCont = document.getElementById('task-entries-container'); if(taskCont) taskCont.innerHTML = ''; let has = false; for (const [n, d] of Object.entries(weekly)) { addTaskEntryRow(n, d.status, d.assignee); has = true; } if(!has) addTaskEntryRow(); }
+        function populateAdminEmpFilter() { const branchEl = document.getElementById('admin-dash-branch'); if(!branchEl) return; const b = branchEl.value, s = document.getElementById('admin-dash-emp'); let emps = GLOBAL_CONFIG_LIST.filter(e => b === 'ALL' || e.branches.includes(b)).map(e => e.name); emps = [...new Set(emps)].sort(); if(s) s.innerHTML = '<option value="ALL">ทุกคน</option>' + emps.map(e => `<option value="${e}">${e}</option>`).join(''); }
+        function exportAdminDataCSV() { const m = document.getElementById('admin-dash-month').value, b = document.getElementById('admin-dash-branch').value, f = document.getElementById('admin-dash-emp').value; let all = []; if (b === 'ALL' || b === 'AKRA') all = all.concat(JSON.parse(localStorage.getItem('kpiData_AKRA') || '[]')); if (b === 'ALL' || b === 'TRD') all = all.concat(JSON.parse(localStorage.getItem('kpiData_TRD') || '[]')); let data = all.filter(d => d.date && d.date.startsWith(m)); let csv = "\uFEFFวันที่,หน่วยงาน,พนักงาน,หัวข้อความผิดพลาด,รายละเอียด\n"; data.forEach(day => { (day.error_logs || []).forEach(e => { if (f !== 'ALL' && e.employee_id !== f) return; csv += `"${day.date}","${day.branch}","${e.employee_id}","${e.error_type}","${e.note.replace(/"/g, '""')}"\n`; }); }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", `KPI_DATA_${m}.csv`); link.click(); }
+
+        window.addEventListener('DOMContentLoaded', AuthGuard.init);
+    </script>
+</body>
+</html>

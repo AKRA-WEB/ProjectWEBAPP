@@ -1,0 +1,15 @@
+employees: เก็บข้อมูลพนักงาน (user)
+
+daily_records: เก็บข้อมูลภาพรวมรายวัน (แยกตามสาขา)
+
+id (Primary Key), date, branch, vol_transfer, vol_pickup, vol_upcountry, vol_inmarket, vol_outmarket, customer_notes
+
+error_logs: เก็บรายการ KPI แยกเป็นรายบรรทัด
+
+id (Primary Key), record_id (Foreign Key โยงไป daily_records), employee_id, error_type, note
+
+tasks: เก็บสถานะแผนงาน
+
+id (Primary Key), record_id (Foreign Key), task_name, status, assignees (เก็บเป็น Array ก็ได้ถ้ามีหลายคน)
+
+ ที่ใช้อยู่ปัจจุบัน ข้อมูลถูกแบ่งเก็บออกเป็น 2 ส่วนหลักๆ (2 ชีท) ดังนี้ครับ  1. ชีทตั้งค่าพนักงาน (CONFIG_EMPLOYEES)ชีทนี้จะเก็บข้อมูลพื้นฐานและสิทธิ์การเข้าถึงของพนักงานทุกคนครับ  คอลัมน์ (Column)ข้อมูลที่เก็บตัวอย่าง / รูปแบบUserID/EnglishNameไอดีหรือชื่อภาษาอังกฤษ  250013, chenชื่อพนักงาน(ไทย)ชื่อสำหรับแสดงผลบนเว็บ  เฉินสาขาที่เข้าได้ (คั่นด้วยลูกน้ำ)สิทธิ์การเข้าถึงสาขา  AKRA,TRD  แผนก (สำหรับ TRD)สังกัดแผนกกรณีอยู่สาขา TRD  Admin, หน้าร้าน/ในร้าน  2. ชีทบันทึกข้อมูลรายวัน (KPITRACKER_AKRA และ KPITRACKER_TRD)ระบบจะแยกชีทเก็บข้อมูลตามสาขาที่ส่งเข้ามาแบบอัตโนมัติ (เช่น KPITRACKER_AKRA) โดยมีคอลัมน์ดังนี้:  คอลัมน์ (Column)ข้อมูลที่เก็บรูปแบบการเก็บข้อมูล (Format)Dateวันที่บันทึกรายการ  YYYY-MM-DD  Errorsรายการข้อผิดพลาด (KPI) ของพนักงาน  เก็บรวมเป็น Text และคั่นแต่ละรายการด้วย \n (ขึ้นบรรทัดใหม่) รูปแบบ: ชื่อพนักงาน | ประเภทความผิด | หมายเหตุ  Transferจำนวนบิลย้ายคลัง  ตัวเลข (Number)  Pickupจำนวนลูกค้ารับที่ร้าน  ตัวเลข (Number)  Upcountryจำนวนส่งต่างจังหวัด  ตัวเลข (Number)  InMarketจำนวนส่งในตลาด  ตัวเลข (Number)  OutMarketจำนวนส่งนอกตลาด  ตัวเลข (Number)  Customer Notesหมายเหตุข้อมูลลูกค้าจัดส่ง  ข้อความ (Text)  Tasksสถานะแผนงานประจำสัปดาห์  เก็บรวมเป็น Text และคั่นแต่ละรายการด้วย \n รูปแบบ: ชื่องาน | สถานะ | ผู้รับผิดชอบ

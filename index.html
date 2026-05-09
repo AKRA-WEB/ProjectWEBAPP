@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKRA Portal | Centralized System</title>
+    
+    <!-- ฟอนต์ Prompt & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#171C8F',
+                            orange: '#E35205',
+                            white: '#FFFFFF',
+                            gray: '#f4f7fe'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Prompt"', '"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    
+    <style>
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .toast-slide-in { animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+        .toast-fade-out { animation: fadeOutRight 0.3s ease-in forwards; }
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .role-card.active {
+            border-color: #E35205;
+            background-color: #fffaf5;
+            box-shadow: 0 10px 25px -3px rgba(227, 82, 5, 0.1);
+        }
+        .role-card.active .icon-bg { background-color: #E35205; color: white; }
+        
+        .app-preview-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); filter: grayscale(100%) opacity(40%); }
+        .app-preview-card.unlocked { filter: grayscale(0%) opacity(100%); transform: translateY(0); border-color: #E9EDF7; }
+        .app-preview-card.unlocked:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); border-color: #171C8F; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#171C8F] to-[#11146B] min-h-screen text-[#2B3674] flex items-center justify-center p-4">
+
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
+
+    <!-- 1. ส่วนลงชื่อเข้าใช้ (Login Section) -->
+    <main id="login-section" class="w-full max-w-md fade-in">
+        <section class="bg-white rounded-[2.5rem] p-10 shadow-2xl text-center border-t-[10px] border-t-brand-orange relative overflow-hidden">
+            <div class="bg-indigo-50 p-6 rounded-[2rem] inline-block mb-6 shadow-inner border border-white">
+                <i data-lucide="shield-check" class="w-14 h-14 text-brand-blue"></i>
+            </div>
+            <h1 class="text-3xl font-black mb-1 text-brand-blue tracking-tighter uppercase italic">AKRA HUB</h1>
+            <p class="text-slate-400 mb-10 text-xs font-bold uppercase tracking-widest leading-none">Centralized System Portal</p>
+
+            <form id="login-form" class="space-y-6" novalidate>
+                <div class="relative group">
+                    <input type="password" id="password-input" placeholder="PASSCODE" 
+                        class="w-full px-6 py-4 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:outline-none focus:border-brand-blue/30 focus:bg-white text-center text-2xl font-black tracking-[0.5em] text-brand-blue transition-all shadow-inner placeholder:text-slate-200 uppercase"
+                        required autocomplete="current-password">
+                </div>
+                <button type="submit" id="login-btn" 
+                    class="w-full bg-brand-orange hover:bg-[#c94804] text-white font-black py-4 px-6 rounded-2xl transition-all transform active:scale-95 flex justify-center items-center shadow-xl shadow-brand-orange/20 disabled:opacity-70 disabled:transform-none uppercase italic tracking-widest">
+                    <span id="login-btn-text">Authentication</span>
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- 2. ส่วนหน้าหลัก (Dashboard Section) -->
+    <main id="dashboard-section" class="w-full max-w-6xl hidden fade-in py-8 h-screen flex flex-col">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-10 bg-white/95 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl border border-white/50 shrink-0">
+            <div class="text-center sm:text-left mb-6 sm:mb-0 flex items-center gap-5">
+                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center border border-white shadow-inner">
+                    <i data-lucide="layout-grid" class="text-brand-blue w-7 h-7"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-brand-blue tracking-tight uppercase italic leading-none">System Desktop</h2>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">AKRA-TRD Operational Network</p>
+                </div>
+            </div>
+            <nav class="flex items-center gap-4 bg-[#F4F7FE] p-1.5 rounded-2xl border border-white shadow-inner">
+                <div class="text-right hidden sm:block px-4">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Access User</p>
+                    <p id="user-name-display" class="font-black text-brand-blue text-lg leading-none italic">...</p>
+                </div>
+                <div class="h-11 w-11 bg-white rounded-xl flex items-center justify-center text-xl font-bold text-brand-blue shadow-sm border border-indigo-50">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                </div>
+                <div class="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+                <button id="admin-btn" class="hidden p-3 text-slate-400 hover:text-brand-blue hover:bg-white rounded-xl transition-all shadow-none hover:shadow-sm" title="จัดการผู้ใช้งาน">
+                    <i data-lucide="settings-2" class="w-5 h-5"></i>
+                </button>
+                <button id="logout-btn" class="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-none hover:shadow-sm" title="ออกจากระบบ">
+                    <i data-lucide="power" class="w-5 h-5"></i>
+                </button>
+            </nav>
+        </header>
+
+        <section id="app-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative flex-grow overflow-y-auto pr-2 custom-scrollbar pb-10"></section>
+        
+        <footer class="py-6 text-center text-white/50 text-[10px] font-black uppercase tracking-[0.2em] shrink-0">
+            &copy; 2026 AKRA INFRASTRUCTURE HUB
+        </footer>
+    </main>
+
+    <!-- 3. ส่วนจัดการผู้ใช้งาน (Admin Section) -->
+    <main id="admin-section" class="w-full max-w-7xl hidden fade-in py-6 h-screen max-h-[900px] flex flex-col">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-lg shrink-0 gap-4">
+            <div class="flex items-center gap-4 w-full sm:w-auto">
+                <div class="bg-slate-100 p-1.5 rounded-xl flex gap-1 shadow-inner shrink-0 overflow-x-auto w-full sm:w-auto">
+                    <button id="tab-btn-users" onclick="AdminInteractive.switchTab('users')" class="px-5 py-2 rounded-lg font-bold bg-white text-brand-blue shadow-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                        <i data-lucide="users" class="w-4 h-4"></i> จัดการพนักงาน
+                    </button>
+                    <button id="tab-btn-apps" onclick="AdminInteractive.switchTab('apps')" class="px-5 py-2 rounded-lg font-medium text-slate-500 hover:text-brand-blue transition-all flex items-center gap-2 whitespace-nowrap">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i> ตั้งค่าการเห็นแอป
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="refresh-data-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-medium">
+                    <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i> รีเฟรชข้อมูล
+                </button>
+                <button id="back-to-dash-btn" class="bg-brand-blue hover:bg-[#121670] text-white px-6 py-2 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับหน้าหลัก
+                </button>
+            </div>
+        </header>
+
+        <!-- [TAB 1] จัดการรายชื่อพนักงาน -->
+        <section id="tab-content-users" class="flex flex-grow bg-white rounded-2xl shadow-xl border-t-8 border-t-brand-orange overflow-hidden">
+            <!-- Sidebar: User List -->
+            <aside class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/50">
+                <div class="p-4 border-b border-slate-100 bg-white">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="ค้นหาชื่อหรือรหัส..." 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange outline-none transition-all text-sm">
+                    </div>
+                </div>
+                
+                <div class="flex-grow overflow-y-auto p-2 space-y-1 custom-scroll" id="user-list-container">
+                    <!-- Loading State -->
+                    <div id="list-loading-state" class="p-8 text-center text-slate-400">
+                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2 opacity-20"></i>
+                        <p class="text-xs font-medium">กำลังโหลด...</p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white border-t border-slate-100">
+                    <button onclick="AdminInteractive.setupNewUser()" class="w-full bg-brand-orange hover:bg-[#c94804] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 transition-all active:scale-95">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> เพิ่มพนักงานใหม่
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content: Form -->
+            <article class="flex-grow p-8 overflow-y-auto relative bg-white">
+                <div id="empty-selection-state" class="h-full flex flex-col items-center justify-center text-slate-300 opacity-60">
+                    <i data-lucide="user-plus" class="w-20 h-20 mb-4 stroke-1"></i>
+                    <p class="text-lg font-medium text-slate-400">เลือกพนักงานจากรายการซ้ายมือ <br> หรือกดปุ่มเพิ่มเพื่อสร้างใหม่</p>
+                </div>
+
+                <form id="interactive-form" class="hidden h-full flex flex-col">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h3 id="form-title" class="text-2xl font-bold text-brand-blue">เพิ่มพนักงานใหม่</h3>
+                            <p class="text-slate-500 text-sm mt-1">ตั้งค่ารหัส ชื่อ และสิทธิ์การเข้าใช้งาน (Role)</p>
+                        </div>
+                        <button type="button" id="btn-delete-user" class="hidden text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8 mb-10">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">รหัสพนักงาน (ID / Password)</label>
+                                <input type="text" id="user-id-input" placeholder="เช่น 250001" required
+                                    class="w-full px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-bold text-brand-blue text-lg">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">ชื่อ-นามสกุล</label>
+                                <input type="text" id="user-name-input" placeholder="ชื่อจริงพนักงาน" required
+                                    class="w-full px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-semibold">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 block">สิทธิ์การเข้าใช้งาน (Roles)</label>
+                            <div class="grid grid-cols-1 gap-2" id="role-selector-grid">
+                                <!-- Role cards will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- App Access Preview -->
+                    <div class="mb-10">
+                        <div class="flex items-center gap-2 mb-4">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">พรีวิวการเข้าถึงแอป (App Access Preview)</label>
+                            <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">ตามสิทธิ์ที่เลือก</span>
+                        </div>
+                        <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3" id="app-preview-grid"></div>
+                    </div>
+
+                    <!-- Sticky Footer Actions -->
+                    <div class="mt-auto pt-6 border-t border-slate-100 flex justify-end items-center gap-4">
+                        <button type="button" onclick="AdminInteractive.cancelEdit()" class="text-slate-500 font-bold px-6 py-3 rounded-2xl hover:bg-slate-50 transition-all">ยกเลิก</button>
+                        <button type="submit" class="bg-brand-blue text-white px-10 py-3.5 rounded-2xl font-bold shadow-xl shadow-brand-blue/20 hover:bg-[#121670] transition-all transform active:scale-95 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i> บันทึกข้อมูล
+                        </button>
+                    </div>
+                </form>
+            </article>
+        </section>
+
+        <!-- [TAB 2] จัดการแอป -->
+        <section id="tab-content-apps" class="hidden flex-col flex-grow bg-white rounded-2xl shadow-xl border-t-8 border-t-brand-blue overflow-hidden p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-brand-blue flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-6 h-6 text-brand-orange"></i> ตารางสิทธิ์การมองเห็นแอป (App-Role Matrix)
+                    </h3>
+                    <p class="text-slate-500 text-sm mt-1">กำหนดว่าแอปพลิเคชันไหน อนุญาตให้กลุ่มใด (Role) ใช้งานได้บ้าง</p>
+                </div>
+                <button onclick="AdminInteractive.saveAppConfig()" class="bg-brand-blue hover:bg-[#121670] text-white px-6 py-2.5 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2 shrink-0">
+                    <i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่าแอป
+                </button>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead class="bg-slate-50">
+                        <tr id="app-matrix-header-row" class="border-b border-slate-200">
+                            <th class="p-4 font-bold text-slate-700 bg-slate-100 border-r border-slate-200">แอปพลิเคชัน / ระบบ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="app-permission-matrix" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+            <div class="mt-4 p-4 bg-orange-50 text-brand-orange rounded-xl text-sm flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                <p><b>หมายเหตุ:</b> การตั้งค่าส่วนนี้จะถูกจัดเก็บลงฐานข้อมูล (app_config) เพื่อให้ระบบ SSO นำไปใช้กำหนดการมองเห็นของแอปสำหรับพนักงานทุกคนทันทีที่เข้าสู่ระบบ</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /** =========================================================
+         * 1. CONFIGURATION & DATA
+         * ========================================================== */
+        const CONFIG = {
+            STORAGE_USER_DB: "akra_users_db",
+            STORAGE_SESSION: "akra_session_token",
+            STORAGE_USER_DATA: "akra_user_data",
+            STORAGE_APP_CONFIG: "akra_app_config"
+        };
+
+        const DEFAULT_APP_CONFIG = [
+            { id: "app-w5", name: "เบิก W5", icon: "package-minus", url: "./AKRA W5.html", roles: ["ADMIN", "AKRA", "WAREHOUSE"] },
+            { id: "app-trd", name: "ย้ายสินค้า", icon: "arrow-right-left", url: "./Tranfers W2-W1.html", roles: ["ADMIN", "AKRA", "TRD", "WAREHOUSE"] },
+            { id: "app-gr", name: "รับสินค้า", icon: "clipboard-list", url: "./GR.html", roles: ["ADMIN", "AKRA", "WAREHOUSE"] },
+            { id: "app-pr", name: "PR ขอซื้อ", icon: "file-plus-2", url: "./PR.html", roles: ["ADMIN", "AKRA", "WAREHOUSE", "Cashier"] },
+            { id: "app-po", name: "จัดซื้อ PO", icon: "shopping-bag", url: "./PO.html", roles: ["ADMIN", "AKRA", "Cashier"] },
+            { id: "app-damage", name: "ของคืน/เคลม", icon: "package-x", url: "./Return&Claim.html", roles: ["ADMIN", "AKRA", "TRD", "WAREHOUSE", "Cashier"] },
+            { id: "app-kpi", name: "KPI Tracker", icon: "bar-chart-2", url: "./KPI.html", roles: ["ADMIN", "AKRA", "TRD", "WAREHOUSE", "Cashier"] }
+        ];
+
+        const AVAILABLE_ROLES = [
+            { val: "ADMIN", label: "ADMIN", desc: "ผู้ดูแลระบบ", icon: "shield-alert" },
+            { val: "AKRA", label: "AKRA", desc: "พนักงาน AKRA", icon: "building-2" },
+            { val: "TRD", label: "TRD", desc: "พนักงาน TRD", icon: "store" },
+            { val: "WAREHOUSE", label: "WAREHOUSE", desc: "คลังสินค้า", icon: "warehouse" },
+            { val: "Cashier", label: "Cashier", desc: "แคชเชียร์/การเงิน", icon: "calculator" }
+        ];
+
+        let state = {
+            users: {},
+            currentUser: null,
+            currentRoles: [],
+            sessionToken: null,
+            appConfig: []
+        };
+
+        const UI = {
+            showToast: (message, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                let config = { bg: 'bg-[#171C8F]', icon: 'check-circle' };
+                if (type === 'error') config = { bg: 'bg-red-500', icon: 'x-circle' };
+                if (type === 'warning') config = { bg: 'bg-[#E35205]', icon: 'alert-triangle' };
+
+                toast.className = `flex items-center gap-3 ${config.bg} text-white px-5 py-3 rounded-xl shadow-xl toast-slide-in min-w-[250px] font-medium text-sm`;
+                toast.innerHTML = `<i data-lucide="${config.icon}" class="w-5 h-5"></i> <span>${message}</span>`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => {
+                    toast.classList.replace('toast-slide-in', 'toast-fade-out');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            },
+            switchSection: (sectionId) => {
+                ['login-section', 'dashboard-section', 'admin-section'].forEach(sec => {
+                    document.getElementById(sec).classList.toggle('hidden', sec !== sectionId);
+                });
+                if(sectionId === 'admin-section') {
+                    AdminInteractive.fetchAdminData();
+                }
+            }
+        };
+
+        const API = {
+            postAction: async (payload) => {
+                return await AKRA_API.postAction(payload);
+            },
+            sendLog: (type, appId, message) => {
+                if(!state.currentUser) return;
+                AKRA_API.sendLog(type, appId, message, state.currentUser);
+            }
+        };
+
+        const AdminInteractive = {
+            editingUserId: null,
+            editingRoles: [],
+
+            fetchAdminData: async () => {
+                document.getElementById('list-loading-state').classList.remove('hidden');
+                try {
+                    const data = await AKRA_API.getAdminData();
+
+                    if (data.status === 'success' && data.users) {
+                        state.users = data.users;
+                        localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
+                        AdminInteractive.renderUserList();
+                        AdminInteractive.setupAppPreviewGrid();
+                        AdminInteractive.renderAppMatrix();
+                    } else {
+                        UI.showToast("คุณไม่มีสิทธิ์ดึงข้อมูลพนักงาน", "error");
+                        UI.switchSection('dashboard-section');
+                    }
+                } catch (error) {
+                    console.warn("ดึงข้อมูลไม่สำเร็จ ใช้ Cache แทน");
+                    const cachedUsers = localStorage.getItem(CONFIG.STORAGE_USER_DB);
+                    if (cachedUsers) {
+                        state.users = JSON.parse(cachedUsers);
+                        AdminInteractive.renderUserList();
+                        AdminInteractive.renderAppMatrix();
+                    } else {
+                        UI.showToast("ไม่สามารถโหลดรายชื่อพนักงานได้", "error");
+                    }
+                }
+                document.getElementById('list-loading-state').classList.add('hidden');
+            },
+
+            init: () => {
+                document.getElementById('search-input').addEventListener('input', AdminInteractive.renderUserList);
+                document.getElementById('interactive-form').addEventListener('submit', AdminInteractive.handleSave);
+                document.getElementById('btn-delete-user').addEventListener('click', AdminInteractive.handleDelete);
+
+                document.getElementById('interactive-form').classList.add('hidden');
+                document.getElementById('empty-selection-state').classList.remove('hidden');
+                
+                // Init Role Selector Grid
+                const roleGrid = document.getElementById('role-selector-grid');
+                roleGrid.innerHTML = AVAILABLE_ROLES.map(r => `
+                    <button type="button" data-role-val="${r.val}" onclick="AdminInteractive.toggleEditRole('${r.val}')"
+                        class="role-card group w-full flex items-center gap-3 p-3 rounded-xl border-2 border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 transition-all text-left">
+                        <div class="icon-bg w-8 h-8 rounded-lg bg-slate-200 text-slate-500 group-hover:bg-slate-300 flex items-center justify-center transition-colors">
+                            <i data-lucide="${r.icon}" class="w-4 h-4"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-xs font-bold text-slate-800">${r.label}</p>
+                            <p class="text-[10px] text-slate-400 font-medium">${r.desc}</p>
+                        </div>
+                        <div class="check-icon opacity-0 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-orange"></i>
+                        </div>
+                    </button>
+                `).join('');
+                lucide.createIcons();
+            },
+
+            switchTab: (tabId) => {
+                document.getElementById('tab-btn-users').classList.toggle('bg-white', tabId === 'users');
+                document.getElementById('tab-btn-users').classList.toggle('text-brand-blue', tabId === 'users');
+                document.getElementById('tab-btn-users').classList.toggle('text-slate-500', tabId !== 'users');
+                document.getElementById('tab-btn-apps').classList.toggle('bg-white', tabId === 'apps');
+                document.getElementById('tab-btn-apps').classList.toggle('text-brand-blue', tabId === 'apps');
+                document.getElementById('tab-btn-apps').classList.toggle('text-slate-500', tabId !== 'apps');
+
+                document.getElementById('tab-content-users').classList.toggle('hidden', tabId !== 'users');
+                document.getElementById('tab-content-users').classList.toggle('flex', tabId === 'users');
+                document.getElementById('tab-content-apps').classList.toggle('hidden', tabId !== 'apps');
+                document.getElementById('tab-content-apps').classList.toggle('flex', tabId === 'apps');
+                
+                if(tabId === 'apps') AdminInteractive.renderAppMatrix();
+                lucide.createIcons();
+            },
+
+            renderUserList: () => {
+                const search = document.getElementById('search-input').value.toLowerCase();
+                const container = document.getElementById('user-list-container');
+                container.innerHTML = '';
+
+                const sortedIds = Object.keys(state.users).sort();
+                sortedIds.forEach(id => {
+                    const user = state.users[id];
+                    if (id.includes(search) || user.name.toLowerCase().includes(search)) {
+                        const div = document.createElement('button');
+                        div.type = 'button';
+                        div.className = `w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 border-2 border-transparent hover:bg-white hover:shadow-sm group ${AdminInteractive.editingUserId === id ? 'bg-white border-brand-orange/30 shadow-md' : ''}`;
+                        div.onclick = () => AdminInteractive.editUser(id);
+                        
+                        div.innerHTML = `
+                            <div class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors">
+                                ${user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <p class="font-bold text-sm text-slate-700 truncate">${user.name}</p>
+                                <p class="text-[10px] font-mono text-slate-400 uppercase tracking-tighter">ID: ${id}</p>
+                            </div>
+                            <div class="flex gap-0.5">
+                                ${user.roles.map(r => `<span class="w-1.5 h-1.5 rounded-full bg-brand-orange/40"></span>`).join('')}
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    }
+                });
+            },
+
+            setupNewUser: () => {
+                AdminInteractive.editingUserId = null;
+                AdminInteractive.editingRoles = [];
+                document.getElementById('interactive-form').reset();
+                document.getElementById('form-title').innerText = "เพิ่มพนักงานใหม่";
+                document.getElementById('user-id-input').readOnly = false;
+                document.getElementById('btn-delete-user').classList.add('hidden');
+                
+                AdminInteractive.updateRoleUI();
+                AdminInteractive.updateAppPreview();
+                AdminInteractive.renderUserList();
+
+                document.getElementById('empty-selection-state').classList.add('hidden');
+                document.getElementById('interactive-form').classList.remove('hidden');
+                document.getElementById('user-id-input').focus();
+            },
+
+            editUser: (id) => {
+                const user = state.users[id];
+                if (!user) return;
+
+                AdminInteractive.editingUserId = id;
+                AdminInteractive.editingRoles = [...user.roles];
+
+                document.getElementById('form-title').innerText = "แก้ไขข้อมูลพนักงาน";
+                document.getElementById('user-id-input').value = id;
+                document.getElementById('user-id-input').readOnly = true;
+                document.getElementById('user-name-input').value = user.name;
+                document.getElementById('btn-delete-user').classList.remove('hidden');
+
+                AdminInteractive.updateRoleUI();
+                AdminInteractive.updateAppPreview();
+                AdminInteractive.renderUserList();
+
+                document.getElementById('empty-selection-state').classList.add('hidden');
+                document.getElementById('interactive-form').classList.remove('hidden');
+            },
+
+            toggleEditRole: (roleVal) => {
+                const idx = AdminInteractive.editingRoles.indexOf(roleVal);
+                if (idx > -1) {
+                    AdminInteractive.editingRoles.splice(idx, 1);
+                } else {
+                    AdminInteractive.editingRoles.push(roleVal);
+                }
+                AdminInteractive.updateRoleUI();
+                AdminInteractive.updateAppPreview();
+            },
+
+            updateRoleUI: () => {
+                document.querySelectorAll('.role-card').forEach(card => {
+                    const role = card.dataset.roleVal;
+                    const isActive = AdminInteractive.editingRoles.includes(role);
+                    card.classList.toggle('active', isActive);
+                    card.querySelector('.check-icon').classList.toggle('opacity-0', !isActive);
+                    card.querySelector('.check-icon').classList.toggle('opacity-100', isActive);
+                });
+            },
+
+            setupAppPreviewGrid: () => {
+                const grid = document.getElementById('app-preview-grid');
+                grid.innerHTML = state.appConfig.map(app => `
+                    <div id="preview-${app.id}" class="app-preview-card bg-slate-50 border border-slate-100 rounded-lg p-2 text-center flex flex-col items-center gap-1">
+                        <i data-lucide="${app.icon}" class="w-4 h-4 text-slate-400"></i>
+                        <span class="text-[8px] font-bold text-slate-400 truncate w-full uppercase tracking-tighter">${app.name}</span>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+
+            updateAppPreview: () => {
+                state.appConfig.forEach(app => {
+                    const card = document.getElementById(`preview-${app.id}`);
+                    if (!card) return;
+                    
+                    const isUnlocked = app.roles.some(r => AdminInteractive.editingRoles.includes(r));
+                    card.classList.toggle('unlocked', isUnlocked);
+                    const icon = card.querySelector('i, svg');
+                    if (icon) {
+                        if (isUnlocked) icon.classList.replace('text-slate-400', 'text-brand-blue');
+                        else icon.classList.replace('text-brand-blue', 'text-slate-400');
+                    }
+                });
+            },
+
+            cancelEdit: () => {
+                AdminInteractive.editingUserId = null;
+                AdminInteractive.editingRoles = [];
+                document.getElementById('interactive-form').classList.add('hidden');
+                document.getElementById('empty-selection-state').classList.remove('hidden');
+                AdminInteractive.renderUserList();
+            },
+
+            handleSave: async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('user-id-input').value.trim();
+                const name = document.getElementById('user-name-input').value.trim();
+                
+                if (!id || !name) return UI.showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+
+                try {
+                    await API.postAction({
+                        action: "saveUser",
+                        id, name, roles: AdminInteractive.editingRoles
+                    });
+                    
+                    state.users[id] = { name, roles: AdminInteractive.editingRoles };
+                    localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
+                    
+                    UI.showToast("บันทึกข้อมูลสำเร็จ", "success");
+                    AdminInteractive.cancelEdit();
+                } catch(e) { UI.showToast("เกิดข้อผิดพลาดในการบันทึก", "error"); }
+            },
+
+            handleDelete: async () => {
+                const id = AdminInteractive.editingUserId;
+                if (!id) return;
+
+                if (confirm(`ยืนยันการลบพนักงานรหัส ${id}?\nการดำเนินการนี้ไม่สามารถย้อนกลับได้`)) {
+                    try {
+                        await API.postAction({ action: "deleteUser", id });
+                        
+                        delete state.users[id];
+                        localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
+                        
+                        UI.showToast("ลบผู้ใช้สำเร็จ", "success");
+                        AdminInteractive.setupNewUser();
+                        document.getElementById('empty-selection-state').classList.remove('hidden');
+                        document.getElementById('interactive-form').classList.add('hidden');
+                    } catch(e) { UI.showToast("ลบไม่สำเร็จ", "error"); }
+                }
+            },
+
+            renderAppMatrix: () => {
+                const tbody = document.getElementById('app-permission-matrix');
+                const headerRow = document.getElementById('app-matrix-header-row');
+
+                if (headerRow.children.length === 1) {
+                    AVAILABLE_ROLES.forEach(r => {
+                        const th = document.createElement('th');
+                        th.className = "p-4 font-bold text-slate-700 bg-slate-100 text-center border-l border-slate-200 min-w-[100px]";
+                        th.innerHTML = `<i data-lucide="${r.icon}" class="w-4 h-4 mx-auto mb-1 text-brand-orange"></i>${r.label}`;
+                        headerRow.appendChild(th);
+                    });
+                }
+
+                tbody.innerHTML = '';
+                state.appConfig.forEach(app => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-brand-blue/5 transition-colors";
+
+                    let roleCells = '';
+                    AVAILABLE_ROLES.forEach(r => {
+                        const hasRole = app.roles.includes(r.val);
+                        const isAdminCol = r.val === 'ADMIN';
+                        const checkedAttr = hasRole ? 'checked' : '';
+                        const disabledAttr = isAdminCol ? 'disabled' : '';
+                        const cursorClass = isAdminCol ? 'cursor-not-allowed opacity-50' : 'cursor-pointer';
+
+                        roleCells += `
+                            <td class="p-4 text-center border-l border-slate-100 align-middle">
+                                <label class="inline-flex items-center ${cursorClass}">
+                                    <input type="checkbox" class="sr-only peer" ${checkedAttr} ${disabledAttr} 
+                                           onchange="AdminInteractive.toggleMatrixRole('${app.id}', '${r.val}')">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue relative"></div>
+                                </label>
+                            </td>
+                        `;
+                    });
+
+                    tr.innerHTML = `
+                        <td class="p-4 font-medium text-slate-800 border-r border-slate-200 bg-white">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                                    <i data-lucide="${app.icon}" class="w-4 h-4"></i>
+                                </div>
+                                <span>${app.name}</span>
+                            </div>
+                        </td>
+                        ${roleCells}
+                    `;
+                    tbody.appendChild(tr);
+                });
+                lucide.createIcons();
+            },
+
+            toggleMatrixRole: (appId, roleVal) => {
+                const app = state.appConfig.find(a => a.id === appId);
+                if(!app) return;
+
+                const roleIdx = app.roles.indexOf(roleVal);
+                if (roleIdx > -1) {
+                    app.roles.splice(roleIdx, 1);
+                } else {
+                    app.roles.push(roleVal);
+                }
+            },
+
+            saveAppConfig: async () => {
+                const btn = document.querySelector('[onclick="AdminInteractive.saveAppConfig()"]');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> กำลังบันทึกไปยังฐานข้อมูล...';
+                btn.disabled = true;
+                lucide.createIcons();
+
+                try {
+                    await API.postAction({
+                        action: "saveAppConfig",
+                        appConfig: state.appConfig
+                    });
+                    
+                    localStorage.setItem(CONFIG.STORAGE_APP_CONFIG, JSON.stringify(state.appConfig));
+                    UI.showToast("บันทึกตารางสิทธิ์ลงฐานข้อมูลสำเร็จ", "success");
+                    
+                    AdminInteractive.setupAppPreviewGrid();
+                    if(AdminInteractive.editingUserId) {
+                        AdminInteractive.updateAppPreview();
+                    }
+                    AKRA_API.sendLog("Admin Action", "Portal", "ปรับปรุงตารางสิทธิ์การเข้าแอปบน Database", state.currentUser);
+                    
+                } catch (error) {
+                    UI.showToast("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง", "error");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    lucide.createIcons();
+                }
+            }
+        };
+
+        const App = {
+            init: async () => {
+                lucide.createIcons();
+                AdminInteractive.init();
+                
+                document.getElementById('login-form').addEventListener('submit', App.handleLogin);
+                document.getElementById('logout-btn').addEventListener('click', App.handleLogout);
+                document.getElementById('admin-btn').addEventListener('click', () => UI.switchSection('admin-section'));
+                document.getElementById('back-to-dash-btn').addEventListener('click', () => {
+                    UI.switchSection('dashboard-section');
+                    App.renderDashboard(); 
+                });
+                document.getElementById('refresh-data-btn').addEventListener('click', async () => {
+                    document.getElementById('refresh-icon').classList.add('animate-spin');
+                    await AdminInteractive.fetchAdminData();
+                    UI.showToast("อัปเดตข้อมูลล่าสุดจากเซิร์ฟเวอร์แล้ว");
+                    setTimeout(()=>document.getElementById('refresh-icon').classList.remove('animate-spin'), 500);
+                });
+
+                const savedToken = localStorage.getItem(CONFIG.STORAGE_SESSION);
+                const savedUserData = localStorage.getItem(CONFIG.STORAGE_USER_DATA);
+                
+                if (savedToken && savedUserData) {
+                    try {
+                        const parsedUser = JSON.parse(savedUserData);
+                        state.sessionToken = savedToken;
+                        state.currentUser = parsedUser.name;
+                        state.currentRoles = parsedUser.roles || [];
+                        
+                        const cachedApps = localStorage.getItem(CONFIG.STORAGE_APP_CONFIG);
+                        state.appConfig = cachedApps ? JSON.parse(cachedApps) : JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG));
+                        
+                        UI.switchSection('dashboard-section');
+                        App.renderDashboard();
+                    } catch (e) { App.handleLogout(); }
+                }
+            },
+
+            handleLogin: async (e) => {
+                e.preventDefault();
+                const pwdInput = document.getElementById('password-input');
+                const pwd = pwdInput.value.trim();
+                if (!pwd) return;
+
+                const btn = document.getElementById('login-btn');
+                const btnText = document.getElementById('login-btn-text');
+                btn.disabled = true; btnText.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mr-2 inline"></i> ตรวจสอบ...'; lucide.createIcons();
+                
+                try {
+                    const data = await AKRA_API.login(pwd);
+
+                    if (data.status === 'success') {
+                        state.sessionToken = data.token;
+                        state.currentUser = data.user.name;
+                        state.currentRoles = data.user.roles || [];
+                        
+                        if (data.appConfig && data.appConfig.length > 0) {
+                            state.appConfig = data.appConfig;
+                        } else {
+                            state.appConfig = JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG));
+                        }
+
+                        localStorage.setItem(CONFIG.STORAGE_SESSION, state.sessionToken);
+                        localStorage.setItem(CONFIG.STORAGE_USER_DATA, JSON.stringify({ 
+                            id: data.user.id,
+                            name: state.currentUser, 
+                            roles: state.currentRoles 
+                        }));
+                        localStorage.setItem(CONFIG.STORAGE_APP_CONFIG, JSON.stringify(state.appConfig));
+                        localStorage.removeItem(CONFIG.STORAGE_USER_DB);
+
+                        pwdInput.value = '';
+                        UI.showToast(`ยินดีต้อนรับ ${state.currentUser}`);
+                        UI.switchSection('dashboard-section');
+                        App.renderDashboard();
+                    } else {
+                        UI.showToast("รหัสไม่ถูกต้อง หรือไม่มีในระบบ", 'error');
+                        pwdInput.focus();
+                    }
+                } catch (error) {
+                    UI.showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่", 'error');
+                } finally {
+                    btn.disabled = false; btnText.innerText = 'เข้าสู่ระบบ';
+                }
+            },
+
+            handleLogout: () => {
+                localStorage.removeItem(CONFIG.STORAGE_SESSION);
+                localStorage.removeItem(CONFIG.STORAGE_USER_DATA);
+                localStorage.removeItem(CONFIG.STORAGE_USER_DB);
+                state.currentUser = null; 
+                state.currentRoles = [];
+                state.sessionToken = null;
+                UI.switchSection('login-section');
+            },
+
+            renderDashboard: () => {
+                const badges = state.currentRoles.map(r => `<span class="inline-block bg-brand-blue/10 text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded ml-1 border border-brand-blue/20">${r}</span>`).join('');
+                document.getElementById('user-name-display').innerHTML = `${state.currentUser} ${badges}`;
+
+                const adminBtn = document.getElementById('admin-btn');
+                state.currentRoles.includes("ADMIN") ? adminBtn.classList.remove('hidden') : adminBtn.classList.add('hidden');
+
+                const grid = document.getElementById('app-grid');
+                grid.innerHTML = ''; 
+                const allowedApps = state.appConfig.filter(app => app.roles.some(role => state.currentRoles.includes(role)));
+
+                if (allowedApps.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-lg"><i data-lucide="lock" class="w-16 h-16 text-slate-200 mx-auto mb-4"></i><h3 class="text-xl font-bold text-slate-400">ไม่มีสิทธิ์ใช้งาน</h3></div>`;
+                } else {
+                    allowedApps.forEach(app => {
+                        grid.innerHTML += `
+                            <button onclick="AKRA_SSO.openApp('${app.url}', '${app.id}')" 
+                                class="bg-white p-6 rounded-2xl border-2 border-transparent hover:border-brand-orange transition-all transform hover:-translate-y-1 text-left group flex flex-col h-full shadow-lg hover:shadow-brand-orange/20">
+                                <div class="bg-slate-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-orange transition-colors border border-slate-100">
+                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-6 h-6 transition-colors"></i>
+                                </div>
+                                <h3 class="text-lg font-bold mb-1 text-brand-blue group-hover:text-brand-orange transition-colors">${app.name}</h3>
+                            </button>
+                        `;
+                    });
+                }
+                lucide.createIcons();
+            }
+        };
+
+        const AKRA_SSO = {
+            openApp: function(url, appId) {
+                if(!state.sessionToken) return App.handleLogout();
+                
+                window.location.href = `${url}?sso=${encodeURIComponent(state.sessionToken)}`;
+                AKRA_API.sendLog("Open App", appId, `${state.currentUser} เปิดแอป`, state.currentUser);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', App.init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+Prompt สำหรับสร้าง Supabase Database (PostgreSQL)
+
+คำแนะนำ: คัดลอกข้อความด้านล่างนี้ทั้งหมด ไปวางใน ChatGPT, Claude หรือช่อง AI Assistant ใน Supabase SQL Editor เพื่อให้ระบบ Generate SQL Code ที่สมบูรณ์ให้คุณ
+
+[Copy ข้อความด้านล่างนี้]
+
+You are an expert PostgreSQL Database Architect specialized in Supabase.
+My goal is to migrate an existing Google Sheets database into a relational database on Supabase.
+
+Please write the complete SQL script (DDL) to create the tables based on the schema provided below.
+
+STRICT REQUIREMENTS:
+
+Data Types: Convert the logical data to correct PostgreSQL types.
+
+'qty', 'sysStock', 'stockDiff', 'claimAmount' should be INTEGER or DECIMAL.
+
+'dateStr', 'timeStr', 'reportDate' should be combined or converted to proper DATE or TIMESTAMPTZ where applicable.
+
+Use VARCHAR or TEXT for general strings.
+
+Primary Keys (PK): - Products: Make sku the Primary Key.
+
+Returns: Make id the Primary Key (e.g., VARCHAR).
+
+Claims: Make id the Primary Key (e.g., VARCHAR).
+
+AuditTask: Make rowId the Primary Key (e.g., VARCHAR).
+
+Foreign Keys (FK): - Returns.sku, Claims.sku, and AuditTask.sku MUST reference Products.sku (ON DELETE SET NULL or ON DELETE RESTRICT).
+
+Supabase Standards:
+
+Add a created_at TIMESTAMPTZ column defaulting to NOW() for all tables.
+
+Enable Row Level Security (RLS) on all tables: ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
+
+Output: Provide ONLY the valid, copy-pasteable SQL code. Do not include excessive explanations.
+
+SOURCE SCHEMA (From Google Sheets):
+
+
+Table 1: Returns
+id (Text - e.g., RET-173829)
+dateStr (Text DD/MM/YYYY)
+timeStr (Text HH:MM:SS)
+sku (Text)
+name (Text)
+qty (Number)
+unit (Text)
+source (Text)
+reason (Text)
+billStatus (Text)
+compensation (Text)
+billNo (Text)
+status (Text)
+qcCondition (Text)
+customerName (Text)
+
+
+Table 2: Claims
+id (Text - e.g., CLM-173829)
+reportDate (Text/Date)
+expDate (Text/Date)
+foundLocation (Text)
+sku (Text)
+name (Text)
+qty (Number)
+unit (Text)
+reason (Text)
+remark (Text)
+vendor (Text)
+claimBillNo (Text)
+claimAmount (Number)
+claimType (Text)
+reporter (Text)
+status (Text)
+whStatus (Text)
+whLocation (Text)
+whReceiver (Text)
+returnDate (Text/Date)
+
+
+Table 3: AuditTask
+taskId (Text - e.g., AUD-123456)
+createdDate (Text/Date)
+createdBy (Text)
+rowId (Text - Unique ID for this specific row)
+targetWH (Text)
+sku (Text)
+name (Text)
+unit (Text)
+trdCountBy (Text)
+trdStatus (Text)
+trdCountQty (Number)
+akraCountBy (Text)
+akraStatus (Text)
+akraCountQty (Number)
+sysStock (Number)
+stockDiff (Number)
+overallStatus (Text)
