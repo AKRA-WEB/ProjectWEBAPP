@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AKRA Portal | Centralized System</title>
     
-    <!-- ฟอนต์ Prompt & Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- ฟอนต์ Sarabun & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['"Prompt"', '"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Sarabun"', '"Plus Jakarta Sans"', 'sans-serif'],
                     }
                 }
             }
@@ -75,23 +75,23 @@
     <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
 
     <!-- 1. ส่วนลงชื่อเข้าใช้ (Login Section) -->
-    <main id="login-section" class="w-full max-w-md fade-in">
+    <main id="login-section" class="w-full max-w-md hidden fade-in">
         <section class="bg-white rounded-[2.5rem] p-10 shadow-2xl text-center border-t-[10px] border-t-brand-orange relative overflow-hidden">
             <div class="bg-indigo-50 p-6 rounded-[2rem] inline-block mb-6 shadow-inner border border-white">
                 <i data-lucide="shield-check" class="w-14 h-14 text-brand-blue"></i>
             </div>
-            <h1 class="text-3xl font-black mb-1 text-brand-blue tracking-tighter uppercase italic">AKRA HUB</h1>
-            <p class="text-slate-400 mb-10 text-xs font-bold uppercase tracking-widest leading-none">Centralized System Portal</p>
+            <h1 class="text-3xl font-black mb-1 text-brand-blue tracking-tighter uppercase italic leading-none">AKRA HUB</h1>
+            <p class="text-slate-400 mb-10 text-[10px] font-bold uppercase tracking-[0.2em] leading-none">Centralized System Portal</p>
 
             <form id="login-form" class="space-y-6" novalidate>
                 <div class="relative group">
                     <input type="password" id="password-input" placeholder="PASSCODE" 
-                        class="w-full px-6 py-4 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:outline-none focus:border-brand-blue/30 focus:bg-white text-center text-2xl font-black tracking-[0.5em] text-brand-blue transition-all shadow-inner placeholder:text-slate-200 uppercase"
+                        class="w-full px-6 py-5 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:outline-none focus:border-brand-blue/30 focus:bg-white text-center text-3xl font-black tracking-[0.5em] text-brand-blue transition-all shadow-inner placeholder:text-slate-200 uppercase placeholder:tracking-normal placeholder:font-bold placeholder:text-sm"
                         required autocomplete="current-password">
                 </div>
                 <button type="submit" id="login-btn" 
-                    class="w-full bg-brand-orange hover:bg-[#c94804] text-white font-black py-4 px-6 rounded-2xl transition-all transform active:scale-95 flex justify-center items-center shadow-xl shadow-brand-orange/20 disabled:opacity-70 disabled:transform-none uppercase italic tracking-widest">
-                    <span id="login-btn-text">Authentication</span>
+                    class="w-full bg-brand-orange hover:bg-[#c94804] text-white font-black py-5 px-6 rounded-2xl transition-all transform active:scale-95 flex justify-center items-center shadow-xl shadow-brand-orange/20 disabled:opacity-70 disabled:transform-none uppercase italic tracking-widest">
+                    <span id="login-btn-text">Authenticate</span>
                 </button>
             </form>
         </section>
@@ -339,16 +339,6 @@
             }
         };
 
-        const API = {
-            postAction: async (payload) => {
-                return await AKRA_API.postAction(payload);
-            },
-            sendLog: (type, appId, message) => {
-                if(!state.currentUser) return;
-                AKRA_API.sendLog(type, appId, message, state.currentUser);
-            }
-        };
-
         const AdminInteractive = {
             editingUserId: null,
             editingRoles: [],
@@ -390,7 +380,6 @@
                 document.getElementById('interactive-form').classList.add('hidden');
                 document.getElementById('empty-selection-state').classList.remove('hidden');
                 
-                // Init Role Selector Grid
                 const roleGrid = document.getElementById('role-selector-grid');
                 roleGrid.innerHTML = AVAILABLE_ROLES.map(r => `
                     <button type="button" data-role-val="${r.val}" onclick="AdminInteractive.toggleEditRole('${r.val}')"
@@ -498,11 +487,8 @@
 
             toggleEditRole: (roleVal) => {
                 const idx = AdminInteractive.editingRoles.indexOf(roleVal);
-                if (idx > -1) {
-                    AdminInteractive.editingRoles.splice(idx, 1);
-                } else {
-                    AdminInteractive.editingRoles.push(roleVal);
-                }
+                if (idx > -1) AdminInteractive.editingRoles.splice(idx, 1);
+                else AdminInteractive.editingRoles.push(roleVal);
                 AdminInteractive.updateRoleUI();
                 AdminInteractive.updateAppPreview();
             },
@@ -532,14 +518,8 @@
                 state.appConfig.forEach(app => {
                     const card = document.getElementById(`preview-${app.id}`);
                     if (!card) return;
-                    
                     const isUnlocked = app.roles.some(r => AdminInteractive.editingRoles.includes(r));
                     card.classList.toggle('unlocked', isUnlocked);
-                    const icon = card.querySelector('i, svg');
-                    if (icon) {
-                        if (isUnlocked) icon.classList.replace('text-slate-400', 'text-brand-blue');
-                        else icon.classList.replace('text-brand-blue', 'text-slate-400');
-                    }
                 });
             },
 
@@ -555,46 +535,31 @@
                 e.preventDefault();
                 const id = document.getElementById('user-id-input').value.trim();
                 const name = document.getElementById('user-name-input').value.trim();
-                
                 if (!id || !name) return UI.showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
-
                 try {
-                    await API.postAction({
-                        action: "saveUser",
-                        id, name, roles: AdminInteractive.editingRoles
-                    });
-                    
+                    await AKRA_API.postAction({ action: "saveUser", id, name, roles: AdminInteractive.editingRoles });
                     state.users[id] = { name, roles: AdminInteractive.editingRoles };
                     localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
-                    
-                    UI.showToast("บันทึกข้อมูลสำเร็จ", "success");
+                    UI.showToast("บันทึกข้อมูลสำเร็จ");
                     AdminInteractive.cancelEdit();
                 } catch(e) { UI.showToast("เกิดข้อผิดพลาดในการบันทึก", "error"); }
             },
 
             handleDelete: async () => {
                 const id = AdminInteractive.editingUserId;
-                if (!id) return;
-
-                if (confirm(`ยืนยันการลบพนักงานรหัส ${id}?\nการดำเนินการนี้ไม่สามารถย้อนกลับได้`)) {
-                    try {
-                        await API.postAction({ action: "deleteUser", id });
-                        
-                        delete state.users[id];
-                        localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
-                        
-                        UI.showToast("ลบผู้ใช้สำเร็จ", "success");
-                        AdminInteractive.setupNewUser();
-                        document.getElementById('empty-selection-state').classList.remove('hidden');
-                        document.getElementById('interactive-form').classList.add('hidden');
-                    } catch(e) { UI.showToast("ลบไม่สำเร็จ", "error"); }
-                }
+                if (!id || !confirm(`ยืนยันการลบพนักงานรหัส ${id}?`)) return;
+                try {
+                    await AKRA_API.postAction({ action: "deleteUser", id });
+                    delete state.users[id];
+                    localStorage.setItem(CONFIG.STORAGE_USER_DB, JSON.stringify(state.users));
+                    UI.showToast("ลบผู้ใช้สำเร็จ");
+                    AdminInteractive.setupNewUser();
+                } catch(e) { UI.showToast("ลบไม่สำเร็จ", "error"); }
             },
 
             renderAppMatrix: () => {
                 const tbody = document.getElementById('app-permission-matrix');
                 const headerRow = document.getElementById('app-matrix-header-row');
-
                 if (headerRow.children.length === 1) {
                     AVAILABLE_ROLES.forEach(r => {
                         const th = document.createElement('th');
@@ -603,42 +568,23 @@
                         headerRow.appendChild(th);
                     });
                 }
-
                 tbody.innerHTML = '';
                 state.appConfig.forEach(app => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-brand-blue/5 transition-colors";
-
                     let roleCells = '';
                     AVAILABLE_ROLES.forEach(r => {
                         const hasRole = app.roles.includes(r.val);
-                        const isAdminCol = r.val === 'ADMIN';
-                        const checkedAttr = hasRole ? 'checked' : '';
-                        const disabledAttr = isAdminCol ? 'disabled' : '';
-                        const cursorClass = isAdminCol ? 'cursor-not-allowed opacity-50' : 'cursor-pointer';
-
                         roleCells += `
                             <td class="p-4 text-center border-l border-slate-100 align-middle">
-                                <label class="inline-flex items-center ${cursorClass}">
-                                    <input type="checkbox" class="sr-only peer" ${checkedAttr} ${disabledAttr} 
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer" ${hasRole ? 'checked' : ''} ${r.val === 'ADMIN' ? 'disabled' : ''} 
                                            onchange="AdminInteractive.toggleMatrixRole('${app.id}', '${r.val}')">
                                     <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue relative"></div>
                                 </label>
-                            </td>
-                        `;
+                            </td>`;
                     });
-
-                    tr.innerHTML = `
-                        <td class="p-4 font-medium text-slate-800 border-r border-slate-200 bg-white">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                                    <i data-lucide="${app.icon}" class="w-4 h-4"></i>
-                                </div>
-                                <span>${app.name}</span>
-                            </div>
-                        </td>
-                        ${roleCells}
-                    `;
+                    tr.innerHTML = `<td class="p-4 font-medium text-slate-800 border-r border-slate-200 bg-white"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0"><i data-lucide="${app.icon}" class="w-4 h-4"></i></div><span>${app.name}</span></div></td>${roleCells}`;
                     tbody.appendChild(tr);
                 });
                 lucide.createIcons();
@@ -647,44 +593,17 @@
             toggleMatrixRole: (appId, roleVal) => {
                 const app = state.appConfig.find(a => a.id === appId);
                 if(!app) return;
-
-                const roleIdx = app.roles.indexOf(roleVal);
-                if (roleIdx > -1) {
-                    app.roles.splice(roleIdx, 1);
-                } else {
-                    app.roles.push(roleVal);
-                }
+                const idx = app.roles.indexOf(roleVal);
+                if (idx > -1) app.roles.splice(idx, 1);
+                else app.roles.push(roleVal);
             },
 
             saveAppConfig: async () => {
-                const btn = document.querySelector('[onclick="AdminInteractive.saveAppConfig()"]');
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> กำลังบันทึกไปยังฐานข้อมูล...';
-                btn.disabled = true;
-                lucide.createIcons();
-
                 try {
-                    await API.postAction({
-                        action: "saveAppConfig",
-                        appConfig: state.appConfig
-                    });
-                    
+                    await AKRA_API.postAction({ action: "saveAppConfig", appConfig: state.appConfig });
                     localStorage.setItem(CONFIG.STORAGE_APP_CONFIG, JSON.stringify(state.appConfig));
-                    UI.showToast("บันทึกตารางสิทธิ์ลงฐานข้อมูลสำเร็จ", "success");
-                    
-                    AdminInteractive.setupAppPreviewGrid();
-                    if(AdminInteractive.editingUserId) {
-                        AdminInteractive.updateAppPreview();
-                    }
-                    AKRA_API.sendLog("Admin Action", "Portal", "ปรับปรุงตารางสิทธิ์การเข้าแอปบน Database", state.currentUser);
-                    
-                } catch (error) {
-                    UI.showToast("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง", "error");
-                } finally {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                    lucide.createIcons();
-                }
+                    UI.showToast("บันทึกตารางสิทธิ์สำเร็จ");
+                } catch (error) { UI.showToast("บันทึกไม่สำเร็จ", "error"); }
             }
         };
 
@@ -696,14 +615,11 @@
                 document.getElementById('login-form').addEventListener('submit', App.handleLogin);
                 document.getElementById('logout-btn').addEventListener('click', App.handleLogout);
                 document.getElementById('admin-btn').addEventListener('click', () => UI.switchSection('admin-section'));
-                document.getElementById('back-to-dash-btn').addEventListener('click', () => {
-                    UI.switchSection('dashboard-section');
-                    App.renderDashboard(); 
-                });
+                document.getElementById('back-to-dash-btn').addEventListener('click', () => { UI.switchSection('dashboard-section'); App.renderDashboard(); });
                 document.getElementById('refresh-data-btn').addEventListener('click', async () => {
                     document.getElementById('refresh-icon').classList.add('animate-spin');
                     await AdminInteractive.fetchAdminData();
-                    UI.showToast("อัปเดตข้อมูลล่าสุดจากเซิร์ฟเวอร์แล้ว");
+                    UI.showToast("อัปเดตข้อมูลแล้ว");
                     setTimeout(()=>document.getElementById('refresh-icon').classList.remove('animate-spin'), 500);
                 });
 
@@ -716,98 +632,74 @@
                         state.sessionToken = savedToken;
                         state.currentUser = parsedUser.name;
                         state.currentRoles = parsedUser.roles || [];
-                        
                         const cachedApps = localStorage.getItem(CONFIG.STORAGE_APP_CONFIG);
                         state.appConfig = cachedApps ? JSON.parse(cachedApps) : JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG));
-                        
                         UI.switchSection('dashboard-section');
                         App.renderDashboard();
                     } catch (e) { App.handleLogout(); }
+                } else {
+                    UI.switchSection('login-section');
                 }
             },
 
             handleLogin: async (e) => {
-                e.preventDefault();
+                if(e) e.preventDefault();
                 const pwdInput = document.getElementById('password-input');
                 const pwd = pwdInput.value.trim();
                 if (!pwd) return;
 
                 const btn = document.getElementById('login-btn');
                 const btnText = document.getElementById('login-btn-text');
-                btn.disabled = true; btnText.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mr-2 inline"></i> ตรวจสอบ...'; lucide.createIcons();
+                btn.disabled = true; btnText.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mr-2 inline"></i>'; lucide.createIcons();
                 
                 try {
                     const data = await AKRA_API.login(pwd);
-
                     if (data.status === 'success') {
                         state.sessionToken = data.token;
                         state.currentUser = data.user.name;
                         state.currentRoles = data.user.roles || [];
-                        
-                        if (data.appConfig && data.appConfig.length > 0) {
-                            state.appConfig = data.appConfig;
-                        } else {
-                            state.appConfig = JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG));
-                        }
+                        state.appConfig = (data.appConfig && data.appConfig.length > 0) ? data.appConfig : JSON.parse(JSON.stringify(DEFAULT_APP_CONFIG));
 
                         localStorage.setItem(CONFIG.STORAGE_SESSION, state.sessionToken);
-                        localStorage.setItem(CONFIG.STORAGE_USER_DATA, JSON.stringify({ 
-                            id: data.user.id,
-                            name: state.currentUser, 
-                            roles: state.currentRoles 
-                        }));
+                        localStorage.setItem(CONFIG.STORAGE_USER_DATA, JSON.stringify({ id: data.user.id, name: state.currentUser, roles: state.currentRoles }));
                         localStorage.setItem(CONFIG.STORAGE_APP_CONFIG, JSON.stringify(state.appConfig));
-                        localStorage.removeItem(CONFIG.STORAGE_USER_DB);
-
-                        pwdInput.value = '';
+                        
                         UI.showToast(`ยินดีต้อนรับ ${state.currentUser}`);
                         UI.switchSection('dashboard-section');
                         App.renderDashboard();
-                    } else {
-                        UI.showToast("รหัสไม่ถูกต้อง หรือไม่มีในระบบ", 'error');
-                        pwdInput.focus();
-                    }
-                } catch (error) {
-                    UI.showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่", 'error');
-                } finally {
-                    btn.disabled = false; btnText.innerText = 'เข้าสู่ระบบ';
-                }
+                    } else { UI.showToast("รหัสไม่ถูกต้อง", 'error'); pwdInput.focus(); }
+                } catch (error) { UI.showToast("การเชื่อมต่อขัดข้อง", 'error'); } 
+                finally { btn.disabled = false; btnText.innerText = 'Authenticate'; }
             },
 
             handleLogout: () => {
                 localStorage.removeItem(CONFIG.STORAGE_SESSION);
                 localStorage.removeItem(CONFIG.STORAGE_USER_DATA);
                 localStorage.removeItem(CONFIG.STORAGE_USER_DB);
-                state.currentUser = null; 
-                state.currentRoles = [];
-                state.sessionToken = null;
+                state.currentUser = null; state.currentRoles = []; state.sessionToken = null;
                 UI.switchSection('login-section');
             },
 
             renderDashboard: () => {
-                const badges = state.currentRoles.map(r => `<span class="inline-block bg-brand-blue/10 text-brand-blue text-[10px] font-bold px-2 py-0.5 rounded ml-1 border border-brand-blue/20">${r}</span>`).join('');
-                document.getElementById('user-name-display').innerHTML = `${state.currentUser} ${badges}`;
-
+                document.getElementById('user-name-display').innerHTML = `${state.currentUser} <span class="text-[10px] font-black text-brand-orange uppercase bg-orange-50 px-2 py-0.5 rounded ml-2 border border-orange-100">${state.currentRoles[0]}</span>`;
                 const adminBtn = document.getElementById('admin-btn');
                 state.currentRoles.includes("ADMIN") ? adminBtn.classList.remove('hidden') : adminBtn.classList.add('hidden');
-
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = ''; 
                 const allowedApps = state.appConfig.filter(app => app.roles.some(role => state.currentRoles.includes(role)));
-
                 if (allowedApps.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-lg"><i data-lucide="lock" class="w-16 h-16 text-slate-200 mx-auto mb-4"></i><h3 class="text-xl font-bold text-slate-400">ไม่มีสิทธิ์ใช้งาน</h3></div>`;
+                    grid.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-lg"><i data-lucide="lock" class="w-16 h-16 text-slate-200 mx-auto mb-4"></i><h3 class="text-xl font-bold text-slate-400">Locked Access</h3></div>`;
                 } else {
                     allowedApps.forEach(app => {
                         grid.innerHTML += `
                             <button onclick="AKRA_SSO.openApp('${app.url}', '${app.id}')" 
-                                class="bg-white p-6 rounded-2xl border-2 border-transparent hover:border-brand-orange transition-all transform hover:-translate-y-1 text-left group flex flex-col h-full shadow-lg hover:shadow-brand-orange/20">
-                                <div class="bg-slate-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-orange transition-colors border border-slate-100">
-                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-6 h-6 transition-colors"></i>
+                                class="bg-white p-6 rounded-[2rem] border-2 border-transparent hover:border-brand-blue transition-all transform hover:-translate-y-2 text-left group flex flex-col h-full shadow-xl shadow-indigo-900/5 hover:shadow-indigo-900/10">
+                                <div class="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-blue transition-colors border border-slate-100 shadow-inner">
+                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-7 h-7 transition-colors"></i>
                                 </div>
-                                <h3 class="text-lg font-bold mb-1 text-brand-blue group-hover:text-brand-orange transition-colors">${app.name}</h3>
-                            </button>
-                        `;
+                                <h3 class="text-lg font-black text-brand-blue uppercase italic tracking-tight group-hover:text-brand-orange transition-colors">${app.name}</h3>
+                                <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-2">Operational Node</p>
+                            </button>`;
                     });
                 }
                 lucide.createIcons();
@@ -817,9 +709,7 @@
         const AKRA_SSO = {
             openApp: function(url, appId) {
                 if(!state.sessionToken) return App.handleLogout();
-                
                 window.location.href = `${url}?sso=${encodeURIComponent(state.sessionToken)}`;
-                AKRA_API.sendLog("Open App", appId, `${state.currentUser} เปิดแอป`, state.currentUser);
             }
         };
 
