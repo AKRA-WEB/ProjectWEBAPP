@@ -23,6 +23,7 @@ CREATE TABLE products (
     name TEXT NOT NULL,
     unit TEXT,
     category TEXT,
+    vendor TEXT REFERENCES vendors(name),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -137,16 +137,6 @@
                     UI.showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
                 }
             },
-            startApp: (user) => {
-                window.appUser = user;
-                state.user = user.name;
-                UI.showApp(user.name);
-                AuthGuard.bindEvents();
-                
-                // Initialize UI with user data
-                if (document.getElementById('user-display')) document.getElementById('user-display').innerText = user.name;
-                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').innerText = user.name.substring(0, 2).toUpperCase();
-            },
             bindEvents: () => {
                 const logoutBtn = document.getElementById('logout-btn');
                 if (logoutBtn) { 
@@ -156,9 +146,17 @@
                         window.location.href = APP_CONFIG.PORTAL_URL; 
                     }); 
                 }
-            }
-        };
+            },
+            startApp: (user) => {
+                window.appUser = user;
+                state.user = user.name;
+                UI.showApp(user.name);
+                AuthGuard.bindEvents();
                 
+                // Initialize UI with user data
+                if (document.getElementById('user-display')) document.getElementById('user-display').innerText = user.name;
+                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').innerText = user.name.substring(0, 2).toUpperCase();
+
                 // Run original initialization logic
                 applyRolePermissions();
                 initMobileMenu();
@@ -169,20 +167,10 @@
                 fetchData();
                 document.addEventListener('click', handleGlobalClicks);
                 lucide.createIcons();
-            },
-            bindEvents: () => {
-                const logoutBtn = document.getElementById('logout-btn');
-                if(logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        localStorage.removeItem(APP_CONFIG.STORAGE_KEY);
-                        localStorage.removeItem('akra_user_data');
-                        window.location.href = APP_CONFIG.PORTAL_URL;
-                    });
-                }
             }
         };
 
-        // document.addEventListener('DOMContentLoaded', AuthGuard.init); // Will be called at the bottom of the script
+        document.addEventListener('DOMContentLoaded', AuthGuard.init);
     </script>
 </head>
 <body class="overflow-hidden selection:bg-[#171C8F]/20 relative">

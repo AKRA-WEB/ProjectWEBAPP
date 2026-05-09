@@ -217,9 +217,17 @@ const AKRA_API = {
             remark: pr.remark
         });
 
+        // Enhance products with vendor info if missing but available in recent POs
+        const productsWithVendor = products.map(p => {
+            if (p.vendor) return p;
+            const recentPO = pendingPOs.find(po => po.sku === p.sku || po.product === p.name);
+            if (recentPO) p.vendor = recentPO.vendor;
+            return p;
+        });
+
         return { 
             success: true, 
-            products: products || [], 
+            products: productsWithVendor || [], 
             pendingPOs: (pendingPOs || []).map(mapPO), 
             vendors: vendors ? vendors.map(v => v.name) : [],
             prList: (prList || []).map(mapPR),
@@ -284,7 +292,7 @@ const AKRA_API = {
             warehouse, 
             sku: item.sku && item.sku.trim() !== "" ? item.sku : null,
             product: item.product, 
-            po_qty: parseFloat(item.quantity) || 0, 
+            po_qty: parseFloat(item.quantity || item.qty) || 0, 
             unit: item.unit || 'ชิ้น', 
             status: 'Pending GR' 
         }));
@@ -295,13 +303,13 @@ const AKRA_API = {
     approvePR: async (payload) => {
         const { vendor, poNumber, warehouse, items, prUid } = payload;
         const poRecords = items.map(item => ({ 
-            ref_pr_uid: null, 
+            ref_pr_uid: null, // Default to null for grouped or adjusted items
             po_number: poNumber, 
             vendor, 
             warehouse, 
             sku: item.sku && item.sku.trim() !== "" ? item.sku : null,
             product: item.product, 
-            po_qty: parseFloat(item.quantity) || 0, 
+            po_qty: parseFloat(item.quantity || item.qty) || 0, 
             unit: item.unit || 'ชิ้น', 
             status: 'Pending GR' 
         }));
@@ -393,11 +401,35 @@ const AKRA_API = {
 
     closePO: async (payload) => {
         const { items } = payload;
-        for (const item of items) {
-            await akraSupabase.from('purchase_orders').update({ status: 'PO Closed - Ready for APV', po_number: item.poNumber, remark: item.matchRemark }).eq('po_uid', item.poUid);
-            await akraSupabase.from('goods_receipts').update({ gr_qty: item.revisedGrQty }).eq('ref_po_uid', item.poUid);
+        try {
+            for (const item of items) {
+                // 1. Update PO Status and metadata
+                const { data: poData, error: poError } = await akraSupabase
+                    .from('purchase_orders')
+                    .update({ 
+                        status: 'PO Closed - Ready for APV', 
+                        po_number: item.poNumber, 
+                        remark: item.matchRemark 
+                    })
+                    .eq('po_uid', item.poUid)
+                    .select('ref_pr_uid')
+                    .single();
+                
+                if (poError) throw poError;
+
+                // 2. Update GR Qty
+                await akraSupabase.from('goods_receipts').update({ gr_qty: item.revisedGrQty }).eq('ref_po_uid', item.poUid);
+
+                // 3. If PO linked to PR, ensure PR is marked as Bought/Approved
+                if (poData && poData.ref_pr_uid) {
+                    await akraSupabase.from('purchase_requests').update({ status: 'Approved' }).eq('pr_uid', poData.ref_pr_uid);
+                }
+            }
+            return { success: true };
+        } catch (e) {
+            console.error("closePO Error:", e);
+            return { success: false, message: e.message };
         }
-        return { success: true };
     },
 
     deletePO: async (payload) => {
