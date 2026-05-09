@@ -693,12 +693,12 @@
                     allowedApps.forEach(app => {
                         grid.innerHTML += `
                             <button onclick="AKRA_SSO.openApp('${app.url}', '${app.id}')" 
-                                class="bg-white p-6 rounded-[2rem] border-2 border-transparent hover:border-brand-blue transition-all transform hover:-translate-y-2 text-left group flex flex-col h-full shadow-xl shadow-indigo-900/5 hover:shadow-indigo-900/10">
-                                <div class="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-blue transition-colors border border-slate-100 shadow-inner">
-                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-7 h-7 transition-colors"></i>
+                                class="bg-white p-5 rounded-[1.5rem] border-2 border-transparent hover:border-brand-blue transition-all transform hover:-translate-y-1.5 text-left group flex flex-col h-full shadow-lg hover:shadow-indigo-900/10">
+                                <div class="bg-slate-50 w-11 h-11 rounded-xl flex items-center justify-center mb-4 group-hover:bg-brand-blue transition-colors border border-slate-100 shadow-inner">
+                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-5 h-5 transition-colors"></i>
                                 </div>
-                                <h3 class="text-lg font-black text-brand-blue uppercase italic tracking-tight group-hover:text-brand-orange transition-colors">${app.name}</h3>
-                                <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-2">Operational Node</p>
+                                <h3 class="text-base font-black text-brand-blue uppercase italic tracking-tight group-hover:text-brand-orange transition-colors">${app.name}</h3>
+                                <p class="text-[8px] font-bold text-slate-300 uppercase tracking-widest mt-1.5">Operational Node</p>
                             </button>`;
                     });
                 }
@@ -715,5 +715,8 @@
 
         document.addEventListener('DOMContentLoaded', App.init);
     </script>
+</body>
+</html>
+   </script>
 </body>
 </html>
