@@ -4,7 +4,10 @@
 ## 🧠 Context Compaction (Session Summary - 2026-05-09)
 
 ### Core Achievements
-- **KPI Premium Overhaul**: Completely re-engineered the KPI app UI to match a high-end SaaS aesthetic (sidebar nav, 3xl rounded cards, SVG analytics).
+- **Return&Claim UI Recovery**: Fixed a critical syntax error in the `AuthGuard` initialization object that was causing the entire app logic to fail. Restored button responsiveness and ensured proper SSO sequence.
+- **PO Vendor Traceability**: Added `vendor` column to the `products` table schema and implemented an auto-sync mechanism that maps vendors to products upon PO creation/approval.
+- **Procurement Status Sync**: Enhanced `AKRA_API.closePO` to automatically update linked `purchase_requests` to 'Approved' status, preventing data leakage between app states.
+- **KPI Premium Overhaul**: Completely re-engineered `KPI.html` with a high-density, professional UI using fluid scaling and condensed layouts for desktop usage.
 - **Mobile UI/UX Optimization**: Implemented responsive bottom navigation, enlarged touch targets, and iOS safe-area support for the KPI app.
 - **Thai Localization**: Achieved 100% Thai language parity across all KPI app interfaces.
 - **Technical Integrity**: Resolved a critical "Access Denied" TypeError and standardized the `AuthGuard` handshake across the entire app suite.

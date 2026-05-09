@@ -84,6 +84,8 @@ PR (Pending) → Approved → PO created (Pending GR) → Draft GR → Pending R
 - Status values are PostgreSQL ENUMs (`pr_status`, `po_status`) — use exact string matches.
 - A PO displayed as **"Overdue"** is NOT a real DB status. It is computed in `getInitialData()` when `po_date` is more than 7 days ago. Never write `status = 'Overdue'` to the database.
 - Multiple PRs for the same vendor can be merged into a single PO (grouped by vendor in `PO.html`).
+- **Vendor-Product Sync**: `createPO` and `approvePR` automatically update the `vendor` column in the `products` table for the corresponding items. This enables automatic vendor suggestions in future orders.
+- **PR Closure**: `closePO` automatically updates linked `purchase_requests` to `'Approved'` status via `ref_pr_uid` to ensure consistent lifecycle tracking.
 
 ### GR Receiving Rules
 - **Draft GR**: Saves a PO status of `'Draft GR'` even if no quantities are entered yet (supports "park bill" workflow).
@@ -128,7 +130,7 @@ Uses `upsert` with `onConflict: 'id'` — `id` is a user-defined string (e.g., `
 |---|---|---|
 | `users` | `id TEXT` | Employee ID; `roles TEXT[]` |
 | `app_config` | `id TEXT` | Controls portal visibility per role |
-| `products` | `sku TEXT` | 5600+ rows; use `fetchAll` |
+| `products` | `sku TEXT` | 5600+ rows; `vendor` column (FK to vendors); use `fetchAll` |
 | `vendors` | `name TEXT` | Use `fetchAll` |
 | `purchase_requests` | `pr_uid UUID` | ENUM: Pending/Approved/Rejected/Bought |
 | `purchase_orders` | `po_uid UUID` | ENUM: Pending GR/Draft GR/Pending Review/GR Completed/PO Closed - Ready for APV |
