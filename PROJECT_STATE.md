@@ -99,10 +99,11 @@
 - [x] **Knowledge Capture**: Updated `CLAUDE.md` to prioritize the new Technical Ledger for session continuity.
 
 ### 🎨 UI/UX Consolidation (2026-05-09)
-- [x] **Premium DNA:** ปรับโฉมแอปทั้งระบบ (KPI, PR, PO, GR, Returns, Portal) ให้ใช้มาตรฐานเดียวกัน
-- [x] **Typography Duo:** ใช้ 'Prompt' คู่กับ 'Plus Jakarta Sans' เพื่อยกระดับความพรีเมียมของภาษาอังกฤษและตัวเลข
+- [x] **Premium Minimal DNA (Option 2):** ปรับโฉมแอปทั้งระบบ (Portal, KPI, PR, PO, GR, W5, Return&Claim, Transfers) ให้ใช้มาตรฐาน Sidebar (Desktop) / Bottom Nav (Mobile) พร้อมสไตล์ Minimal (ตัวตรง ไม่เอียง ลดความหนา ลดความดุดัน)
+- [x] **Typography Duo:** ใช้ 'Prompt' คู่กับ 'Plus Jakarta Sans' เพื่อยกระดับความพรีเมียมของภาษาอังกฤษและตัวเลข (ใช้ font-semibold แทน font-black)
+- [x] **Icon Standardization:** เปลี่ยนจาก Material/FontAwesome เป็น Lucide Icons ทั้งระบบ
 - [x] **Glass-morphism:** นำดีไซน์ขอบขาว (Border 1px) และ Soft Shadow มาใช้กับการ์ดทุกใบ
-- [x] **Unified Portal:** อัปเกรดหน้า 'AKRA HUB' เป็น Central Dashboard ที่สวยงามและทันสมัย
+
 
 ### 🔐 Infrastructure & SSO (2026-05-09)
 - [x] **Full SSO Sync:** ทุกแอปใช้ `akra_session_token` ซิงค์กับ `akra_user_data` อย่างสมบูรณ์

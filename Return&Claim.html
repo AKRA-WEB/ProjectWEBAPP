@@ -327,10 +327,10 @@
                 <!-- ================== TAB: DASHBOARD ================== -->
                 <div id="tab-DASHBOARD" class="tab-content active space-y-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#171C8F]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">รับคืน (รอดำเนินการ)</p><h3 class="text-3xl font-black text-[#171C8F]" id="kpi-ret">0</h3></div>
-                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#E35205]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Audit (รอตรวจ/นับ)</p><h3 class="text-3xl font-black text-[#E35205]" id="kpi-audit">0</h3></div>
-                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#171C8F]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">เคลมชำรุด (ค้างส่ง)</p><h3 class="text-3xl font-black text-[#171C8F]" id="kpi-clm">0</h3></div>
-                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#E35205]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">ลูกค้า (รอชดเชย)</p><h3 class="text-3xl font-black text-[#E35205]" id="kpi-cust">0</h3></div>
+                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#171C8F]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">รับคืน (รอดำเนินการ)</p><h3 class="text-3xl font-bold text-[#171C8F]" id="kpi-ret">0</h3></div>
+                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#E35205]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Audit (รอตรวจ/นับ)</p><h3 class="text-3xl font-bold text-[#E35205]" id="kpi-audit">0</h3></div>
+                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#171C8F]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">เคลมชำรุด (ค้างส่ง)</p><h3 class="text-3xl font-bold text-[#171C8F]" id="kpi-clm">0</h3></div>
+                        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-[#E35205]"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">ลูกค้า (รอชดเชย)</p><h3 class="text-3xl font-bold text-[#E35205]" id="kpi-cust">0</h3></div>
                     </div>
 
                     <!-- 📊 New Dashboard Chart -->
@@ -849,7 +849,7 @@
             div.className = 'flex items-center gap-2 mt-2 animate-in fade-in duration-200';
             div.innerHTML = `
                 <input type="text" class="w-16 px-2 py-3 bg-white border border-slate-300 rounded-lg text-center text-xs text-slate-700 focus:border-[#171C8F] outline-none shadow-sm" placeholder="โซน..">
-                <input type="number" min="0" step="any" class="qty-input-${id} flex-1 px-3 py-3 bg-white border-2 border-slate-300 rounded-lg text-center font-black text-[#E35205] text-2xl focus:border-[#E35205] focus:ring-4 focus:ring-[#E35205]/20 shadow-sm transition-all" placeholder="0" oninput="calcAuditTotal('${id}')">
+                <input type="number" min="0" step="any" class="qty-input-${id} flex-1 px-3 py-3 bg-white border-2 border-slate-300 rounded-lg text-center font-bold text-[#E35205] text-2xl focus:border-[#E35205] focus:ring-4 focus:ring-[#E35205]/20 shadow-sm transition-all" placeholder="0" oninput="calcAuditTotal('${id}')">
                 <button type="button" onclick="this.parentElement.remove(); calcAuditTotal('${id}');" class="text-rose-500 hover:bg-rose-50 p-3 rounded-lg border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="x" class="w-5 h-5 pointer-events-none"></i></button>
             `;
             container.appendChild(div);
@@ -1166,7 +1166,7 @@
                     return [
                         '<tr class="hover:bg-slate-50 transition-colors group">',
                             '<td class="p-4"><p class="font-bold text-sm text-slate-800">'+r.name+'</p><p class="text-[10px] text-slate-500 font-mono mt-0.5">'+r.sku+'</p></td>',
-                            '<td class="p-4 text-center font-black text-[#171C8F]">'+r.qty+'</td>',
+                            '<td class="p-4 text-center font-bold text-[#171C8F]">'+r.qty+'</td>',
                             '<td class="p-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 block w-fit max-w-[200px] whitespace-normal break-words leading-tight">'+(r.qc_condition && r.qc_condition !== '-' ? r.qc_condition : 'สินค้าสภาพดี')+'</span></td>',
                             '<td class="p-4 text-right"><button onclick="postData({action:\'updateReturnBatch\', ids:[\''+r.id+'\']}, \'นำเข้าระบบสำเร็จ\')" class="text-slate-400 hover:text-emerald-500 p-2 transition-colors"><i data-lucide="check-square" class="w-5 h-5"></i></button></td>',
                         '</tr>'
@@ -1223,7 +1223,7 @@
                                     '<p class="text-[10px] text-slate-500 mt-1.5 line-clamp-1"><span class="text-rose-500 font-bold">สาเหตุ:</span> '+rText+' <span class="text-slate-300 mx-1">|</span> <span class="text-amber-500 font-bold">หมายเหตุ:</span> '+mText+'</p>',
                                 '</div>',
                                 '<div class="w-1/3 text-right flex flex-col items-end justify-center gap-2">',
-                                    '<span class="font-mono font-black text-[#E35205] bg-[#E35205]/10 border border-[#E35205]/20 px-2 py-1 rounded-md">'+i.qty+' <span class="font-normal text-[10px]">'+(i.unit || 'ชิ้น')+'</span></span>',
+                                    '<span class="font-mono font-bold text-[#E35205] bg-[#E35205]/10 border border-[#E35205]/20 px-2 py-1 rounded-md">'+i.qty+' <span class="font-normal text-[10px]">'+(i.unit || 'ชิ้น')+'</span></span>',
                                     (isNoVendor ? '<button data-action="set-vendor" data-id="'+i.id+'" data-sku="'+i.sku+'" class="px-2 py-1.5 bg-[#171C8F] text-white text-[10px] rounded hover:bg-[#12167A] transition-colors font-bold whitespace-nowrap shadow-sm"><i data-lucide="edit-3" class="w-3 h-3 inline mr-1 pointer-events-none"></i>ระบุ Vendor</button>' : ''),
                                 '</div>',
                             '</div>'
@@ -1282,7 +1282,7 @@
                                 '<div class="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm '+(a.type === 'return' ? 'bg-[#171C8F] text-white' : 'bg-[#E35205] text-white')+'"><i data-lucide="'+(a.type === 'return' ? 'package-check' : 'alert-circle')+'" class="w-5 h-5"></i></div>',
                                 '<div><p class="font-bold text-slate-800 text-sm">'+a.label+' • <span class="font-mono text-xs text-slate-500">'+a.item.sku+'</span></p><p class="text-xs text-slate-600 mt-1 line-clamp-1">'+a.item.name+'</p></div>',
                             '</div>',
-                            '<div class="text-right"><p class="text-xs font-black '+(a.type === 'return' ? 'text-[#171C8F]' : 'text-[#E35205]')+'">'+a.item.qty+' '+(a.item.unit || 'ชิ้น')+'</p><p class="text-[10px] text-slate-500 mt-1">'+a.date+'</p></div>',
+                            '<div class="text-right"><p class="text-xs font-bold '+(a.type === 'return' ? 'text-[#171C8F]' : 'text-[#E35205]')+'">'+a.item.qty+' '+(a.item.unit || 'ชิ้น')+'</p><p class="text-[10px] text-slate-500 mt-1">'+a.date+'</p></div>',
                         '</div>'
                     ].join('');
                 }).join('') : '<p class="text-slate-400 text-sm text-center py-6">ไม่พบข้อมูลในระบบ</p>';
@@ -1300,7 +1300,7 @@
                         '<tr class="hover:bg-slate-50 transition-colors">',
                             '<td class="p-4"><p class="font-bold text-slate-800">'+r.date_str+'</p><p class="text-[10px] text-slate-500 font-mono">'+r.time_str+'</p></td>',
                             '<td class="p-4"><p class="font-mono text-xs text-[#171C8F] font-bold">'+(r.bill_no && r.bill_no !== '-' ? r.bill_no : r.source)+'</p>'+(r.customer_name && r.customer_name !== '-' ? '<p class="text-[10px] text-slate-500">ลูกค้า: '+r.customer_name+'</p>' : '')+'</td>',
-                            '<td class="p-4"><p class="font-bold text-slate-800 text-sm truncate max-w-[200px]">'+r.name+'</p><p class="text-[10px] text-slate-500 font-mono">'+r.sku+' • <span class="font-black text-[#171C8F]">'+r.qty+' '+r.unit+'</span></p></td>',
+                            '<td class="p-4"><p class="font-bold text-slate-800 text-sm truncate max-w-[200px]">'+r.name+'</p><p class="text-[10px] text-slate-500 font-mono">'+r.sku+' • <span class="font-bold text-[#171C8F]">'+r.qty+' '+r.unit+'</span></p></td>',
                             '<td class="p-4 text-center">'+badge+'</td>',
                             '<td class="p-4 text-center"><button data-action="view-details" data-type="return" data-id="'+r.id+'" class="p-2 bg-[#171C8F]/10 hover:bg-[#171C8F]/20 text-[#171C8F] rounded-lg transition-all shadow-sm"><i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i></button></td>',
                         '</tr>'
@@ -1337,7 +1337,7 @@
                         '<tr class="hover:bg-slate-50 transition-colors">',
                             '<td class="p-4"><p class="font-bold text-slate-800">'+c.report_date+'</p><p class="text-[10px] text-slate-500">ปิดจ๊อบ: '+(c.return_date || '-')+'</p></td>',
                             '<td class="p-4"><p class="font-bold text-xs text-[#E35205] truncate max-w-[150px]">'+(c.vendor || 'ไม่ระบุ')+'</p><p class="text-[10px] text-slate-500 font-mono mt-0.5">บิล: '+(c.claim_bill_no && c.claim_bill_no !== '-' ? c.claim_bill_no : 'ยังไม่มี')+'</p></td>',
-                            '<td class="p-4"><p class="font-bold text-slate-800 text-sm truncate max-w-[200px]">'+c.name+'</p><p class="text-[10px] text-slate-500 font-mono">'+c.sku+' • <span class="font-black text-[#171C8F]">'+c.qty+' '+(c.unit || 'ชิ้น')+'</span></p></td>',
+                            '<td class="p-4"><p class="font-bold text-slate-800 text-sm truncate max-w-[200px]">'+c.name+'</p><p class="text-[10px] text-slate-500 font-mono">'+c.sku+' • <span class="font-bold text-[#171C8F]">'+c.qty+' '+(c.unit || 'ชิ้น')+'</span></p></td>',
                             '<td class="p-4 text-center">'+badge+'</td>',
                             '<td class="p-4 text-center"><button data-action="view-details" data-type="claim" data-id="'+c.id+'" class="p-2 bg-[#171C8F]/10 hover:bg-[#171C8F]/20 text-[#171C8F] rounded-lg transition-all shadow-sm"><i data-lucide="eye" class="w-4 h-4 pointer-events-none"></i></button></td>',
                         '</tr>'
@@ -1524,7 +1524,7 @@
                                 '</div>',
                                 '<div class="bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 text-center shrink-0 shadow-sm">',
                                     '<p class="text-[9px] text-slate-500 font-bold mb-0.5">ตัวคูณ (ชิ้น/' + (i.unit || 'หน่วย') + ')</p>',
-                                    '<input type="number" min="1" id="multiplier_' + i.row_id + '" class="w-12 bg-transparent text-center text-[#171C8F] font-black text-xs outline-none" value="' + multVal + '" oninput="calcAuditTotal(\'' + i.row_id + '\')">',
+                                    '<input type="number" min="1" id="multiplier_' + i.row_id + '" class="w-12 bg-transparent text-center text-[#171C8F] font-bold text-xs outline-none" value="' + multVal + '" oninput="calcAuditTotal(\'' + i.row_id + '\')">',
                                 '</div>',
                             '</div>',
                             '<div class="ml-2 bg-[#F8FAFC] p-3 rounded-xl border border-slate-200 shadow-inner">',
@@ -1535,14 +1535,14 @@
                                 '<div id="count_inputs_' + i.row_id + '" class="space-y-2">',
                                     '<div class="flex items-center gap-2">',
                                         '<input type="text" class="w-16 px-2 py-3 bg-white border border-slate-300 rounded-lg text-center text-xs text-slate-700 focus:border-[#171C8F] outline-none shadow-sm" placeholder="โซน.." value="' + loc + '" ' + (loc ? 'readonly' : '') + '>',
-                                        '<input type="number" min="0" step="any" class="qty-input-' + i.row_id + ' flex-1 px-3 py-3 bg-white border-2 border-slate-300 rounded-lg text-center font-black text-[#E35205] text-2xl focus:border-[#E35205] focus:ring-4 focus:ring-[#E35205]/20 shadow-sm transition-all" placeholder="0" value="' + unitQty + '" oninput="calcAuditTotal(\'' + i.row_id + '\')">',
+                                        '<input type="number" min="0" step="any" class="qty-input-' + i.row_id + ' flex-1 px-3 py-3 bg-white border-2 border-slate-300 rounded-lg text-center font-bold text-[#E35205] text-2xl focus:border-[#E35205] focus:ring-4 focus:ring-[#E35205]/20 shadow-sm transition-all" placeholder="0" value="' + unitQty + '" oninput="calcAuditTotal(\'' + i.row_id + '\')">',
                                     '</div>',
                                 '</div>',
                                 '<div class="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center">',
                                     '<span class="text-[10px] text-slate-500 font-medium">ระบบจะนำไปคูณอัตโนมัติ เป็นยอดรวมสุทธิ</span>',
                                     '<div class="text-right">',
                                         '<span class="text-[10px] text-slate-500 font-bold mr-1">รวมเป็นชิ้น:</span>',
-                                        '<span id="total_display_' + i.row_id + '" class="text-[#171C8F] font-black text-lg">' + totalQty + '</span>',
+                                        '<span id="total_display_' + i.row_id + '" class="text-[#171C8F] font-bold text-lg">' + totalQty + '</span>',
                                     '</div>',
                                 '</div>',
                             '</div>',
@@ -1676,7 +1676,7 @@
                                     '<p class="font-bold text-sm text-slate-800 leading-snug flex-1">' + main.name + '</p>',
                                     '<div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm shrink-0">',
                                         '<span class="text-[10px] text-slate-500 font-bold">ชิ้น/ลัง:</span>',
-                                        '<input type="number" min="1" id="rev_multiplier_' + main.row_id + '" class="w-10 text-center text-[#171C8F] font-black text-xs outline-none bg-transparent" value="' + multVal + '" readonly oninput="calcReviewTotal(\'' + main.row_id + '\', ' + totalActual + ')">',
+                                        '<input type="number" min="1" id="rev_multiplier_' + main.row_id + '" class="w-10 text-center text-[#171C8F] font-bold text-xs outline-none bg-transparent" value="' + multVal + '" readonly oninput="calcReviewTotal(\'' + main.row_id + '\', ' + totalActual + ')">',
                                         '<button type="button" onclick="const inp = document.getElementById(\'rev_multiplier_' + main.row_id + '\'); inp.readOnly = !inp.readOnly; if(!inp.readOnly){inp.focus(); this.classList.add(\'text-[#E35205]\', \'bg-orange-50\')}else{this.classList.remove(\'text-[#E35205]\', \'bg-orange-50\')}" class="text-slate-400 hover:text-[#E35205] p-1 rounded transition-colors" title="คลิกเพื่อแก้ไขจำนวนชิ้นต่อลัง">',
                                             '<i data-lucide="edit-3" class="w-3 h-3 pointer-events-none"></i>',
                                         '</button>',
@@ -1688,7 +1688,7 @@
                         '<div class="bg-white border border-slate-200 p-3 rounded-lg shadow-sm mb-3">',
                             '<div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">',
                                 '<span class="text-[11px] text-slate-600 font-bold">ผลรวมการนับจริงทั้งหมด:</span>',
-                                '<strong class="text-[#E35205] text-base font-black">' + totalActual + ' <span class="text-[10px] font-medium text-slate-500">ชิ้น</span></strong>',
+                                '<strong class="text-[#E35205] text-base font-bold">' + totalActual + ' <span class="text-[10px] font-medium text-slate-500">ชิ้น</span></strong>',
                             '</div>',
                             '<div class="flex justify-between items-start text-[10px] text-slate-600 mt-2">',
                                 trdSection,
@@ -1696,7 +1696,7 @@
                             '</div>',
                         '</div>',
                         '<div class="bg-white border-2 border-[#171C8F]/20 p-3 rounded-xl mt-4 shadow-sm">',
-                            '<p class="text-[10px] text-[#171C8F] mb-2.5 font-black uppercase tracking-widest flex items-center">',
+                            '<p class="text-[10px] text-[#171C8F] mb-2.5 font-bold uppercase tracking-widest flex items-center">',
                                 '<i data-lucide="calculator" class="w-3 h-3 mr-1.5"></i> แปลงยอดจากระบบ POS (เป็นชิ้น)',
                             '</p>',
                             '<div class="grid grid-cols-4 gap-2">',
@@ -1710,13 +1710,13 @@
                                 '</div>',
                                 '<div class="col-span-1">',
                                     '<label class="block text-[10px] text-slate-500 mb-1.5 font-bold">เศษ (ชิ้น)</label>',
-                                    '<input type="number" min="0" id="rev_loose_' + main.row_id + '" class="w-full px-2 py-2.5 input-ci bg-slate-50 rounded-lg text-center text-sm font-black text-[#171C8F]" value="' + currentSys + '" oninput="calcReviewTotal(\'' + main.row_id + '\', ' + totalActual + ')">',
+                                    '<input type="number" min="0" id="rev_loose_' + main.row_id + '" class="w-full px-2 py-2.5 input-ci bg-slate-50 rounded-lg text-center text-sm font-bold text-[#171C8F]" value="' + currentSys + '" oninput="calcReviewTotal(\'' + main.row_id + '\', ' + totalActual + ')">',
                                 '</div>',
                                 '<div class="col-span-1 text-right flex flex-col justify-end">',
                                     '<label class="block text-[10px] text-slate-500 mb-1 font-bold">ยอดรวมระบบ</label>',
                                     '<div class="flex flex-col items-end">',
-                                        '<span id="rev_total_display_' + main.row_id + '" class="text-[#171C8F] font-black text-lg">' + currentSys + '</span>',
-                                        '<span id="rev_diff_display_' + main.row_id + '" class="text-[10px] mt-0.5 ' + (initialDiff === 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-black') + '">ดิฟ: ' + (initialDiff > 0 ? '+'+initialDiff : initialDiff) + '</span>',
+                                        '<span id="rev_total_display_' + main.row_id + '" class="text-[#171C8F] font-bold text-lg">' + currentSys + '</span>',
+                                        '<span id="rev_diff_display_' + main.row_id + '" class="text-[10px] mt-0.5 ' + (initialDiff === 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold') + '">ดิฟ: ' + (initialDiff > 0 ? '+'+initialDiff : initialDiff) + '</span>',
                                     '</div>',
                                 '</div>',
                             '</div>',
@@ -1802,7 +1802,7 @@
                         '<h2 class="text-2xl font-bold mb-1 text-[#171C8F]">ใบส่งคืนสินค้าชำรุด</h2>',
                         '<p class="text-sm text-[#E35205] uppercase tracking-widest mb-4 font-bold">Damage Goods Return</p>',
                         '<p class="text-sm mb-1"><strong>ผู้จัดจำหน่าย (Vendor):</strong> ' + vendor + '</p>',
-                        '<p class="text-sm mb-1"><strong>รวมจำนวนที่ส่งคืน:</strong> <span class="font-black text-lg text-[#171C8F]">' + totalQtySum + '</span> รายการ</p>',
+                        '<p class="text-sm mb-1"><strong>รวมจำนวนที่ส่งคืน:</strong> <span class="font-bold text-lg text-[#171C8F]">' + totalQtySum + '</span> รายการ</p>',
                     '</div>',
                     '<div class="w-1/4 text-right text-sm">',
                         '<p class="mb-1"><strong>วันที่พิมพ์:</strong> ' + new Date().toLocaleDateString('th-TH') + '</p>',
@@ -1927,7 +1927,7 @@
                     const statusClass = c.status === 'BATCHED' || c.status === 'ตัดรอบแล้ว' ? 'text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded' : c.status === 'QC_PASSED' ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded' : 'text-slate-600 bg-slate-100 px-2 py-0.5 rounded';
                     return [
                         '<div class="bg-white border border-slate-200 p-4 rounded-xl hover:border-[#171C8F]/30 transition-colors shadow-sm">',
-                            '<div class="flex justify-between items-start mb-2"><span class="text-[10px] font-mono text-[#171C8F] bg-[#171C8F]/10 px-1.5 py-0.5 rounded font-bold">' + c.sku + '</span><span class="text-xs font-black text-[#E35205]">' + c.qty + ' <span class="text-[10px] font-medium text-slate-500">' + (c.unit || 'ชิ้น') + '</span></span></div>',
+                            '<div class="flex justify-between items-start mb-2"><span class="text-[10px] font-mono text-[#171C8F] bg-[#171C8F]/10 px-1.5 py-0.5 rounded font-bold">' + c.sku + '</span><span class="text-xs font-bold text-[#E35205]">' + c.qty + ' <span class="text-[10px] font-medium text-slate-500">' + (c.unit || 'ชิ้น') + '</span></span></div>',
                             '<p class="text-sm font-bold text-slate-800 leading-snug line-clamp-1 mb-1">' + c.name + '</p>',
                             '<p class="text-[11px] text-slate-500 font-medium truncate"><span class="text-rose-500">เหตุผล:</span> ' + c.reason + '</p>',
                             '<div class="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-500"><span>' + (c.date_str || c.dateStr) + '</span><span class="' + statusClass + ' font-bold">' + c.status + '</span></div>',
@@ -1953,7 +1953,7 @@
                 return [
                     '<tr class="hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0">',
                         '<td class="p-4"><p class="font-bold text-slate-800 text-sm truncate max-w-[200px]">' + d.name + '</p><p class="text-[10px] text-slate-500 font-mono mt-0.5">' + d.sku + '</p></td>',
-                        '<td class="p-4 text-center font-black text-[#E35205]">' + d.qty + '</td>',
+                        '<td class="p-4 text-center font-bold text-[#E35205]">' + d.qty + '</td>',
                         '<td class="p-4 text-xs text-slate-500 truncate max-w-[120px]">' + d.reason + '</td>',
                         '<td class="p-4 text-right"><button data-action="del-draft" data-idx="' + i + '" class="text-slate-400 hover:text-rose-500 p-1.5 transition-colors bg-white rounded-md shadow-sm border border-slate-200"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button></td>',
                     '</tr>'
@@ -1976,7 +1976,7 @@
                                 '<h3 class="font-bold text-lg text-[#171C8F] mt-2">' + r.name + '</h3>',
                             '</div>',
                             '<div class="text-right">',
-                                '<span class="bg-[#E35205]/10 text-[#E35205] px-3 py-1 rounded-lg font-black text-lg border border-[#E35205]/20">' + r.qty + ' <span class="text-xs font-normal">' + r.unit + '</span></span>',
+                                '<span class="bg-[#E35205]/10 text-[#E35205] px-3 py-1 rounded-lg font-bold text-lg border border-[#E35205]/20">' + r.qty + ' <span class="text-xs font-normal">' + r.unit + '</span></span>',
                             '</div>',
                         '</div>',
                         '<div class="grid grid-cols-2 gap-4">',
@@ -2032,7 +2032,7 @@
                                 '<h3 class="font-bold text-lg text-[#171C8F] mt-2">' + c.name + '</h3>',
                             '</div>',
                             '<div class="text-right">',
-                                '<span class="bg-[#E35205]/10 text-[#E35205] px-3 py-1 rounded-lg font-black text-lg border border-[#E35205]/20">' + c.qty + ' <span class="text-xs font-normal">' + (c.unit || 'ชิ้น') + '</span></span>',
+                                '<span class="bg-[#E35205]/10 text-[#E35205] px-3 py-1 rounded-lg font-bold text-lg border border-[#E35205]/20">' + c.qty + ' <span class="text-xs font-normal">' + (c.unit || 'ชิ้น') + '</span></span>',
                             '</div>',
                         '</div>',
                         '<div class="grid grid-cols-2 gap-4">',
@@ -2114,7 +2114,7 @@
                                 '</div>',
                                 '<div class="text-right w-1/3">',
                                     '<p class="text-[10px] text-slate-500 font-bold">ระบบ: ' + i.sys_stock + '</p>',
-                                    '<p class="text-[10px] ' + (diff === 0 ? 'text-emerald-500' : 'text-rose-500 font-black') + '">ดิฟ: ' + (diff > 0 ? '+'+diff : diff) + '</p>',
+                                    '<p class="text-[10px] ' + (diff === 0 ? 'text-emerald-500' : 'text-rose-500 font-bold') + '">ดิฟ: ' + (diff > 0 ? '+'+diff : diff) + '</p>',
                                 '</div>',
                             '</div>',
                             '<div class="mt-2 pt-2 border-t border-slate-100 flex gap-2 text-[10px]">',

@@ -3,420 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKRA W5 - ระบบคลังสินค้า</title>
+    <title>AKRA W5 - Warehouse Management</title>
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="supabase-client.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --akra-blue: #1e40af;
-            --akra-blue-light: #3b82f6;
-            --akra-gray: #f8fafc;
+            --brand-blue: #171C8F;
+            --brand-orange: #E35205;
+            --sidebar-width: 76px;
+            --header-height: 4rem;
         }
 
         body { 
-            font-family: 'Sarabun', sans-serif; 
-            background-color: var(--akra-gray);
+            font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc;
             color: #1e293b;
         }
 
         [v-cloak] { display: none; }
 
+        /* Premium Minimal Styling */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
         .akra-card {
             background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.2s;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #f1f5f9;
         }
+        .akra-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
 
         .akra-input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
+            height: 3rem;
+            padding: 0 1.25rem;
+            border-radius: 1rem;
             border: 1px solid #e2e8f0;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
             transition: all 0.2s;
             outline: none;
+            font-weight: 500;
         }
-
         .akra-input:focus {
             background-color: white;
-            border-color: var(--akra-blue-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 4px rgba(23, 28, 143, 0.05);
         }
 
         .btn-primary {
-            background-color: var(--akra-blue);
+            background-color: var(--brand-blue);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
             font-weight: 600;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 0.5rem;
         }
+        .btn-primary:hover { background-color: #11156e; transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(23, 28, 143, 0.2); }
+        .btn-primary:disabled { opacity: 0.5; transform: none; box-shadow: none; cursor: not-allowed; }
 
-        .btn-primary:hover { background-color: #1e3a8a; transform: translateY(-1px); }
-        .btn-primary:active { transform: translateY(0); }
-
-        .nav-item {
+        /* Sidebar Styles */
+        #main-sidebar {
+            width: var(--sidebar-width);
+            background: var(--brand-blue);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        .nav-link {
+            width: 50px;
+            height: 50px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding: 0.5rem;
-            color: #64748b;
-            font-size: 0.7rem;
-            font-weight: 500;
+            justify-content: center;
+            border-radius: 14px;
+            color: rgba(255,255,255,0.6);
             transition: all 0.2s;
+            position: relative;
         }
-
-        .nav-item.active { color: var(--akra-blue); }
-        
-        .pulse-dot {
-            height: 8px; width: 8px; border-radius: 50%; display: inline-block;
-            box-shadow: 0 0 0 0 rgba(34, 197, 94, 1);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
+        .nav-link.active { color: white; background: var(--brand-orange); box-shadow: 0 8px 15px rgba(227, 82, 5, 0.3); }
 
         /* Animation */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
-
-        @media (min-width: 768px) {
-            .desktop-grid {
-                display: grid;
-                grid-template-columns: 350px 1fr;
-                gap: 1.5rem;
-            }
-            .mobile-nav { display: none; }
-            .desktop-sidebar { display: block; }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
 
         @media (max-width: 767px) {
-            .desktop-sidebar { display: none; }
+            #main-sidebar { display: none; }
+            .main-content { margin-left: 0 !important; padding-top: var(--header-height); }
         }
     </style>
 </head>
-<body>
+<body class="bg-[#f4f7fe]">
 
 <div id="app" v-cloak>
     <!-- Overlay Loading -->
-    <div v-if="isLoading && !isSilentLoading" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-blue-900 font-bold">กำลังเชื่อมต่อระบบ W5...</p>
+    <div v-if="isLoading && !isSilentLoading" class="fixed inset-0 bg-white/95 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
+        <div class="w-16 h-16 bg-brand-blue rounded-3xl flex items-center justify-center animate-bounce shadow-xl">
+            <i data-lucide="warehouse" class="text-white w-8 h-8"></i>
+        </div>
+        <p class="mt-6 text-brand-blue font-bold tracking-widest uppercase text-xs">Initializing W5 Terminal...</p>
     </div>
 
-    <!-- Header (PC & Mobile) -->
-    <header class="bg-blue-800 text-white sticky top-0 z-50 shadow-lg">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-white p-2 rounded-lg text-blue-800">
-                    <i class="fas fa-warehouse text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">AKRA W5</h1>
-                    <p class="text-[10px] text-blue-200 uppercase tracking-widest">Inventory Management</p>
-                </div>
-            </div>
-            
-            <!-- User Profile & Logout -->
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-3 bg-blue-900/50 px-3 py-1.5 rounded-full border border-blue-700/50">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-xs font-bold">{{ loggedInUser }}</p>
-                        <p class="text-[9px] text-blue-300">พนักงานคลังสินค้า</p>
-                    </div>
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-bold text-sm">
-                        {{ loggedInUser?.charAt(0) }}
-                    </div>
-                </div>
-                <button id="logout-btn" class="w-10 h-10 flex items-center justify-center bg-red-500/80 hover:bg-red-500 text-white rounded-full transition-all shadow-lg border border-red-400/50" title="ออกจากระบบ">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+    <!-- Desktop Sidebar -->
+    <aside id="main-sidebar" class="fixed left-0 top-0 h-screen flex flex-col items-center py-8 hidden md:flex">
+        <div class="mb-10 group cursor-pointer" @click="activeTab = 'dashboard'">
+            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-brand-blue shadow-lg group-hover:scale-110 transition-transform">
+                <i data-lucide="warehouse" class="w-6 h-6"></i>
             </div>
         </div>
-    </header>
+        
+        <nav class="flex-grow space-y-4">
+            <button @click="activeTab = 'dashboard'" :class="{active: activeTab === 'dashboard'}" class="nav-link" title="Dashboard">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            </button>
+            <button @click="activeTab = 'inventory'" :class="{active: activeTab === 'inventory'}" class="nav-link" title="Inventory">
+                <i data-lucide="package" class="w-5 h-5"></i>
+            </button>
+            <button @click="activeTab = 'transaction'" :class="{active: activeTab === 'transaction'}" class="nav-link" title="Transactions">
+                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+            </button>
+            <button @click="activeTab = 'picklist'" :class="{active: activeTab === 'picklist'}" class="nav-link" title="Picklists">
+                <div v-if="pickList.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-brand-blue">{{ pickList.length }}</div>
+                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+            </button>
+            <button v-if="isAdmin" @click="activeTab = 'manage'" :class="{active: activeTab === 'manage'}" class="nav-link" title="Settings">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </nav>
 
-    <div class="max-w-6xl mx-auto px-4 py-6 mb-20 md:mb-6">
-        <div class="desktop-grid">
-            
-            <!-- Sidebar / Left Section (Always Visible on PC, Tabbed on Mobile) -->
-            <aside class="space-y-6 md:block" :class="{'hidden': activeTab !== 'transaction' && activeTab !== 'manage' && !isPC}">
-                
-                <!-- Quick Transaction Card -->
-                <section v-show="activeTab === 'transaction' || isPC" class="akra-card p-5 border border-slate-200">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-exchange-alt text-blue-600"></i> ทำรายการด่วน
+        <button id="logout-btn" class="nav-link mt-auto text-white/40 hover:text-red-400">
+            <i data-lucide="power" class="w-5 h-5"></i>
+        </button>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-content md:ml-[76px] min-h-screen flex flex-col">
+        
+        <!-- Standard Header -->
+        <header class="h-16 glass-panel sticky top-0 z-[90] px-6 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="md:hidden w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white" @click="activeTab = 'dashboard'">
+                    <i data-lucide="warehouse" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-brand-blue font-bold text-lg leading-none uppercase tracking-tight">W5 Inventory</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Terminal System</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block mr-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Authenticated</p>
+                    <p class="text-brand-blue font-bold text-sm leading-none">{{ loggedInUser }}</p>
+                </div>
+                <div class="w-10 h-10 bg-[#F4F7FE] rounded-2xl flex items-center justify-center text-brand-blue font-bold text-sm border border-white shadow-sm">
+                    {{ loggedInUser?.charAt(0) }}
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Body -->
+        <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full mb-20 md:mb-0">                
+            <!-- Tab: Transaction -->
+            <div v-show="activeTab === 'transaction'" class="animate-fade-in max-w-lg mx-auto">
+                <section class="akra-card overflow-hidden">
+                    <div class="p-6 bg-brand-blue text-white">
+                        <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
+                            <i data-lucide="zap" class="w-5 h-5 text-brand-orange"></i> Quick Terminal
                         </h2>
+                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Direct Stock Adjustment</p>
                     </div>
-
-                    <!-- Type Switcher -->
-                    <div class="grid grid-cols-2 gap-2 mb-6 p-1 bg-slate-100 rounded-xl">
-                        <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500'" class="py-2 rounded-lg text-sm font-bold transition-all">เบิกออก</button>
-                        <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500'" class="py-2 rounded-lg text-sm font-bold transition-all">รับเข้า</button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <!-- Product Search -->
-                        <div class="relative">
-                            <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block">ค้นหาสินค้า</label>
-                            <div class="relative group">
-                                <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
-                                <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="พิมพ์ชื่อเพื่อค้นหา..." class="akra-input pl-10 pr-10">
-                                <button v-if="searchTransaction" @click="clearSelection" class="absolute right-3 top-3 text-slate-400 hover:text-red-500"><i class="fas fa-times-circle"></i></button>
-                            </div>
-                            
-                            <!-- Search Dropdown -->
-                            <div v-if="showDropdown && filteredTransactionProducts.length > 0" class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
-                                <div v-for="p in filteredTransactionProducts" :key="p.id" @click="selectTransactionProduct(p)" class="p-3 border-b border-slate-50 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors">
-                                    <span class="text-sm text-slate-700 line-clamp-1 flex-1">{{ p.name }}</span>
-                                    <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded text-slate-500 ml-2 whitespace-nowrap">{{ p.stock }} {{ p.unit }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quantity -->
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block">จำนวน</label>
-                                <div class="relative">
-                                    <input type="number" v-model.number="form.qty" class="akra-input text-center text-lg font-bold" placeholder="0">
-                                    <span class="absolute right-3 top-3 text-[10px] font-bold text-slate-400">{{ getSelectedProductUnit() }}</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col justify-end">
-                                <button @click="verifyTransaction" :disabled="isSubmitting" class="btn-primary w-full h-[50px] gap-2">
-                                    <i v-if="isSubmitting" class="fas fa-circle-notch fa-spin"></i>
-                                    <i v-else class="fas fa-check-circle"></i>
-                                    {{ isSubmitting ? 'บันทึก...' : 'บันทึก' }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button v-if="form.type === 'out'" @click="verifyAddPickList" class="w-full py-3 rounded-xl border-2 border-orange-500 border-dashed text-orange-600 font-bold text-sm hover:bg-orange-50 transition-colors flex items-center justify-center gap-2">
-                            <i class="fas fa-clipboard-list"></i> สั่งลงใบจัด (จองของ)
-                        </button>
-                    </div>
-                </section>
-
-                <!-- Management (Admin Only) -->
-                <section v-if="isAdmin && (activeTab === 'manage' || isPC)" class="akra-card p-5 border border-slate-200">
-                    <h2 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <i class="fas fa-tools text-purple-600"></i> จัดการคลัง W5
-                    </h2>
-                    <div class="space-y-3">
-                        <div class="flex gap-2">
-                            <input type="text" v-model="newProductName" placeholder="ชื่อสินค้าใหม่..." class="akra-input text-sm flex-1">
-                            <input type="text" v-model="newProductUnit" placeholder="หน่วย" class="akra-input text-sm w-20 text-center">
-                        </div>
-                        <button @click="addProduct" class="w-full py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-all">
-                            เพิ่มสินค้าเข้าสารบบ
-                        </button>
-                    </div>
-                </section>
-            </aside>
-
-            <!-- Main Content Area (PC Right, Mobile Toggle) -->
-            <main class="space-y-6">
-                
-                <!-- Tab Dashboards (Visible on PC and Active Tab on Mobile) -->
-                <div v-show="activeTab === 'dashboard' || isPC" class="animate-fade-in space-y-6">
                     
-                    <!-- Stats Grid -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="akra-card p-4 border-l-4 border-blue-600">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">ยอดรวมคลัง</p>
-                            <p class="text-2xl font-bold text-slate-800">{{ totalItemsInStock.toLocaleString() }} <span class="text-xs font-normal text-slate-500">ชิ้น</span></p>
+                    <div class="p-6 space-y-6">
+                        <!-- Type Switcher -->
+                        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl">
+                            <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'" class="py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Withdraw</button>
+                            <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'" class="py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Receive</button>
                         </div>
-                        <div class="akra-card p-4 border-l-4 border-green-500">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">ทำรายการวันนี้</p>
-                            <p class="text-2xl font-bold text-slate-800">{{ todayHistoryCount }} <span class="text-xs font-normal text-slate-500">ครั้ง</span></p>
-                        </div>
-                        <div class="akra-card p-4 border-l-4 border-red-500">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">ของใกล้หมด</p>
-                            <p class="text-2xl font-bold text-red-600">{{ lowStockItems.length }} <span class="text-xs font-normal text-slate-500">รายการ</span></p>
-                        </div>
-                        <div class="akra-card p-4 border-l-4 border-orange-400">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">ค้างในใบจัด</p>
-                            <p class="text-2xl font-bold text-slate-800">{{ pickList.length }} <span class="text-xs font-normal text-slate-500">รายการ</span></p>
-                        </div>
-                    </div>
 
-                    <!-- Low Stock Alerts -->
-                    <div v-if="lowStockItems.length > 0" class="akra-card bg-red-50 border border-red-100 overflow-hidden">
-                        <div class="p-3 bg-red-100/50 flex justify-between items-center">
-                            <span class="text-xs font-bold text-red-700 flex items-center gap-2">
-                                <i class="fas fa-exclamation-triangle pulse-dot bg-red-500"></i> แจ้งเตือนสินค้าต่ำกว่าเกณฑ์
-                            </span>
-                        </div>
-                        <div class="max-h-40 overflow-y-auto divide-y divide-red-100">
-                            <div v-for="item in lowStockItems" :key="item.id" class="p-3 flex justify-between items-center hover:bg-red-100/20 transition-colors">
-                                <span class="text-sm text-slate-700">{{ item.name }}</span>
-                                <span class="text-xs font-bold text-red-600">{{ item.stock }} {{ item.unit }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Inventory Table -->
-                    <section class="akra-card border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fas fa-boxes text-blue-600"></i> สต็อกสินค้าปัจจุบัน
-                            </h2>
-                            <div class="relative w-full sm:w-64">
-                                <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
-                                <input type="text" v-model="searchTransactionList" placeholder="ค้นหาสต็อก..." class="akra-input py-2 pl-9 text-xs">
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold sticky top-0 z-10">
-                                    <tr>
-                                        <th class="px-4 py-3">ชื่อสินค้า</th>
-                                        <th class="px-4 py-3 text-right">สต็อกคงเหลือ</th>
-                                        <th class="px-4 py-3 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="p in filteredTransactionListProducts" :key="p.id" class="hover:bg-blue-50/30 transition-colors group">
-                                        <td class="px-4 py-3">
-                                            <p class="text-sm font-medium text-slate-700 line-clamp-2">{{ p.name }}</p>
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                            <span :class="p.stock > 0 ? 'text-slate-900 bg-slate-100' : 'text-red-600 bg-red-50'" class="font-bold text-sm px-2 py-1 rounded-md">
-                                                {{ p.stock.toLocaleString() }} <span class="text-[10px] font-normal opacity-60">{{ p.unit }}</span>
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <div class="flex justify-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button @click="quickWithdraw(p)" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="เบิกด่วน"><i class="fas fa-minus-circle"></i></button>
-                                                <button v-if="isAdmin" @click="openAdjustModal(p)" class="p-2 text-purple-500 hover:bg-purple-50 rounded-lg" title="ปรับสต็อก"><i class="fas fa-calculator"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- History Log -->
-                    <section class="akra-card border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                            <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fas fa-history text-slate-500"></i> ประวัติล่าสุด 200 รายการ
-                            </h2>
-                            <button @click="exportHistoryToCSV" class="text-xs text-blue-600 hover:underline"><i class="fas fa-download mr-1"></i> CSV</button>
-                        </div>
-                        <div class="max-h-80 overflow-y-auto divide-y divide-slate-50">
-                            <div v-for="log in reversedHistory" :key="log.id" class="p-3 text-xs flex justify-between items-center hover:bg-slate-50 transition-colors">
-                                <div class="flex-1 min-w-0 pr-4">
-                                    <p class="font-bold text-slate-700 truncate" :class="{'line-through text-slate-400': log.productName.includes('[ยกเลิก]')}">{{ log.productName }}</p>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">
-                                        <i class="far fa-clock mr-1"></i>{{ formatDisplayDate(log.date) }} {{ formatDisplayTime(log.time) }} 
-                                        <span class="mx-1">•</span>
-                                        <i class="far fa-user mr-1"></i>{{ log.user }}
-                                    </p>
+                        <div class="space-y-4">
+                            <!-- Product Search -->
+                            <div class="relative">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Search Product</label>
+                                <div class="relative group">
+                                    <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                                    <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="Type name or code..." class="akra-input pl-11 pr-11">
+                                    <button v-if="searchTransaction" @click="clearSelection" class="absolute right-4 top-3 text-slate-300 hover:text-rose-500">
+                                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <span v-if="log.type === 'adjust'" class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded">ADJUST</span>
-                                    <span v-else :class="log.type === 'in' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="font-black text-sm px-3 py-1 rounded-full border border-current/20">
-                                        {{ log.type === 'in' ? '+' : '-' }}{{ log.qty }}
-                                    </span>
-                                    <button v-if="!log.productName.includes('[ยกเลิก]') && log.type !== 'adjust'" @click="confirmUndo(log)" class="text-slate-300 hover:text-red-500 transition-colors">
-                                        <i class="fas fa-undo"></i>
+                                
+                                <!-- Search Dropdown -->
+                                <div v-if="showDropdown && filteredTransactionProducts.length > 0" class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto overflow-x-hidden glass-panel">
+                                    <div v-for="p in filteredTransactionProducts" :key="p.id" @click="selectTransactionProduct(p)" class="p-4 border-b border-slate-50 hover:bg-brand-blue/[0.03] cursor-pointer flex justify-between items-center transition-colors">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-slate-700 truncate pr-4">{{ p.name }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Current: {{ p.stock }} {{ p.unit }}</p>
+                                        </div>
+                                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Quantity</label>
+                                    <input type="number" v-model.number="form.qty" class="akra-input text-2xl font-bold text-center" placeholder="0">
+                                    <span class="absolute right-4 top-9 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ getSelectedProductUnit() }}</span>
+                                </div>
+                                <div class="flex flex-col justify-end">
+                                    <button @click="verifyTransaction" :disabled="isSubmitting" class="btn-primary h-12 w-full">
+                                        <i v-if="isSubmitting" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                                        <i v-else data-lucide="check-circle" class="w-5 h-5"></i>
+                                        <span>{{ isSubmitting ? 'Processing...' : 'Submit Entry' }}</span>
                                     </button>
                                 </div>
                             </div>
+
+                            <button v-if="form.type === 'out'" @click="verifyAddPickList" class="w-full py-4 rounded-2xl border-2 border-brand-orange border-dashed text-brand-orange font-bold text-xs uppercase tracking-widest hover:bg-brand-orange/5 transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="clipboard-list" class="w-4 h-4"></i> Create Picklist (Reserve)
+                            </button>
                         </div>
-                    </section>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Tab: Picklist -->
+            <div v-show="activeTab === 'picklist'" class="animate-fade-in space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-bold text-brand-blue text-lg uppercase tracking-tight flex items-center gap-2">
+                            <i data-lucide="clipboard-check" class="w-5 h-5 text-brand-orange"></i> Pending Picklists
+                        </h2>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Items waiting to be picked</p>
+                    </div>
                 </div>
 
-                <!-- Pick List View (Tabbed on Mobile) -->
-                <div v-show="activeTab === 'picklist' || (isPC && pickList.length > 0)" class="animate-fade-in space-y-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-clipboard-check text-orange-500"></i> รายการใบจัดรอหยิบ
-                    </h2>
-                    <div v-if="pickList.length === 0" class="akra-card p-10 text-center border-2 border-dashed border-slate-200">
-                        <i class="fas fa-clipboard-check text-4xl text-slate-200 mb-3 block"></i>
-                        <p class="text-slate-400 font-medium">ยังไม่มีรายการที่จองไว้</p>
+                <div v-if="pickList.length === 0" class="akra-card p-16 text-center border-2 border-dashed border-slate-200">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="clipboard-check" class="w-10 h-10 text-slate-200"></i>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div v-for="item in pickList" :key="item.pick_id" class="akra-card p-4 border border-orange-100 flex flex-col justify-between">
-                            <div class="mb-4">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full uppercase">ใบจัดรอหยิบ</span>
-                                    <span class="text-[10px] text-slate-400">{{ formatDate(item.created_at) }}</span>
-                                </div>
-                                <h3 class="font-bold text-slate-800 leading-tight">{{ item.product_name }}</h3>
-                                <p class="text-[11px] text-slate-500 mt-1">ผู้เบิก: {{ item.requested_by }}</p>
+                    <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">No pending items found</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="item in pickList" :key="item.pick_id" class="akra-card overflow-hidden flex flex-col">
+                        <div class="p-6 flex-grow">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] font-bold bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full uppercase tracking-widest">Awaiting Pick</span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ formatDate(item.created_at) }}</span>
                             </div>
-                            <div class="flex justify-between items-end border-t border-slate-50 pt-3">
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-2">{{ item.product_name }}</h3>
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i data-lucide="user" class="w-3 h-3"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Requested by {{ item.requested_by }}</span>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex justify-between items-center">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Qty</p>
+                                <p class="text-2xl font-bold text-brand-orange tracking-tight">{{ item.qty }} <span class="text-xs font-medium text-slate-400 ml-1">{{ getProductUnit(item.product_id) }}</span></p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="confirmRemovePickList(item)" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                                <button @click="openPickModal(item)" class="bg-brand-blue text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all">Process</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Manage (Admin) -->
+            <div v-show="activeTab === 'manage'" class="animate-fade-in max-w-2xl mx-auto space-y-6">
+                <section class="akra-card overflow-hidden">
+                    <div class="p-6 bg-slate-800 text-white">
+                        <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
+                            <i data-lucide="database" class="w-5 h-5 text-purple-400"></i> Master Registry
+                        </h2>
+                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Inventory Structure Management</p>
+                    </div>
+                    <div class="p-8 space-y-8">
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Register New Product</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2">
+                                    <input type="text" v-model="newProductName" placeholder="Product Formal Name..." class="akra-input">
+                                </div>
                                 <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase">จำนวนที่ขอ</p>
-                                    <p class="text-xl font-black text-orange-600">{{ item.qty }} <span class="text-xs font-normal text-slate-400">{{ getProductUnit(item.product_id) }}</span></p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button @click="confirmRemovePickList(item)" class="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"><i class="fas fa-trash-alt"></i></button>
-                                    <button @click="openPickModal(item)" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-orange-600 transition-all">หยิบสินค้า</button>
+                                    <input type="text" v-model="newProductUnit" placeholder="Unit (e.g. Pcs)" class="akra-input text-center">
                                 </div>
                             </div>
+                            <button @click="addProduct" class="w-full h-14 bg-slate-800 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i> Add to Registry
+                            </button>
                         </div>
                     </div>
-                </div>
-
-            </main>
-        </div>
+                </section>
+            </div>
+        </main>
     </div>
 
     <!-- Mobile Navigation Bar -->
-    <nav class="mobile-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 grid grid-cols-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50">
-        <button @click="activeTab = 'transaction'" :class="{active: activeTab === 'transaction'}" class="nav-item">
-            <i class="fas fa-exchange-alt text-lg mb-1"></i> เบิก-รับ
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-100 grid grid-cols-4 md:hidden shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-[100] h-20">
+        <button @click="activeTab = 'dashboard'" :class="{active: activeTab === 'dashboard'}" class="flex flex-col items-center justify-center gap-1 group">
+            <div :class="activeTab === 'dashboard' ? 'bg-brand-blue text-white' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            </div>
+            <span :class="activeTab === 'dashboard' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Dash</span>
         </button>
-        <button @click="activeTab = 'dashboard'" :class="{active: activeTab === 'dashboard'}" class="nav-item">
-            <i class="fas fa-chart-pie text-lg mb-1"></i> แดชบอร์ด
+        <button @click="activeTab = 'inventory'" :class="{active: activeTab === 'inventory'}" class="flex flex-col items-center justify-center gap-1 group">
+            <div :class="activeTab === 'inventory' ? 'bg-brand-blue text-white' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
+                <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <span :class="activeTab === 'inventory' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Stock</span>
         </button>
-        <button @click="activeTab = 'picklist'" :class="{active: activeTab === 'picklist'}" class="nav-item relative">
-            <div v-if="pickList.length > 0" class="absolute top-1 right-1/2 translate-x-3 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white animate-bounce">{{ pickList.length }}</div>
-            <i class="fas fa-clipboard-check text-lg mb-1"></i> ใบจัด
+        <button @click="activeTab = 'transaction'" :class="{active: activeTab === 'transaction'}" class="flex flex-col items-center justify-center gap-1 group">
+            <div :class="activeTab === 'transaction' ? 'bg-brand-blue text-white' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
+                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+            </div>
+            <span :class="activeTab === 'transaction' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Trans</span>
         </button>
-        <button v-if="isAdmin" @click="activeTab = 'manage'" :class="{active: activeTab === 'manage'}" class="nav-item">
-            <i class="fas fa-tools text-lg mb-1"></i> จัดการ
+        <button @click="activeTab = 'picklist'" :class="{active: activeTab === 'picklist'}" class="flex flex-col items-center justify-center gap-1 group relative">
+            <div v-if="pickList.length > 0" class="absolute top-2 right-1/2 translate-x-4 w-4 h-4 bg-brand-orange text-white text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-white">{{ pickList.length }}</div>
+            <div :class="activeTab === 'picklist' ? 'bg-brand-blue text-white' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
+                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+            </div>
+            <span :class="activeTab === 'picklist' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Picks</span>
         </button>
     </nav>
-
-    <!-- Modals (Adjusted for PC & Mobile) -->
+    <!-- Modals -->
     
     <!-- Confirm Pick Modal -->
     <transition name="fade">
-        <div v-if="pickModal.show" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-            <div class="akra-card w-full max-w-sm p-6 animate-scale-in">
-                <h3 class="text-lg font-bold text-slate-800 mb-2">ยืนยันการหยิบของ</h3>
-                <p class="text-sm text-slate-500 mb-6">{{ pickModal.item?.product_name }} (ขอเบิก {{ pickModal.item?.qty }})</p>
+        <div v-if="pickModal.show" class="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+            <div class="akra-card w-full max-w-sm p-8 animate-fade-in shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-brand-orange"></div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2 tracking-tight uppercase">Confirm Pick-up</h3>
+                <p class="text-xs font-medium text-slate-400 mb-8 uppercase tracking-widest leading-relaxed">{{ pickModal.item?.product_name }}</p>
                 
-                <div class="mb-6">
-                    <label class="text-xs font-bold text-slate-500 mb-2 block uppercase">ระบุจำนวนที่หยิบได้จริง</label>
-                    <input type="number" v-model.number="pickModal.actualQty" class="akra-input text-2xl font-black text-center text-blue-600">
+                <div class="space-y-4 mb-8">
+                    <div class="flex justify-between items-center px-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Requested Qty</span>
+                        <span class="text-sm font-bold text-slate-700">{{ pickModal.item?.qty }} {{ getProductUnit(pickModal.item?.product_id) }}</span>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Actual Picked Qty</label>
+                        <input type="number" v-model.number="pickModal.actualQty" class="akra-input text-2xl font-bold text-center text-brand-blue bg-slate-50 border-slate-100">
+                    </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="pickModal.show = false" class="flex-1 py-3 font-bold text-slate-500">ยกเลิก</button>
-                    <button @click="submitPick" class="flex-1 btn-primary py-3">บันทึกรายการ</button>
+                    <button @click="pickModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
+                    <button @click="submitPick" class="flex-1 btn-primary py-4 uppercase tracking-widest text-[10px]">Confirm Pick</button>
                 </div>
             </div>
         </div>
@@ -424,30 +381,31 @@
 
     <!-- Adjust Stock Modal -->
     <transition name="fade">
-        <div v-if="adjustModal.show" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-            <div class="akra-card w-full max-w-sm p-6">
-                <h3 class="text-lg font-bold text-slate-800 mb-1">ปรับแก้สต็อกสินค้า</h3>
-                <p class="text-[11px] text-slate-400 mb-6 uppercase tracking-wider font-bold">Admin Privileges Required</p>
+        <div v-if="adjustModal.show" class="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+            <div class="akra-card w-full max-w-sm p-8 animate-fade-in shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+                <h3 class="text-xl font-bold text-slate-800 mb-1 tracking-tight uppercase">Stock Correction</h3>
+                <p class="text-[10px] text-purple-500 font-bold uppercase tracking-widest mb-8">Admin Level Access</p>
                 
-                <div class="bg-slate-50 p-4 rounded-xl mb-6">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">สินค้า</p>
+                <div class="bg-slate-50 p-5 rounded-2xl mb-8 border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Product</p>
                     <p class="text-sm font-bold text-slate-700 leading-tight">{{ adjustModal.name }}</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 mb-6 text-center">
+                <div class="grid grid-cols-2 gap-8 mb-8 text-center px-2">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">สต็อกเดิม</p>
-                        <p class="text-lg font-bold text-slate-300 line-through">{{ adjustModal.oldStock }}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Current</p>
+                        <p class="text-xl font-bold text-slate-300 line-through tracking-tight">{{ adjustModal.oldStock }}</p>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-blue-500 uppercase mb-1">ยอดใหม่</p>
-                        <input type="number" v-model.number="adjustModal.newStock" class="akra-input text-center text-lg font-black border-blue-200 bg-white">
+                        <p class="text-[10px] font-bold text-brand-blue uppercase tracking-widest mb-2">New Entry</p>
+                        <input type="number" v-model.number="adjustModal.newStock" class="akra-input text-center text-xl font-bold border-brand-blue/20 bg-white">
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="adjustModal.show = false" class="flex-1 py-3 font-bold text-slate-500">ยกเลิก</button>
-                    <button @click="saveAdjustStock" class="flex-1 bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition-all">อัปเดตสต็อก</button>
+                    <button @click="adjustModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
+                    <button @click="saveAdjustStock" class="flex-1 bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition-all uppercase tracking-widest text-[10px]">Apply Change</button>
                 </div>
             </div>
         </div>
@@ -455,27 +413,27 @@
 
     <!-- Universal Alert -->
     <transition name="fade">
-        <div v-if="messageBox.show" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-6">
-            <div class="akra-card w-full max-w-xs p-6 text-center">
-                <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" :class="messageBox.isError ? 'bg-red-100 text-red-500' : 'bg-blue-100 text-blue-500'">
-                    <i class="fas text-2xl" :class="messageBox.isError ? 'fa-times' : 'fa-info-circle'"></i>
+        <div v-if="messageBox.show" class="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
+            <div class="akra-card w-full max-w-xs p-8 text-center shadow-2xl">
+                <div class="w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center border border-white shadow-inner transition-transform hover:scale-110" :class="messageBox.isError ? 'bg-rose-50 text-rose-500' : 'bg-brand-blue/5 text-brand-blue'">
+                    <i :data-lucide="messageBox.isError ? 'x-circle' : 'info'" class="w-10 h-10"></i>
                 </div>
-                <h3 class="font-bold text-slate-800 mb-2">{{ messageBox.title }}</h3>
-                <p class="text-sm text-slate-500 mb-6">{{ messageBox.message }}</p>
-                <button @click="messageBox.show = false" class="btn-primary w-full" :class="{'bg-red-500 hover:bg-red-600': messageBox.isError}">ตกลง</button>
+                <h3 class="font-bold text-slate-800 text-lg mb-2 tracking-tight uppercase">{{ messageBox.title }}</h3>
+                <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">{{ messageBox.message }}</p>
+                <button @click="messageBox.show = false" class="btn-primary w-full py-4 uppercase tracking-widest text-[10px]" :class="{'bg-rose-600 hover:bg-rose-700': messageBox.isError}">Acknowledge</button>
             </div>
         </div>
     </transition>
 
     <!-- Universal Confirm -->
     <transition name="fade">
-        <div v-if="confirmDialog.show" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-6">
-            <div class="akra-card w-full max-w-xs p-6 text-center">
-                <h3 class="font-bold text-slate-800 mb-2">{{ confirmDialog.title }}</h3>
-                <p class="text-sm text-slate-500 mb-6 whitespace-pre-line">{{ confirmDialog.message }}</p>
+        <div v-if="confirmDialog.show" class="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
+            <div class="akra-card w-full max-w-xs p-8 text-center shadow-2xl">
+                <h3 class="font-bold text-slate-800 text-lg mb-2 tracking-tight uppercase">{{ confirmDialog.title }}</h3>
+                <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">{{ confirmDialog.message }}</p>
                 <div class="flex gap-3">
-                    <button @click="confirmDialog.show = false" class="flex-1 font-bold text-slate-400">ยกเลิก</button>
-                    <button @click="executeConfirmDialog" class="flex-1 py-2.5 rounded-lg text-white font-bold" :class="confirmDialog.btnClass">ยืนยัน</button>
+                    <button @click="confirmDialog.show = false" class="flex-1 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
+                    <button @click="executeConfirmDialog" class="flex-1 py-4 rounded-xl text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-current/20" :class="confirmDialog.btnClass">Authorize</button>
                 </div>
             </div>
         </div>
@@ -483,8 +441,8 @@
 
     <!-- Toast -->
     <transition name="fade">
-        <div v-if="showToast" class="fixed top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl z-[200] flex items-center gap-2 text-sm font-bold">
-            <i class="fas fa-check-circle text-green-400"></i> {{ toastMessage }}
+        <div v-if="showToast" class="fixed top-8 left-1/2 -translate-x-1/2 glass-panel text-brand-blue px-8 py-4 rounded-2xl shadow-2xl z-[400] flex items-center gap-3 text-xs font-bold uppercase tracking-widest border border-white">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i> {{ toastMessage }}
         </div>
     </transition>
 
@@ -494,9 +452,9 @@
     var APP_CONFIG = {
         PORTAL_URL: "./index.html",
         REQUIRED_ROLES: ["ADMIN", "AKRA", "WAREHOUSE"], 
-        APP_NAME: "ระบบคลังสินค้า (W5)",
+        APP_NAME: "W5 Warehouse Terminal",
         STORAGE_KEY: "akra_session_token"
-        };
+    };
 
     var AuthGuard = {
         init: async () => {
@@ -522,14 +480,14 @@
                 if (!cached) { window.location.href = APP_CONFIG.PORTAL_URL; return false; }
                 let session = JSON.parse(cached);
                 const hasPermission = APP_CONFIG.REQUIRED_ROLES.length === 0 || session.roles.some(r => APP_CONFIG.REQUIRED_ROLES.includes(r));
-                if (!hasPermission) { alert("คุณไม่มีสิทธิ์เข้าถึง"); window.location.href = APP_CONFIG.PORTAL_URL; return false; }
+                if (!hasPermission) { alert("Access Denied: Insufficient Roles"); window.location.href = APP_CONFIG.PORTAL_URL; return false; }
 
                 window.currentUser = session.name;
                 window.appUser = session;
                 AuthGuard.bindEvents();
                 return true;
             } catch (error) {
-                console.error("Auth Error:", error);
+                console.error("Auth Guard Protocol Failure:", error);
                 return false;
             }
         },
@@ -543,6 +501,7 @@
                         window.location.href = APP_CONFIG.PORTAL_URL; 
                     }); 
                 }
+                lucide.createIcons();
             }, 500);
         }
     };
@@ -552,7 +511,7 @@
     createApp({
         data() {
             return {
-                loggedInUser: 'Loading...',
+                loggedInUser: 'Authenticating...',
                 isAdmin: false,
                 activeTab: 'dashboard',
                 isPC: window.innerWidth >= 768,
@@ -566,7 +525,7 @@
                 searchTransactionList: '',
                 searchManage: '',
                 newProductName: '',
-                newProductUnit: 'ชิ้น',
+                newProductUnit: 'Pcs',
                 
                 showDropdown: false,
                 isLoading: false,
@@ -603,6 +562,9 @@
                 return this.products.filter(p => p.name.toLowerCase().includes(s));
             }
         },
+        watch: {
+            activeTab() { this.$nextTick(() => lucide.createIcons()); }
+        },
         mounted() {
             this.initApp();
             window.addEventListener('resize', () => { this.isPC = window.innerWidth >= 768; });
@@ -623,6 +585,7 @@
 
                     await this.loadData();
                     this.refreshInterval = setInterval(() => this.loadData(true), 30000);
+                    this.$nextTick(() => lucide.createIcons());
                 }
             },
 
@@ -631,7 +594,6 @@
                 this.isSilentLoading = silent;
                 
                 try {
-                    // Use local cache for speed
                     const cached = localStorage.getItem('CACHE_W5_DATA');
                     if (!silent && cached && this.products.length === 0) {
                         const d = JSON.parse(cached);
@@ -645,7 +607,7 @@
                         this.products = (res.inventory || []).sort((a,b) => a.name.localeCompare(b.name, 'th'));
                         this.history = res.history || [];
                         
-                        // Picklist fetch
+                        // Picklist fetch via standard Supabase client
                         const { data: picks } = await akraSupabase.from('w5_picklists').select('*');
                         this.pickList = picks || [];
                         
@@ -656,10 +618,11 @@
                         }));
                     }
                 } catch (e) {
-                    console.error("Load Error:", e);
+                    console.error("Critical Synchronization Error:", e);
                 } finally {
                     this.isLoading = false;
                     this.isSilentLoading = false;
+                    this.$nextTick(() => lucide.createIcons());
                 }
             },
 
@@ -669,21 +632,22 @@
                 this.form.productId = p.id;
                 this.searchTransaction = p.name;
                 this.showDropdown = false;
+                this.$nextTick(() => lucide.createIcons());
             },
             clearSelection() { this.form.productId = ''; this.searchTransaction = ''; this.showDropdown = true; },
-            getSelectedProductUnit() { return this.products.find(p => p.id === this.form.productId)?.unit || 'ชิ้น'; },
-            getProductUnit(id) { return this.products.find(p => p.id === id)?.unit || 'ชิ้น'; },
+            getSelectedProductUnit() { return this.products.find(p => p.id === this.form.productId)?.unit || 'Pcs'; },
+            getProductUnit(id) { return this.products.find(p => p.id === id)?.unit || 'Pcs'; },
 
             verifyTransaction() {
-                if (!this.form.productId) return this.showAlert('ข้อมูลไม่ครบ', 'กรุณาเลือกสินค้า');
-                if (!this.form.qty || this.form.qty <= 0) return this.showAlert('ข้อมูลไม่ครบ', 'กรุณาระบุจำนวน');
+                if (!this.form.productId) return this.showAlert('Incomplete Data', 'Please select a target product');
+                if (!this.form.qty || this.form.qty <= 0) return this.showAlert('Incomplete Data', 'Invalid quantity specified');
                 
                 const p = this.products.find(x => x.id === this.form.productId);
                 if (this.form.type === 'out' && p.stock < this.form.qty) {
-                    return this.showAlert('สต็อกไม่พอ', `คงเหลือเพียง ${p.stock} ${p.unit}`);
+                    return this.showAlert('Insufficient Stock', `Inventory only contains ${p.stock} ${p.unit}`);
                 }
                 
-                this.showConfirmUI('ยืนยันรายการ', `ต้องการ${this.form.type === 'in' ? 'รับเข้า' : 'เบิกออก'} ${p.name} จำนวน ${this.form.qty} ${p.unit}?`, 'bg-blue-600', this.confirmTransaction);
+                this.showConfirmUI('Verify Transaction', `Are you sure you want to ${this.form.type === 'in' ? 'receive' : 'withdraw'} ${p.name} x${this.form.qty} ${p.unit}?`, 'bg-brand-blue', this.confirmTransaction);
             },
 
             async confirmTransaction() {
@@ -694,10 +658,10 @@
                 });
                 
                 if (res.success) {
-                    this.triggerToast('บันทึกสำเร็จ');
+                    this.triggerToast('Entry Secured');
                     this.clearSelection();
                     this.form.qty = null;
-                    window.sendAppLog('Transaction', `${this.form.type} ${p.name} x${this.form.qty}`);
+                    if(window.sendAppLog) window.sendAppLog('W5_Transaction', `${this.form.type} ${p.name} x${this.form.qty}`);
                     await this.loadData(true);
                 } else {
                     this.showAlert('Error', res.message);
@@ -705,9 +669,8 @@
                 this.isSubmitting = false;
             },
 
-            // Picklist logic
             async verifyAddPickList() {
-                if (!this.form.productId) return this.showAlert('ข้อมูลไม่ครบ', 'เลือกสินค้าก่อน');
+                if (!this.form.productId) return this.showAlert('Incomplete Data', 'Select product first');
                 const p = this.products.find(x => x.id === this.form.productId);
                 
                 this.isSubmitting = true;
@@ -721,14 +684,14 @@
                 });
 
                 if (res.success) {
-                    this.triggerToast('จองสินค้าเรียบร้อย');
+                    this.triggerToast('Picklist Created');
                     this.activeTab = 'picklist';
                     await this.loadData(true);
                 }
                 this.isSubmitting = false;
             },
 
-            openPickModal(item) { this.pickModal = { show: true, item, actualQty: item.qty }; },
+            openPickModal(item) { this.pickModal = { show: true, item, actualQty: item.qty }; this.$nextTick(() => lucide.createIcons()); },
             async submitPick() {
                 this.isSubmitting = true;
                 const res = await AKRA_API.call('processPickList', {
@@ -739,7 +702,7 @@
                     pickerUser: this.loggedInUser
                 });
                 if (res.success) {
-                    this.triggerToast('หยิบของสำเร็จ');
+                    this.triggerToast('Pickup Finalized');
                     this.pickModal.show = false;
                     await this.loadData(true);
                 }
@@ -747,20 +710,19 @@
             },
 
             confirmRemovePickList(item) {
-                this.showConfirmUI('ลบรายการ', 'ต้องการยกเลิกใบจัดนี้ใช่หรือไม่?', 'bg-red-500', async () => {
+                this.showConfirmUI('Delete Entry', 'Cancel this picklist and release reserved stock?', 'bg-rose-600', async () => {
                     const res = await AKRA_API.call('removePickList', { pickId: item.pick_id });
-                    if (res.success) { this.triggerToast('ลบแล้ว'); await this.loadData(true); }
+                    if (res.success) { this.triggerToast('Entry Purged'); await this.loadData(true); }
                 });
             },
 
-            // Admin Logic
-            openAdjustModal(p) { this.adjustModal = { show: true, id: p.id, name: p.name, oldStock: p.stock, newStock: p.stock, unit: p.unit }; },
+            openAdjustModal(p) { this.adjustModal = { show: true, id: p.id, name: p.name, oldStock: p.stock, newStock: p.stock, unit: p.unit }; this.$nextTick(() => lucide.createIcons()); },
             async saveAdjustStock() {
                 const res = await AKRA_API.call('adjustStock', {
                     productId: this.adjustModal.id, productName: this.adjustModal.name, newStock: this.adjustModal.newStock, user: this.loggedInUser
                 });
                 if (res.success) {
-                    this.triggerToast('ปรับยอดสำเร็จ');
+                    this.triggerToast('Registry Updated');
                     this.adjustModal.show = false;
                     await this.loadData(true);
                 }
@@ -773,16 +735,16 @@
                 });
                 if (res.success) {
                     this.newProductName = '';
-                    this.triggerToast('เพิ่มสินค้าแล้ว');
+                    this.triggerToast('Product Registered');
                     await this.loadData(true);
                 }
             },
 
-            // Helpers
-            showAlert(title, message, isError = true) { this.messageBox = { show: true, title, message, isError }; },
-            showConfirmUI(title, message, btnClass, action) { this.confirmDialog = { show: true, title, message, btnClass, action }; },
+            // Visual Helpers
+            showAlert(title, message, isError = true) { this.messageBox = { show: true, title, message, isError }; this.$nextTick(() => lucide.createIcons()); },
+            showConfirmUI(title, message, btnClass, action) { this.confirmDialog = { show: true, title, message, btnClass, action }; this.$nextTick(() => lucide.createIcons()); },
             async executeConfirmDialog() { if(this.confirmDialog.action) await this.confirmDialog.action(); this.confirmDialog.show = false; },
-            triggerToast(msg) { this.toastMessage = msg; this.showToast = true; setTimeout(() => this.showToast = false, 3000); },
+            triggerToast(msg) { this.toastMessage = msg; this.showToast = true; setTimeout(() => this.showToast = false, 3000); this.$nextTick(() => lucide.createIcons()); },
             formatDisplayDate(v) { if(!v) return ''; const d = new Date(v); return isNaN(d) ? v : d.toLocaleDateString('en-GB'); },
             formatDisplayTime(v) { if(!v) return ''; const d = new Date(v); return isNaN(d) ? v : d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}); },
             formatDate(v) { if(!v) return ''; const d = new Date(v); return isNaN(d) ? v : d.toLocaleString('en-GB').replace(',',''); },
@@ -801,17 +763,17 @@
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `W5_Log_${new Date().toISOString().slice(0,10)}.csv`;
+                link.download = `W5_Terminal_Log_${new Date().toISOString().slice(0,10)}.csv`;
                 link.click();
             },
             confirmUndo(log) {
-                this.showConfirmUI('ยกเลิกรายการ', 'ต้องการยกเลิกรายการนี้และปรับสต็อกคืนหรือไม่?', 'bg-red-600', async () => {
+                this.showConfirmUI('Rollback Action', 'Revert this transaction and restore stock balance?', 'bg-rose-600', async () => {
                     const rev = log.type === 'in' ? 'out' : 'in';
                     const res = await AKRA_API.call('transaction', { 
-                        productId: log.productId, productName: log.productName + ' [ยกเลิก]', 
+                        productId: log.productId, productName: log.productName + ' [REVERTED]', 
                         type: rev, qty: log.qty, user: this.loggedInUser 
                     });
-                    if (res.success) { this.triggerToast('ยกเลิกแล้ว'); await this.loadData(true); }
+                    if (res.success) { this.triggerToast('Reversal Success'); await this.loadData(true); }
                 });
             }
         }

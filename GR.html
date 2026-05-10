@@ -13,9 +13,28 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
-    tailwind.config = { theme: { extend: { colors: { brand: { blue: '#171C8F', orange: '#E35205', blueLight: '#E8E9F4', orangeLight: '#FCECE5'} } } } }
+    tailwind.config = { 
+      theme: { 
+        extend: { 
+          colors: { 
+            brand: { 
+              blue: '#171C8F', 
+              orange: '#E35205', 
+              blueLight: '#E8E9F4', 
+              orangeLight: '#FCECE5',
+              navy: '#2B3674',
+              gray: '#A3AED0'
+            } 
+          },
+          borderRadius: {
+            '3xl': '1.5rem',
+            '4xl': '2rem',
+          }
+        } 
+      } 
+    }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
   <style>
     :root {
       --brand-blue: #171C8F;
@@ -23,27 +42,115 @@
       --brand-orange: #E35205;
       --brand-orange-hover: #B54104;
       --bg-main: #f4f7fe;
-      --card-radius: 1.25rem;
-      --border-color: #E9EDF7;
+      --sidebar-width: 76px;
+      --header-height: 4rem;
+      --card-radius: 1.5rem;
+      --border-color: rgba(226, 232, 240, 0.8);
+      
+      /* Fluid Scaling */
+      --fluid-2xs: clamp(0.69rem, 0.68rem + 0.03vw, 0.71rem);
+      --fluid-xs: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
+      --fluid-sm: clamp(0.88rem, 0.84rem + 0.17vw, 0.98rem);
+      --fluid-base: clamp(1rem, 0.94rem + 0.28vw, 1.15rem);
+      --fluid-md: clamp(1.13rem, 1.05rem + 0.4vw, 1.34rem);
+      --fluid-lg: clamp(1.27rem, 1.16rem + 0.55vw, 1.56rem);
+      --fluid-xl: clamp(1.42rem, 1.28rem + 0.73vw, 1.82rem);
     }
-    body { font-family: 'Sarabun', 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #2B3674; letter-spacing: -0.01em; }
-    .glass-card { background: white; border-radius: var(--card-radius); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid var(--border-color); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); transform: translateY(-1.5px); }
-    .input-field { width: 100%; padding: 8px 12px; border-radius: 0.75rem; border: 1px solid var(--border-color); background: #f4f7fe; outline: none; transition: all 0.2s; font-size: 13px; font-weight: 500;}
-    .input-field:focus { border-color: var(--brand-orange); box-shadow: 0 0 0 3px rgba(227, 82, 5, 0.08); background: white;}
-    .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important; background-color: #fef2f2 !important; }
-    .btn { width: 100%; padding: 12px; border-radius: 0.875rem; font-weight: 700; text-align: center; transition: all 0.2s; cursor: pointer; border: none; display: flex; justify-content: center; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 0.02em;}
-    .btn-primary { background: var(--brand-orange); color: white; box-shadow: 0 10px 20px rgba(227, 82, 5, 0.1); }
-    .btn-primary:hover:not(:disabled) { background: var(--brand-orange-hover); transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    body { 
+      font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
+      background-color: var(--bg-main); 
+      color: var(--brand-navy); 
+      letter-spacing: -0.01em; 
+    }
+
+    /* Italic Overrides */
+    .font-italic-bold { font-weight: 700; text-transform: uppercase; }
     
-    .nav-blur { background: rgba(227, 82, 5, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .glass-card { 
+      background: rgba(255, 255, 255, 0.9); 
+      backdrop-filter: blur(10px);
+      border-radius: var(--card-radius); 
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); 
+      border: 1px solid var(--border-color); 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .glass-card:hover { 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); 
+      transform: translateY(-2px); 
+      border-color: rgba(227, 82, 5, 0.2);
+    }
+
+    .input-field { 
+      width: 100%; 
+      height: 2.75rem;
+      padding: 0 1rem; 
+      border-radius: 0.875rem; 
+      border: 1.5px solid var(--border-color); 
+      background: white; 
+      outline: none; 
+      transition: all 0.2s; 
+      font-size: 0.875rem; 
+      font-weight: 600;
+    }
+    .input-field:focus { 
+      border-color: var(--brand-orange); 
+      box-shadow: 0 0 0 4px rgba(227, 82, 5, 0.1); 
+    }
+
+    .sidebar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 1rem;
+      color: #A3AED0;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .sidebar-item.active {
+      background: var(--brand-orange);
+      color: white;
+      box-shadow: 0 10px 20px rgba(227, 82, 5, 0.2);
+    }
+    .sidebar-item:hover:not(.active) {
+      background: #E8E9F4;
+      color: var(--brand-blue);
+    }
+
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      color: #A3AED0;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .bottom-nav-item.active {
+      color: var(--brand-orange);
+    }
+
+    /* Status Badges */
+    .badge-base {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.75rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
 
     .toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 10000; display: flex; flex-direction: column; gap: 0.75rem; }
-    .toast { min-width: 280px; max-width: 380px; padding: 1rem; border-radius: 1rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.875rem; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; background: white; border: 1px solid var(--border-color); }
-    .toast.closing { animation: slideOutRight 0.3s ease-in forwards; }
-    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    .toast { min-width: 280px; max-width: 380px; padding: 1rem; border-radius: 1.25rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.875rem; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; background: white; border: 1px solid var(--border-color); }
     
     .loading-active { overflow: hidden; }
     .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
@@ -53,163 +160,249 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #E9EDF7; border-radius: 10px; }
   </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex flex-col leading-relaxed loading-active">
+<body class="text-gray-800 antialiased h-screen flex overflow-hidden leading-relaxed loading-active">
 
   <!-- Auth UI -->
   <div id="auth-loading" class="fixed inset-0 bg-white z-[9999] flex flex-col justify-center items-center">
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#171C8F] mb-4"></div>
-      <p class="text-[#171C8F] font-medium text-lg">กำลังตรวจสอบสิทธิ์...</p>
+      <p class="text-[#171C8F] font-bold uppercase tracking-widest">Verifying...</p>
   </div>
 
   <div id="auth-error" class="fixed inset-0 bg-white z-[9999] hidden flex flex-col justify-center items-center p-6 text-center">
-      <div class="bg-red-50 p-8 rounded-2xl max-w-md border border-red-100 shadow-lg">
-          <i data-lucide="shield-alert" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
-          <h2 class="text-xl font-bold text-gray-800 mb-2">ปฏิเสธการเข้าถึง</h2>
-          <p id="error-message" class="text-gray-600 mb-6">คุณไม่มีสิทธิ์เข้าใช้งานแอปพลิเคชันนี้</p>
-          <button onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="px-6 py-2.5 bg-[#171C8F] text-white rounded-lg font-medium hover:bg-[#11146B] transition shadow-md">กลับไปหน้าหลัก (Portal)</button>
+      <div class="glass-card p-8 max-w-md border-rose-100 shadow-xl">
+          <i data-lucide="shield-alert" class="w-16 h-16 text-rose-500 mx-auto mb-4"></i>
+          <h2 class="text-xl font-bold text-brand-navy mb-2 uppercase">Access Denied</h2>
+          <p id="error-message" class="text-slate-500 mb-6 font-medium">คุณไม่มีสิทธิ์เข้าใช้งานแอปพลิเคชันนี้</p>
+          <button onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="w-full py-3 bg-brand-blue text-white rounded-xl font-bold uppercase tracking-widest hover:bg-brand-blue-hover transition shadow-lg active:scale-95">Return to Portal</button>
       </div>
   </div>
 
+  <!-- Sidebar (Desktop Only) -->
+  <aside id="main-sidebar" class="hidden md:flex flex-col items-center py-6 bg-white border-r border-slate-100 w-[76px] shrink-0 z-50">
+      <div class="w-10 h-10 bg-brand-orange rounded-2xl flex items-center justify-center mb-10 shadow-lg shadow-orange-500/20">
+          <i data-lucide="package-search" class="w-5 h-5 text-white"></i>
+      </div>
+      
+      <div class="flex flex-col gap-6 flex-1">
+          <div onclick="showView('receiving-list-view')" class="sidebar-item active" title="Manifest (List)">
+              <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          </div>
+          <div onclick="showView('receiving-detail-view')" class="sidebar-item" title="Processing (Detail)">
+              <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+      </div>
+
+      <div class="mt-auto flex flex-col gap-6">
+          <div onclick="openReceiving(true)" class="sidebar-item" title="Refresh Data">
+              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          </div>
+          <div id="logout-btn" class="sidebar-item hover:!text-rose-500" title="Sign Out">
+              <i data-lucide="power" class="w-5 h-5"></i>
+          </div>
+      </div>
+  </aside>
+
   <!-- App Content -->
-  <div id="app-content" class="hidden flex-1 flex flex-col h-screen w-full">
-      <nav class="nav-blur text-white sticky top-0 z-30">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
-          <div class="flex justify-between items-center h-14 md:h-16">
-            <div class="flex-shrink-0 flex items-center gap-3">
-              <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/10">
-                <i data-lucide="package-search" class="w-5 h-5 text-white"></i>
+  <div id="app-content" class="hidden flex-1 flex flex-col h-screen overflow-hidden relative">
+      
+      <!-- Top Bar -->
+      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0 z-40 px-4 md:px-8 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+              <div class="md:hidden w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center">
+                  <i data-lucide="package-search" class="w-4 h-4 text-white"></i>
               </div>
-              <h1 class="text-base md:text-lg font-bold tracking-tight italic uppercase">ระบบรับสินค้า (RECEIVING)</h1>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="hidden sm:flex flex-col items-end mr-2 text-right">
-                  <span id="display-username" class="text-xs font-bold leading-none mb-1 italic"></span>
-                  <span class="text-[9px] font-bold text-white/50 uppercase tracking-widest leading-none italic">WAREHOUSE NODE</span>
+              <div>
+                  <h1 class="text-sm md:text-base font-bold text-brand-navy uppercase tracking-tight leading-none">Receiving App</h1>
+                  <p class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mt-1 leading-none">Goods Receipt (GR)</p>
               </div>
-              <button onclick="openReceiving(true)" class="w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/10 active:scale-90" title="รีเฟรช">
-                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-              </button>
-              <button id="logout-btn" class="w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-rose-500/80 rounded-xl transition-all border border-white/10 active:scale-90">
-                <i data-lucide="power" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main class="flex-1 overflow-y-auto p-4 md:p-8 w-full max-w-6xl mx-auto pb-20">
-        
-        <section id="receiving-list-view" class="block animate-fade-in">
-          <div class="flex justify-between items-end mb-6 px-1">
-            <div>
-                <h2 class="text-2xl font-black text-[#2B3674] tracking-tight italic uppercase">บิลสินค้าเข้า (PENDING GR)</h2>
-                <p class="text-[10px] font-bold text-[#A3AED0] uppercase tracking-widest mt-1 ml-0.5">รายการรอรับสินค้าเข้าคลัง</p>
-            </div>
-            <span class="text-[10px] font-black bg-white text-brand-orange px-3 py-1.5 rounded-xl border border-indigo-50 shadow-sm uppercase tracking-widest italic" id="pending-count">0 บิล</span>
           </div>
 
-          <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 px-1">
-            <div class="relative group">
-                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-brand-orange transition-colors"></i>
-                <input type="text" id="r-search-input" oninput="renderPOListForReceiving()" placeholder="ค้นหาชื่อสินค้า, Vendor, เลข PO..." class="input-field m-0 pl-11 bg-white shadow-sm border-slate-100 italic">
-            </div>
-            <select id="r-status-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-slate-600 appearance-none">
-              <option value="">📌 ทุกสถานะ</option>
-              <option value="Overdue">🚨 เกินกำหนด (OVERDUE)</option>
-              <option value="Draft GR">📦 กำลังลงของ (DRAFT)</option>
-              <option value="Pending Review">⏳ รับเสร็จแล้ว</option>
-              <option value="Pending GR">🕒 รอรับเข้า</option>
-            </select>
-            <select id="r-warehouse-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-brand-blue appearance-none">
-              <option value="">🏢 ทุกสาขา (ALL)</option>
-              <option value="W1">W1 (WHITE)</option><option value="W2">W2 (ORANGE)</option><option value="W3">W3 (YELLOW)</option>
-              <option value="W4">W4 (GREEN)</option><option value="W5">W5 (GRAY)</option><option value="C1">C1 (SKY)</option><option value="C2">C2 (DEEP)</option>
-            </select>
-          </div>
-          
-          <div id="po-list-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
-        </section>
-
-        <section id="receiving-detail-view" class="hidden">
-          <div class="glass-card p-6 sm:p-8 relative max-w-3xl mx-auto border-t-[8px] border-t-brand-orange animate-fade-in">
-            <button type="button" onclick="showView('receiving-list-view')" class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center mb-8 hover:text-brand-orange transition-all group">
-              <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center mr-3 group-hover:bg-orange-50 transition-all">
-                <i data-lucide="chevron-left" class="w-4 h-4"></i>
-              </div>
-              Back to pending list
-            </button>
-
-            <div class="bg-[#F4F7FE]/50 p-6 rounded-[1.5rem] border border-indigo-50 mb-10 shadow-inner flex flex-col gap-5">
-              <div class="flex justify-between items-start">
-                  <div class="flex items-center gap-4" id="r-display-vendor-header">
-                      <!-- ใส่ชื่อ Vendor และ Badge คลัง -->
+          <div class="flex items-center gap-3">
+              <div class="flex flex-col items-end mr-1 text-right">
+                  <span id="display-username" class="text-xs font-bold text-brand-navy uppercase tracking-tight leading-none mb-1">...</span>
+                  <div class="flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                      <span class="text-[8px] font-bold text-brand-gray uppercase tracking-widest leading-none">Active Node</span>
                   </div>
-                  <div id="r-display-status" class="shrink-0"></div>
               </div>
-              <div class="bg-white px-5 py-4 rounded-2xl border border-indigo-50 flex items-center justify-between shadow-sm">
-                <div class="flex flex-col">
-                  <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5">Purchase Order Ref</p>
-                  <p class="text-lg font-black text-brand-blue italic tracking-tighter leading-none uppercase" id="r-display-po">-</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1.5 italic">Order Date</p>
-                  <p class="text-xs font-bold text-slate-600 leading-none" id="r-display-date"></p>
-                </div>
+              <div class="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center border border-white shadow-inner">
+                  <i data-lucide="user" class="w-5 h-5 text-brand-navy"></i>
+              </div>
+          </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar pb-32 md:pb-8">
+        <div class="max-w-[1400px] mx-auto">
+          
+          <!-- Manifest View -->
+          <section id="receiving-list-view" class="block animate-fade-in">
+            <div class="flex justify-between items-end mb-8">
+              <div>
+                  <h2 class="text-2xl md:text-3xl font-bold text-brand-navy tracking-tight uppercase">Manifest <span class="text-brand-orange">Pending</span></h2>
+                  <p class="text-[10px] font-bold text-brand-gray uppercase tracking-widest mt-1">รายการรอรับสินค้าเข้าคลัง</p>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <span class="badge-base bg-brand-orange/10 text-brand-orange border border-brand-orange/20" id="pending-count">0 Manifests</span>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="mb-10 flex flex-col md:flex-row gap-4">
+              <div class="relative flex-1 group">
+                  <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-brand-orange transition-colors"></i>
+                  <input type="text" id="r-search-input" oninput="renderPOListForReceiving()" placeholder="Search by SKU, Vendor, or PO#..." class="input-field m-0 pl-11 bg-white !h-12 !rounded-2xl border-slate-100 shadow-sm font-bold">
+              </div>
+              <div class="flex gap-4">
+                <select id="r-status-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-brand-navy uppercase text-xs !h-12 !rounded-2xl appearance-none pr-10 min-w-[160px]">
+                  <option value="">📌 ALL STATUS</option>
+                  <option value="Overdue">🚨 OVERDUE</option>
+                  <option value="Draft GR">📦 DRAFTING</option>
+                  <option value="Pending Review">⏳ PROCESSING</option>
+                  <option value="Pending GR">🕒 AWAITING</option>
+                </select>
+                <select id="r-warehouse-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-brand-blue uppercase text-xs !h-12 !rounded-2xl appearance-none pr-10 min-w-[140px]">
+                  <option value="">🏢 ALL HUBS</option>
+                  <option value="W1">W1 (WHITE)</option><option value="W2">W2 (ORANGE)</option><option value="W3">W3 (YELLOW)</option>
+                  <option value="W4">W4 (GREEN)</option><option value="W5">W5 (GRAY)</option><option value="C1">C1 (SKY)</option><option value="C2">C2 (DEEP)</option>
+                </select>
               </div>
             </div>
             
-            <form id="form-receiving" class="space-y-8" novalidate>
-              <input type="hidden" id="r-group-index">
+            <!-- List Grid -->
+            <div id="po-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+          </section>
 
-              <div class="bg-indigo-50/20 p-5 rounded-[1.5rem] border border-indigo-50 shadow-inner">
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 italic">วันที่มาส่ง (ATA) <span class="text-rose-500">*</span></label>
-                <input type="date" id="r-ata" required class="input-field m-0 py-3.5 text-lg font-black text-brand-orange border-transparent bg-white shadow-sm focus:bg-white italic tracking-tighter">
+          <!-- Detail View -->
+          <section id="receiving-detail-view" class="hidden">
+            <div class="max-w-4xl mx-auto animate-fade-in">
+              <button type="button" onclick="showView('receiving-list-view')" class="inline-flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-brand-gray hover:text-brand-orange transition-all group">
+                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center border border-slate-100 group-hover:bg-brand-orange group-hover:text-white transition-all shadow-sm">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </div>
+                Return to Manifest List
+              </button>
+
+              <div class="glass-card overflow-hidden border-t-8 border-t-brand-orange">
+                <div class="p-6 md:p-8">
+                  <!-- Form Header -->
+                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-10 border-b border-slate-100">
+                    <div class="flex items-center gap-5" id="r-display-vendor-header">
+                      <!-- Vendor Info Injection -->
+                    </div>
+                    <div id="r-display-status" class="shrink-0 flex items-center gap-3">
+                      <!-- Status Badge Injection -->
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex items-center justify-between">
+                      <div class="flex flex-col">
+                        <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-2 leading-none">PO REFERENCE</span>
+                        <span class="text-xl font-bold text-brand-blue uppercase tracking-tight leading-none" id="r-display-po">-</span>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-2 leading-none">ORDER DATE</span>
+                        <p class="text-sm font-bold text-slate-600 leading-none" id="r-display-date">-</p>
+                      </div>
+                    </div>
+                    
+                    <div class="bg-orange-50/30 p-6 rounded-3xl border border-orange-100/50 shadow-inner group transition-all focus-within:ring-4 focus-within:ring-brand-orange/10">
+                      <label class="block text-[9px] font-bold text-brand-orange uppercase tracking-widest mb-2 ml-1 leading-none">วันที่มาส่ง (ATA) <span class="text-rose-500">*</span></label>
+                      <input type="date" id="r-ata" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-brand-navy tracking-tight">
+                    </div>
+                  </div>
+                  
+                  <form id="form-receiving" class="space-y-12" novalidate>
+                    <input type="hidden" id="r-group-index">
+
+                    <!-- Manifest Items -->
+                    <div>
+                      <div class="flex items-center justify-between mb-6 px-1">
+                        <h3 class="font-bold text-brand-navy uppercase tracking-tight flex items-center gap-3 text-lg">
+                          <i data-lucide="list-checks" class="w-6 h-6 text-brand-blue"></i>
+                          Manifest Processing
+                        </h3>
+                        <button type="button" onclick="readAllPOItems()" class="w-10 h-10 flex items-center justify-center bg-brand-orange text-white rounded-2xl shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-90 transition-all">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                        </button>
+                      </div>
+                      <div id="r-items-container" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Extra Items Section -->
+                    <div class="bg-indigo-50/20 p-6 md:p-8 rounded-4xl border border-indigo-100/50">
+                      <h3 class="font-bold text-brand-blue uppercase tracking-tight mb-6 flex items-center gap-3 text-lg">
+                        <i data-lucide="gift" class="w-6 h-6"></i>
+                        Extra / Bonus Stock
+                      </h3>
+                      <div id="r-extra-items-container" class="space-y-4 mb-6"></div>
+                      <button type="button" onclick="addExtraItemRow()" class="w-full h-20 border-2 border-dashed border-indigo-200 text-brand-gray bg-white/50 hover:bg-white hover:text-brand-blue hover:border-brand-blue/30 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-3 shadow-sm group">
+                        <i data-lucide="plus-circle" class="w-5 h-5 group-hover:scale-125 transition-transform"></i> 
+                        Append Bonus Item
+                      </button>
+                    </div>
+
+                    <!-- Lift Fee Hook -->
+                    <div id="r-lift-fee-section"></div>
+
+                    <!-- Remarks & Receiver -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div class="bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+                        <label class="block text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-3 ml-1 leading-none">หมายเหตุท้ายบิล (REMARKS)</label>
+                        <textarea id="r-remark" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-600 min-h-[80px] resize-none" placeholder="ระบุข้อมูลที่จำเป็นสำหรับการตั้งหนี้..."></textarea>
+                      </div>
+                      <div class="bg-indigo-50/20 p-6 rounded-3xl border border-indigo-100/50 shadow-inner group focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all">
+                        <label class="block text-[9px] font-bold text-brand-blue uppercase tracking-widest mb-3 ml-1 leading-none">ผู้รับสินค้า (RECEIVER) <span class="text-rose-500">*</span></label>
+                        <input type="text" id="r-receiver" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-brand-navy tracking-tight" placeholder="REQUIRED">
+                      </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="pt-10 flex flex-col md:flex-row gap-4">
+                      <button type="button" id="btn-draft" class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest bg-white text-brand-gray hover:text-brand-navy border border-slate-200 shadow-sm rounded-2xl transition-all order-2 md:order-1 flex-1 active:scale-95">
+                        <i data-lucide="save" class="w-4 h-4 inline mb-0.5 mr-2"></i> Save Draft
+                      </button>
+                      <button type="button" id="btn-review" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-brand-orange text-white rounded-2xl shadow-xl shadow-orange-500/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-brand-orange-hover">
+                        <i data-lucide="send" class="w-5 h-5 inline mb-1 mr-2"></i> Submit for Review
+                      </button>
+                      <button type="button" id="btn-confirm-receive" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-emerald-500 text-white rounded-2xl shadow-xl shadow-emerald-500/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-emerald-600 hidden">
+                        <i data-lucide="check-circle" class="w-5 h-5 inline mb-1 mr-2"></i> Confirm Final Entry
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
+            </div>
+          </section>
 
-              <div>
-                <h3 class="font-black text-[#2B3674] italic uppercase tracking-tight mb-4 flex justify-between items-end px-1">
-                    <span class="flex items-center gap-2 text-base"><i data-lucide="list-checks" class="w-5 h-5 text-brand-blue"></i> Manifest Items</span>
-                    <button type="button" onclick="readAllPOItems()" class="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-indigo-50 text-brand-orange hover:bg-brand-orange hover:text-white transition-all active:scale-90">
-                        <i data-lucide="volume-2" class="w-4 h-4"></i>
-                    </button>
-                </h3>
-                <div id="r-items-container" class="space-y-4"></div>
-              </div>
-
-              <div class="mt-12 bg-orange-50/30 p-6 rounded-[2rem] border border-orange-100 shadow-inner">
-                <h3 class="font-black text-brand-orange italic uppercase tracking-tight mb-5 flex items-center gap-2"><i data-lucide="gift" class="w-5 h-5"></i> Extra / Bonus Items</h3>
-                <div id="r-extra-items-container" class="space-y-4 mb-6"></div>
-                <button type="button" onclick="addExtraItemRow()" class="w-full border-2 border-dashed border-orange-200 text-orange-300 bg-white hover:bg-orange-50 hover:text-brand-orange hover:border-brand-orange/40 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
-                  <i data-lucide="plus" class="w-4 h-4"></i> Add Extra Item
-                </button>
-              </div>
-
-              <div id="r-lift-fee-section"></div>
-
-              <div class="bg-indigo-50/20 p-5 rounded-[1.5rem] border border-indigo-50 shadow-inner">
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 italic">หมายเหตุท้ายบิล (Invoice NO, VAT, etc.)</label>
-                <textarea id="r-remark" class="input-field m-0 py-3.5 border-transparent bg-white shadow-sm focus:bg-white text-sm font-bold text-slate-600" rows="3" placeholder="ระบุข้อมูลที่จำเป็นสำหรับการตั้งหนี้..."></textarea>
-              </div>
-
-              <div class="bg-indigo-50/20 p-5 rounded-[1.5rem] border border-indigo-50 shadow-inner">
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 italic">ชื่อผู้รับสินค้า <span class="text-rose-500">*</span></label>
-                <input type="text" id="r-receiver" required class="input-field m-0 py-3.5 text-lg font-black text-brand-blue border-transparent bg-white shadow-sm focus:bg-white italic tracking-tighter" placeholder="REQUIRED">
-              </div>
-
-              <div class="pt-10 sticky bottom-0 bg-[#f4f7fe]/95 backdrop-blur-md p-4 -mx-6 sm:-mx-8 shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row gap-3 rounded-t-[2rem] border-t border-indigo-50">
-                <button type="button" id="btn-draft" class="px-8 py-4 text-xs font-black uppercase tracking-widest bg-white text-slate-400 hover:text-slate-600 border border-slate-100 shadow-sm rounded-2xl transition-all order-2 sm:order-1 flex-1">📝 Draft Save</button>
-                <button type="button" id="btn-review" class="px-10 py-5 text-sm font-black uppercase tracking-widest italic bg-brand-orange text-white rounded-2xl shadow-xl shadow-orange-900/10 active:scale-95 transition-all order-1 sm:order-2 flex-[2]">
-                  <i data-lucide="check-circle" class="w-5 h-5 inline mb-1 mr-1"></i> Receive Completed
-                </button>
-                <button type="button" id="btn-confirm-receive" class="px-10 py-5 text-sm font-black uppercase tracking-widest italic bg-brand-orange text-white rounded-2xl shadow-xl shadow-orange-900/10 active:scale-95 transition-all order-1 sm:order-2 flex-[2] hidden">
-                  ✅ Final Confirmation
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
+        </div>
       </main>
+
+      <!-- Bottom Nav (Mobile Only) -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-2 z-50">
+          <div onclick="showView('receiving-list-view')" class="bottom-nav-item active">
+              <i data-lucide="layout-grid" class="w-6 h-6"></i>
+              <span>Manifest</span>
+          </div>
+          <div onclick="showView('receiving-detail-view')" class="bottom-nav-item">
+              <i data-lucide="file-text" class="w-6 h-6"></i>
+              <span>Process</span>
+          </div>
+          <div onclick="openReceiving(true)" class="bottom-nav-item">
+              <div class="w-12 h-12 bg-brand-orange rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-orange-500/30 text-white border-4 border-white">
+                  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+              </div>
+          </div>
+          <div onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="bottom-nav-item">
+              <i data-lucide="home" class="w-6 h-6"></i>
+              <span>Portal</span>
+          </div>
+          <div id="logout-btn-mobile" class="bottom-nav-item">
+              <i data-lucide="power" class="w-6 h-6"></i>
+              <span>Sign Out</span>
+          </div>
+      </nav>
   </div>
 
   <div id="data-loader" class="fixed inset-0 bg-white/80 z-[9000] hidden flex-col justify-center items-center backdrop-blur-sm">
@@ -285,8 +478,16 @@
             }
         },
         bindEvents: () => {
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) { logoutBtn.addEventListener('click', () => { localStorage.removeItem(APP_CONFIG.STORAGE_KEY); localStorage.removeItem('akra_user_data'); window.location.href = APP_CONFIG.PORTAL_URL; }); }
+            const logoutBtns = [document.getElementById('logout-btn'), document.getElementById('logout-btn-mobile')];
+            logoutBtns.forEach(btn => {
+                if (btn) { 
+                    btn.addEventListener('click', () => { 
+                        localStorage.removeItem(APP_CONFIG.STORAGE_KEY); 
+                        localStorage.removeItem('akra_user_data'); 
+                        window.location.href = APP_CONFIG.PORTAL_URL; 
+                    }); 
+                }
+            });
         }
     };
     document.addEventListener('DOMContentLoaded', AuthGuard.init);
@@ -304,21 +505,47 @@
     
     function showView(viewId) { 
         if ('speechSynthesis' in window) window.speechSynthesis.cancel(); 
-        document.querySelectorAll('main > section').forEach(div => div.classList.add('hidden')); 
+        
+        // Update Sections
+        document.querySelectorAll('main section').forEach(section => {
+            section.classList.add('hidden');
+        }); 
         document.getElementById(viewId).classList.remove('hidden'); 
+        
+        // Update Sidebar Active State
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.classList.remove('active');
+            if ((viewId === 'receiving-list-view' && item.title && item.title.includes('Manifest')) || 
+                (viewId === 'receiving-detail-view' && item.title && item.title.includes('Processing'))) {
+                item.classList.add('active');
+            }
+        });
+
+        // Update Bottom Nav Active State
+        document.querySelectorAll('.bottom-nav-item').forEach(item => {
+            item.classList.remove('active');
+            const span = item.querySelector('span');
+            if (span) {
+                if ((viewId === 'receiving-list-view' && span.innerText === 'Manifest') || 
+                    (viewId === 'receiving-detail-view' && span.innerText === 'Process')) {
+                    item.classList.add('active');
+                }
+            }
+        });
+
         window.scrollTo(0, 0); 
     }
 
     function getWarehouseBadge(warehouse) {
         switch(warehouse) {
-            case 'W1': return `<span class="bg-white text-slate-600 border border-slate-200 text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">W1 Hub</span>`;
-            case 'W2': return `<span class="bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">W2 Hub</span>`;
-            case 'W3': return `<span class="bg-amber-400 text-amber-900 text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">W3 Hub</span>`;
-            case 'W4': return `<span class="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">W4 Hub</span>`;
-            case 'W5': return `<span class="bg-slate-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">W5 Hub</span>`;
-            case 'C1': return `<span class="bg-sky-400 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">C1 Hub</span>`;
-            case 'C2': return `<span class="bg-brand-blue text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">C2 Hub</span>`;
-            default: return `<span class="bg-gray-200 text-gray-700 text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm inline-flex items-center tracking-widest uppercase">${warehouse} Hub</span>`;
+            case 'W1': return `<span class="badge-base bg-white text-slate-500 border border-slate-100 shadow-sm uppercase tracking-[0.2em] italic">W1 WHITE</span>`;
+            case 'W2': return `<span class="badge-base bg-brand-orange text-white shadow-lg shadow-orange-500/20 uppercase tracking-[0.2em] italic">W2 ORANGE</span>`;
+            case 'W3': return `<span class="badge-base bg-amber-400 text-amber-900 shadow-lg shadow-amber-400/20 uppercase tracking-[0.2em] italic">W3 YELLOW</span>`;
+            case 'W4': return `<span class="badge-base bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 uppercase tracking-[0.2em] italic">W4 GREEN</span>`;
+            case 'W5': return `<span class="badge-base bg-slate-500 text-white shadow-lg shadow-slate-500/20 uppercase tracking-[0.2em] italic">W5 GRAY</span>`;
+            case 'C1': return `<span class="badge-base bg-sky-400 text-white shadow-lg shadow-sky-400/20 uppercase tracking-[0.2em] italic">C1 SKY</span>`;
+            case 'C2': return `<span class="badge-base bg-brand-blue text-white shadow-lg shadow-blue-500/20 uppercase tracking-[0.2em] italic">C2 DEEP</span>`;
+            default: return `<span class="badge-base bg-gray-200 text-gray-700 shadow-sm uppercase tracking-[0.2em] italic">${warehouse} HUB</span>`;
         }
     }
 
@@ -334,10 +561,10 @@
                 groupPendingPOs();
                 renderPOListForReceiving();
                 showView('receiving-list-view');
-                showNotification('กำลังอัปเดตข้อมูลล่าสุด...', 'warning');
-            } catch(e) { showDataLoading('กำลังโหลดข้อมูลรอรับเข้า...'); }
+                showNotification('Syncing with live data...', 'warning');
+            } catch(e) { showDataLoading('Syncing manifest...'); }
         } else {
-            showDataLoading('กำลังโหลดข้อมูลรอรับเข้า...');
+            showDataLoading('Syncing manifest...');
         }
 
         const response = await AKRA_API.call('getInitialData');
@@ -352,7 +579,7 @@
             
             if (!cachedData && !isManualRefresh) showView('receiving-list-view'); 
         } else if (!cachedData) { 
-            showNotification('ดึงข้อมูลไม่สำเร็จ', 'error'); 
+            showNotification('Manifest sync failed', 'error'); 
         }
     }
 
@@ -397,53 +624,67 @@
             return true;
         });
 
-        document.getElementById('pending-count').innerText = `${displayGroups.length} บิล`;
+        document.getElementById('pending-count').innerText = `${displayGroups.length} Manifests`;
         let htmlStr = '';
 
         displayGroups.forEach(group => {
             const idx = groupedPOs.indexOf(group);
             const hasOverdue = group.items.some(i => i.displayStatus === 'Overdue'); 
-            const isDraft = group.items.some(i => i.status === 'Draft GR');
-            const isPendingReview = group.items.some(i => i.status === 'Pending Review');
+            const isDraft = g.items.some(i => i.status === 'Draft GR');
+            const isPendingReview = g.items.some(i => i.status === 'Pending Review');
 
-            let cardClass = "glass-card p-6 cursor-pointer border-l-[6px] border-l-slate-200 animate-fade-in";
-            let statusBadge = `<span class="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100 uppercase tracking-widest italic">Wait for entry</span>`;
+            let cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-slate-200 group relative overflow-hidden animate-fade-in";
+            let statusBadge = `<span class="badge-base bg-slate-50 text-brand-gray border border-slate-100">AWAITING</span>`;
             
             if (hasOverdue && !isPendingReview) {
-                cardClass = "glass-card p-6 cursor-pointer border-l-[6px] border-l-rose-500 bg-rose-50/10 animate-fade-in";
-                statusBadge = `<span class="text-[9px] font-black text-rose-600 bg-white px-2 py-0.5 rounded-lg border border-rose-100 shadow-sm uppercase tracking-widest italic"><i data-lucide="alert-triangle" class="w-3 h-3 inline mb-0.5 mr-0.5"></i> Overdue</span>`;
+                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-rose-500 bg-rose-50/10 group relative overflow-hidden animate-fade-in";
+                statusBadge = `<span class="badge-base bg-white text-rose-500 border border-rose-100 shadow-sm font-bold"><i data-lucide="alert-triangle" class="w-3 h-3"></i> OVERDUE</span>`;
             } else if (isPendingReview) {
-                cardClass = "glass-card p-6 cursor-pointer border-l-[6px] border-l-brand-orange bg-orange-50/10 animate-fade-in";
-                statusBadge = `<span class="text-[9px] font-black text-brand-orange bg-white px-2 py-0.5 rounded-lg border border-orange-100 shadow-sm uppercase tracking-widest italic"><i data-lucide="check-circle" class="w-3 h-3 inline mb-0.5 mr-0.5"></i> Reviewing</span>`;
+                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-brand-orange bg-orange-50/10 group relative overflow-hidden animate-fade-in";
+                statusBadge = `<span class="badge-base bg-white text-brand-orange border border-orange-100 shadow-sm font-bold"><i data-lucide="send" class="w-3 h-3"></i> REVIEWING</span>`;
             } else if (isDraft) {
-                cardClass = "glass-card p-6 cursor-pointer border-l-[6px] border-l-brand-blue bg-indigo-50/10 animate-fade-in";
-                statusBadge = `<span class="text-[9px] font-black text-brand-blue bg-white px-2 py-0.5 rounded-lg border border-indigo-100 shadow-sm uppercase tracking-widest italic"><i data-lucide="package" class="w-3 h-3 inline mb-0.5 mr-0.5"></i> In Progress</span>`;
+                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-brand-blue bg-brand-blue/5 group relative overflow-hidden animate-fade-in";
+                statusBadge = `<span class="badge-base bg-white text-brand-blue border border-brand-blue/10 shadow-sm font-bold"><i data-lucide="save" class="w-3 h-3"></i> DRAFTING</span>`;
             }
             
-            let productsHtml = '<div class="space-y-2 mt-5 flex-grow">';
-            group.items.slice(0,3).forEach((item, i) => {
-                productsHtml += `<p class="font-bold text-[#2B3674] text-sm leading-tight truncate"><span class="text-slate-300 mr-2 italic">${i+1}.</span> ${item.product}</p>`;
+            let productsHtml = '<div class="space-y-3 mt-6 flex-1 overflow-hidden">';
+            group.items.slice(0,4).forEach((item, i) => {
+                productsHtml += `
+                  <div class="flex items-start gap-3">
+                    <span class="text-[10px] font-bold text-brand-gray/40 mt-0.5">0${i+1}</span>
+                    <p class="font-bold text-brand-navy text-xs leading-tight line-clamp-2">${item.product}</p>
+                  </div>`;
             });
-            if(group.items.length > 3) productsHtml += `<p class="text-[10px] font-black text-slate-300 mt-2 uppercase tracking-widest italic">+ ${group.items.length - 3} SKU Remaining</p>`;
+            if(group.items.length > 4) productsHtml += `<p class="text-[9px] font-bold text-brand-orange mt-3 uppercase tracking-widest ml-7">+ ${group.items.length - 4} More SKUs</p>`;
             productsHtml += '</div>';
 
             htmlStr += `
             <div class="${cardClass}" onclick="openReceivingDetail(${idx})">
-                <div class="flex justify-between items-start mb-1 border-b border-indigo-50 pb-4">
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Manifest</span>
-                      <span class="text-base font-black text-brand-blue italic tracking-tighter leading-none uppercase">${group.poNumber || 'UNLINKED'}</span>
+                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <i data-lucide="package" class="w-24 h-24"></i>
+                </div>
+                
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex flex-col gap-1.5">
+                      <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest leading-none">Reference No.</span>
+                      <span class="text-xl font-bold text-brand-blue uppercase tracking-tight leading-none">${group.poNumber || 'UNLINKED'}</span>
                     </div>
                     ${statusBadge}
                 </div>
+
                 ${productsHtml}
-                <div class="mt-8 pt-5 border-t border-indigo-50 flex justify-between items-center">
-                    <div class="flex flex-col gap-1 max-w-[60%]">
-                        <p class="font-black text-brand-blue italic text-xs uppercase truncate">${group.vendor}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase leading-none italic">${group.poDate}</p>
-                    </div>
-                    <div class="flex flex-col items-end gap-2 shrink-0">
+
+                <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col gap-1">
+                            <p class="font-bold text-brand-navy text-[11px] uppercase truncate max-w-[150px]">${group.vendor}</p>
+                            <p class="text-[9px] font-bold text-brand-gray uppercase leading-none">${group.poDate}</p>
+                        </div>
                         ${getWarehouseBadge(group.warehouse)}
+                    </div>
+                    
+                    <div class="w-full py-3 bg-slate-50 rounded-xl flex items-center justify-center text-[10px] font-bold text-brand-gray uppercase tracking-widest group-hover:bg-brand-orange group-hover:text-white transition-all">
+                       Process Manifest
                     </div>
                 </div>
             </div>`;
@@ -455,12 +696,16 @@
         const group = groupedPOs[index];
         
         document.getElementById('r-display-vendor-header').innerHTML = `
-            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-indigo-50 shadow-sm text-slate-300 group-hover:text-brand-orange transition-all">
-              <i data-lucide="building-2" class="w-6 h-6"></i>
+            <div class="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner text-brand-orange transition-all group">
+              <i data-lucide="building-2" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
             </div>
             <div class="flex flex-col">
-                <span class="font-black text-[#2B3674] text-lg leading-none italic uppercase tracking-tight">${group.vendor}</span>
-                <div class="mt-2">${getWarehouseBadge(group.warehouse)}</div>
+                <span class="font-bold text-brand-navy text-2xl leading-none uppercase tracking-tight">${group.vendor}</span>
+                <div class="mt-3 flex items-center gap-3">
+                  ${getWarehouseBadge(group.warehouse)}
+                  <span class="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                  <span class="text-[10px] font-bold text-brand-gray uppercase tracking-widest">${group.items.length} SKUs Ordered</span>
+                </div>
             </div>
         `;
         document.getElementById('r-display-date').innerText = group.poDate;
@@ -473,17 +718,17 @@
         document.getElementById('r-ata').value = localDate;
         
         document.getElementById('r-receiver').value = firstItem?.receiverName || window.currentUser;
-        document.getElementById('r-remark').value = '';
+        document.getElementById('r-remark').value = firstItem?.remark || '';
 
         const hasOverdue = group.items.some(i => i.displayStatus === 'Overdue');
         const hasPendingReview = group.items.some(i => i.status === 'Pending Review');
         const hasDraft = group.items.some(i => i.status === 'Draft GR');
         
         const statusEl = document.getElementById('r-display-status');
-        if (hasOverdue && !hasPendingReview) { statusEl.innerHTML = `<span class="bg-rose-50 text-rose-500 px-3 py-1.5 rounded-xl border border-rose-100 text-[10px] font-black uppercase tracking-widest italic shadow-sm">Overdue Priority</span>`; }
-        else if (hasPendingReview) { statusEl.innerHTML = `<span class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest italic shadow-sm">Review Pending</span>`; }
-        else if (hasDraft) { statusEl.innerHTML = `<span class="bg-brand-blue/5 text-brand-blue px-3 py-1.5 rounded-xl border border-brand-blue/10 text-[10px] font-black uppercase tracking-widest italic shadow-sm">Draft Session</span>`; }
-        else { statusEl.innerHTML = `<span class="bg-slate-50 text-slate-400 px-3 py-1.5 rounded-xl border border-slate-100 text-[10px] font-black uppercase tracking-widest italic shadow-sm">Awaiting Entry</span>`; }
+        if (hasOverdue && !hasPendingReview) { statusEl.innerHTML = `<span class="badge-base bg-rose-50 text-rose-500 border border-rose-100 shadow-sm !py-2 !px-4">CRITICAL OVERDUE</span>`; }
+        else if (hasPendingReview) { statusEl.innerHTML = `<span class="badge-base bg-brand-orange text-white shadow-lg shadow-orange-500/20 !py-2 !px-4">UNDER REVIEW</span>`; }
+        else if (hasDraft) { statusEl.innerHTML = `<span class="badge-base bg-brand-blue text-white shadow-lg shadow-blue-500/20 !py-2 !px-4">ACTIVE DRAFT</span>`; }
+        else { statusEl.innerHTML = `<span class="badge-base bg-slate-50 text-brand-gray border border-slate-100 !py-2 !px-4">READY TO RECEIVE</span>`; }
 
         const liftFeeSection = document.getElementById('r-lift-fee-section');
         if (group.warehouse === 'W2') {
@@ -500,21 +745,32 @@
             }
             
             liftFeeSection.innerHTML = `
-                <div class="bg-indigo-50/20 p-6 rounded-[2rem] border border-indigo-50 shadow-inner mb-10" id="lift-fee-container">
-                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 italic leading-none">Forklift / Lift Fee (W2 HUB EXCLUSIVE)</label>
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-6">
-                        <div class="flex items-center gap-4 bg-white p-3 rounded-2xl border border-indigo-50 shadow-sm grow">
-                            <label class="text-[10px] font-black text-slate-300 uppercase tracking-widest ml-2">ROUNDS:</label>
-                            <input type="number" id="lift-fee-rounds" class="w-full outline-none bg-transparent text-lg font-black text-brand-blue italic tracking-tighter" placeholder="0" min="0" value="${previousRounds}">
+                <div class="bg-brand-navy/5 p-6 md:p-8 rounded-4xl border border-brand-navy/10 shadow-inner mb-12" id="lift-fee-container">
+                    <label class="block text-[11px] font-bold text-brand-navy uppercase tracking-wider mb-6 ml-1 opacity-50">Forklift / Lift Fee (W2 HUB EXCLUSIVE)</label>
+                    <div class="flex flex-col md:flex-row md:items-center gap-6">
+                        <div class="flex items-center gap-5 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm grow focus-within:ring-4 focus-within:ring-brand-blue/5 transition-all">
+                            <div class="w-12 h-12 bg-brand-blue/5 rounded-2xl flex items-center justify-center text-brand-blue">
+                              <i data-lucide="truck" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-1">
+                              <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-1 block">ROUNDS</span>
+                              <input type="number" id="lift-fee-rounds" class="w-full outline-none bg-transparent text-xl font-bold text-brand-navy tracking-tight" placeholder="0" min="0" value="${previousRounds}">
+                            </div>
                         </div>
-                        <div class="flex gap-3 shrink-0">
-                            <label class="flex items-center gap-3 cursor-pointer bg-white px-5 py-3 rounded-2xl border border-indigo-50 shadow-sm hover:border-brand-blue transition-all group">
+                        <div class="flex gap-4 shrink-0">
+                            <label class="flex-1 md:flex-none flex items-center gap-4 cursor-pointer bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm hover:border-brand-blue transition-all group">
                                 <input type="radio" name="lift-fee" value="จ่ายสด" ${previousPayment === 'จ่ายสด' ? 'checked' : ''} class="w-5 h-5 text-brand-blue border-slate-200 focus:ring-brand-blue">
-                                <span class="text-xs font-black text-slate-400 group-hover:text-[#2B3674] uppercase italic transition-all">CASH</span>
+                                <div class="flex flex-col">
+                                  <span class="text-[10px] font-bold text-brand-navy uppercase tracking-widest leading-none">CASH</span>
+                                  <span class="text-[8px] font-bold text-brand-gray uppercase mt-1 leading-none">จ่ายสด</span>
+                                </div>
                             </label>
-                            <label class="flex items-center gap-3 cursor-pointer bg-white px-5 py-3 rounded-2xl border border-indigo-50 shadow-sm hover:border-brand-blue transition-all group">
+                            <label class="flex-1 md:flex-none flex items-center gap-4 cursor-pointer bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm hover:border-brand-blue transition-all group">
                                 <input type="radio" name="lift-fee" value="เชื่อ" ${previousPayment === 'เชื่อ' ? 'checked' : ''} class="w-5 h-5 text-brand-blue border-slate-200 focus:ring-brand-blue">
-                                <span class="text-xs font-black text-slate-400 group-hover:text-[#2B3674] uppercase italic transition-all">CREDIT</span>
+                                <div class="flex flex-col">
+                                  <span class="text-[10px] font-bold text-brand-navy uppercase tracking-widest leading-none">CREDIT</span>
+                                  <span class="text-[8px] font-bold text-brand-gray uppercase mt-1 leading-none">ลงชื่อเชื่อ</span>
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -530,41 +786,47 @@
         group.items.forEach((item, i) => {
             const isSavedData = item.status === 'Draft GR' || item.status === 'Pending Review';
             htmlStr += `
-            <div class="bg-white rounded-[1.5rem] p-6 border border-indigo-50 shadow-sm po-item-row hover:border-brand-orange/30 transition-all animate-fade-in" data-pouid="${item.poUid}">
-                <div class="flex justify-between items-start mb-6 border-b border-indigo-50 pb-5">
-                    <div class="flex items-center gap-4">
-                      <div class="w-10 h-10 bg-[#f4f7fe] rounded-xl flex items-center justify-center font-black text-brand-blue italic text-lg shadow-inner border border-white">${i+1}</div>
-                      <div class="flex flex-col">
-                        <span class="font-black text-[#2B3674] text-base italic tracking-tight leading-none">${item.product}</span>
-                        <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-2">SKU VERIFICATION</p>
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm po-item-row hover:border-brand-orange/30 transition-all animate-fade-in group" data-pouid="${item.poUid}">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-8 border-b border-slate-50">
+                    <div class="flex items-start gap-5 flex-1">
+                      <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-brand-blue text-xl shadow-inner border border-white shrink-0">0${i+1}</div>
+                      <div class="flex flex-col gap-2">
+                        <span class="font-bold text-brand-navy text-lg tracking-tight leading-tight uppercase line-clamp-2">${item.product}</span>
+                        <div class="flex items-center gap-4">
+                          <span class="text-[10px] font-bold text-brand-gray uppercase tracking-widest">Target Manifest SKU</span>
+                          <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                          <span class="text-[10px] font-bold text-brand-blue uppercase tracking-widest">${item.unit || 'UNIT'}</span>
+                        </div>
                       </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                      <button type="button" data-text="${item.product} จำนวน ${item.quantity} ${item.unit || ''}" onclick="speakText(this.dataset.text)" class="w-10 h-10 flex items-center justify-center bg-orange-50 text-brand-orange hover:bg-brand-orange hover:text-white rounded-xl transition-all shadow-sm active:scale-90 border border-orange-100">
-                          <i data-lucide="volume-2" class="w-5 h-5"></i>
-                      </button>
-                      <div class="bg-indigo-50 px-4 py-2 rounded-xl text-right border border-white shadow-inner">
-                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 italic">PO Qty</p>
-                        <p class="text-sm font-black text-brand-blue italic tracking-tighter leading-none">${item.quantity} <span class="text-[9px] uppercase font-bold text-slate-400 ml-0.5">${item.unit || ''}</span></p>
+                    
+                    <div class="flex items-center gap-4 shrink-0">
+                      <div class="bg-brand-blue/5 px-5 py-3 rounded-2xl border border-brand-blue/5 shadow-inner text-right min-w-[100px]">
+                        <p class="text-[9px] font-bold text-brand-blue/50 uppercase tracking-widest leading-none mb-2">PO DEMAND</p>
+                        <p class="text-xl font-bold text-brand-blue tracking-tight leading-none">${item.quantity} <span class="text-[10px] uppercase font-bold opacity-50 ml-1">${item.unit || ''}</span></p>
                       </div>
+                      <button type="button" data-text="${item.product} จำนวน ${item.quantity} ${item.unit || ''}" onclick="speakText(this.dataset.text)" class="w-14 h-14 flex items-center justify-center bg-orange-50 text-brand-orange hover:bg-brand-orange hover:text-white rounded-2xl transition-all shadow-lg shadow-orange-500/10 active:scale-90 border border-orange-100 group-hover:scale-105">
+                          <i data-lucide="volume-2" class="w-6 h-6"></i>
+                      </button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                    <div class="bg-[#f4f7fe] p-3 rounded-2xl border border-indigo-50 shadow-inner">
-                      <label class="block text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Receipt Qty</label>
-                      <input type="number" class="input-field m-0 py-2.5 px-3 bg-white text-brand-orange text-xl font-black italic tracking-tighter border-transparent focus:ring-4 focus:ring-brand-orange/5" placeholder="0" value="${isSavedData ? (item.grQty||'') : ''}">
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50 shadow-inner group-focus-within:border-brand-orange transition-all">
+                      <label class="block text-[10px] font-bold text-brand-orange uppercase tracking-widest mb-2 ml-1 leading-none">Received Qty</label>
+                      <input type="number" class="w-full bg-transparent border-none outline-none text-2xl font-bold text-brand-orange tracking-tight placeholder:text-brand-orange/20" placeholder="0" value="${isSavedData ? (item.grQty||'') : ''}">
                     </div>
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col justify-center opacity-60">
-                      <label class="block text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Unit</label>
-                      <input type="text" class="bg-transparent border-none outline-none text-xs font-black text-slate-400 uppercase italic ml-1" value="${item.unit || '-'}" readonly tabindex="-1">
+                    <div class="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col justify-center opacity-60">
+                      <label class="block text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-2 ml-1 leading-none">Unit Measure</label>
+                      <input type="text" class="bg-transparent border-none outline-none text-xs font-bold text-brand-gray uppercase ml-1" value="${item.unit || '-'}" readonly tabindex="-1">
                     </div>
-                    <div>
-                      <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">EXP DATE</label>
-                      <input type="text" class="input-field m-0 py-2.5 px-3 bg-white border-slate-100 text-sm font-bold text-slate-600 italic tracking-widest placeholder:font-normal placeholder:tracking-normal" placeholder="DD/MM/YYYY" value="${isSavedData ? (item.exp||'') : ''}">
+                    <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all">
+                      <label class="block text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-2 ml-1 leading-none">Expiry (EXP)</label>
+                      <input type="text" class="w-full bg-transparent border-none outline-none text-base font-bold text-brand-navy tracking-widest placeholder:text-slate-200 placeholder:font-medium" placeholder="DD/MM/YYYY" value="${isSavedData ? (item.exp||'') : ''}">
                     </div>
-                    <div>
-                      <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Loc.IN <span class="text-rose-500">*</span></label>
-                      <input type="text" class="input-field m-0 py-2.5 px-3 bg-white border-slate-100 text-sm font-bold text-slate-600 uppercase italic tracking-widest placeholder:font-normal placeholder:tracking-normal" placeholder="A-01-01" value="${isSavedData ? (item.locIn||'') : ''}">
+                    <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-brand-blue/5">
+                      <label class="block text-[10px] font-bold text-brand-blue uppercase tracking-widest mb-2 ml-1 leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
+                      <input type="text" class="w-full bg-transparent border-none outline-none text-base font-bold text-brand-blue uppercase tracking-widest placeholder:text-slate-200" placeholder="LOC-X-01" value="${isSavedData ? (item.locIn||'') : ''}">
                     </div>
                 </div>
             </div>`;
@@ -589,34 +851,59 @@
         showView('receiving-detail-view');
         lucide.createIcons({ root: document.getElementById('receiving-detail-view') });
     }
+        container.innerHTML = htmlStr;
+
+        document.getElementById('r-extra-items-container').innerHTML = '';
+        document.getElementById('btn-draft').onclick = (e) => submitReceiving(e, 'Draft GR');
+        document.getElementById('btn-review').onclick = (e) => submitReceiving(e, 'Pending Review');
+        document.getElementById('btn-confirm-receive').onclick = (e) => submitReceiving(e, 'GR Completed');
+        
+        if (hasPendingReview) {
+            document.getElementById('btn-confirm-receive').classList.remove('hidden');
+            document.getElementById('btn-draft').classList.add('hidden');
+            document.getElementById('btn-review').classList.add('hidden');
+        } else {
+            document.getElementById('btn-confirm-receive').classList.add('hidden');
+            document.getElementById('btn-draft').classList.remove('hidden');
+            document.getElementById('btn-review').classList.remove('hidden');
+        }
+        
+        showView('receiving-detail-view');
+        lucide.createIcons({ root: document.getElementById('receiving-detail-view') });
+    }
 
     function addExtraItemRow() {
-        const container = document.getElementById('r-extra-items-container'); const div = document.createElement('div');
-        div.className = "extra-item-row bg-white p-6 rounded-[1.5rem] border border-orange-100 shadow-md relative animate-fade-in";
+        const container = document.getElementById('r-extra-items-container'); 
+        const div = document.createElement('div');
+        div.className = "extra-item-row bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm relative animate-fade-in group hover:border-brand-blue/30 transition-all";
         div.innerHTML = `
-            <button type="button" onclick="this.closest('.extra-item-row').remove()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
-            <div class="pr-10 mb-6">
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 italic leading-none">Extra Product Entry <span class="text-rose-500">*</span></label>
-                <input type="text" class="input-field m-0 py-3.5 px-5 bg-orange-50/30 border-orange-100 text-sm font-black text-slate-800 italic focus:bg-white" placeholder="SPECIFY PRODUCT NAME..." autocomplete="off">
-                <input type="hidden" class="ex-sku">
-                <ul class="suggestion-box absolute z-50 w-full bg-white border border-indigo-50 rounded-2xl shadow-2xl max-h-40 overflow-y-auto hidden mt-2 divide-y divide-slate-50 custom-scrollbar"></ul>
+            <button type="button" onclick="this.closest('.extra-item-row').remove()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all shadow-sm group">
+              <i data-lucide="x" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
+            </button>
+            <div class="pr-12 mb-8">
+                <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Extra Product Entry <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                  <input type="text" class="w-full h-14 bg-indigo-50/30 border border-slate-100 px-6 rounded-2xl text-sm font-black text-brand-navy italic focus:bg-white focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all placeholder:font-medium" placeholder="SPECIFY PRODUCT NAME OR SEARCH..." autocomplete="off">
+                  <input type="hidden" class="ex-sku">
+                  <ul class="suggestion-box absolute z-50 w-full bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto hidden mt-2 divide-y divide-slate-50 custom-scrollbar overflow-x-hidden"></ul>
+                </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                <div class="bg-orange-50/50 p-3 rounded-2xl border border-orange-100 shadow-inner">
-                  <label class="block text-[9px] font-black text-brand-orange uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Qty <span class="text-rose-500">*</span></label>
-                  <input type="number" class="input-field m-0 py-2.5 px-3 bg-white text-brand-orange text-xl font-black italic tracking-tighter border-transparent" placeholder="0">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-indigo-50/50 p-4 rounded-3xl border border-indigo-100 shadow-inner focus-within:border-brand-blue transition-all">
+                  <label class="block text-[10px] font-black text-brand-blue uppercase tracking-widest mb-2 ml-1 italic leading-none">Qty <span class="text-rose-500">*</span></label>
+                  <input type="number" class="w-full bg-transparent border-none outline-none text-2xl font-black text-brand-blue italic tracking-tighter" placeholder="0">
                 </div>
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col justify-center opacity-60">
-                  <label class="block text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Unit</label>
-                  <input type="text" class="bg-transparent border-none outline-none text-xs font-black text-slate-400 uppercase italic ml-1" placeholder="PCS" readonly tabindex="-1">
+                <div class="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col justify-center opacity-60">
+                  <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Unit</label>
+                  <input type="text" class="bg-transparent border-none outline-none text-xs font-black text-brand-gray uppercase italic ml-1" placeholder="PCS" readonly tabindex="-1">
                 </div>
-                <div>
-                  <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">EXP DATE</label>
-                  <input type="text" class="input-field m-0 py-2.5 px-3 bg-white border-slate-100 text-sm font-bold text-slate-600 italic tracking-widest placeholder:DD/MM/YYYY">
+                <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all">
+                  <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Expiry (EXP)</label>
+                  <input type="text" class="w-full bg-transparent border-none outline-none text-base font-black text-brand-navy italic tracking-widest placeholder:DD/MM/YYYY">
                 </div>
-                <div>
-                  <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1 italic leading-none">Loc.IN <span class="text-rose-500">*</span></label>
-                  <input type="text" class="input-field m-0 py-2.5 px-3 bg-white border-slate-100 text-sm font-bold text-slate-600 uppercase italic tracking-widest placeholder:LOCATION">
+                <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-brand-blue/5">
+                  <label class="block text-[10px] font-black text-brand-blue uppercase tracking-widest mb-2 ml-1 italic leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
+                  <input type="text" class="w-full bg-transparent border-none outline-none text-base font-black text-brand-blue uppercase italic tracking-widest placeholder:LOCATION">
                 </div>
             </div>
         `;
