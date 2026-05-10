@@ -138,50 +138,51 @@
     <div v-if="sidebarMobileOpen" class="fixed inset-0 bg-black/50 z-[55] md:hidden" @click="sidebarMobileOpen = false"></div>
 
     <!-- Desktop Sidebar -->
-    <aside id="main-sidebar" :class="{'mobile-open': sidebarMobileOpen}" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
-        <div class="p-6 flex items-center space-x-3">
+    <aside id="main-sidebar" :class="{'mobile-open': sidebarMobileOpen}" class="fixed inset-y-0 left-0 z-[60] group w-[76px] hover:w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-all duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none overflow-hidden">
+        <div class="p-4 flex items-center space-x-3 overflow-hidden">
             <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
                 <i data-lucide="warehouse" class="text-white w-5 h-5"></i>
             </div>
-            <div>
+            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                 <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA W5</h1>
                 <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Warehouse Terminal</p>
             </div>
         </div>
         
-        <nav class="flex-grow px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar">
+        <nav class="flex-grow px-3 py-4 space-y-1 overflow-y-auto hide-scrollbar overflow-x-hidden">
             <button @click="activeTab = 'dashboard'" :class="{active: activeTab === 'dashboard'}" class="nav-link">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span>Dashboard Overview</span>
+                <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Dashboard Overview</span>
             </button>
             <button @click="activeTab = 'inventory'" :class="{active: activeTab === 'inventory'}" class="nav-link">
-                <i data-lucide="package" class="w-5 h-5"></i>
-                <span>Inventory Stock</span>
+                <i data-lucide="package" class="w-5 h-5 shrink-0"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Inventory Stock</span>
             </button>
             <button @click="activeTab = 'transaction'" :class="{active: activeTab === 'transaction'}" class="nav-link">
-                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
-                <span>Quick Terminal</span>
+                <i data-lucide="arrow-left-right" class="w-5 h-5 shrink-0"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Quick Terminal</span>
             </button>
             <button @click="activeTab = 'picklist'" :class="{active: activeTab === 'picklist'}" class="nav-link relative">
-                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-                <span>Pending Picklists</span>
-                <span v-if="pickList.length > 0" class="absolute right-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">{{ pickList.length }}</span>
+                <i data-lucide="clipboard-check" class="w-5 h-5 shrink-0"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Pending Picklists</span>
+                <span v-if="pickList.length > 0" class="absolute right-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">{{ pickList.length }}</span>
             </button>
             <button v-if="isAdmin" @click="activeTab = 'manage'" :class="{active: activeTab === 'manage'}" class="nav-link">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Master Registry</span>
+                <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Master Registry</span>
             </button>
         </nav>
 
-        <div class="p-5 border-t border-white/10 mt-auto bg-[#171C8F]">
-            <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+        <div class="p-3 border-t border-white/10 mt-auto bg-[#171C8F] overflow-hidden">
+            <div @click="confirmLogout" class="flex items-center space-x-3 bg-white/5 border border-white/10 p-2.5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                 <div class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
                     {{ loggedInUser?.charAt(0) }}
                 </div>
-                <div class="flex-1 overflow-hidden">
+                <div class="flex-1 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <p class="text-xs font-bold text-white truncate">{{ loggedInUser }}</p>
                     <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>Online</p>
                 </div>
+                <i data-lucide="log-out" class="w-4 h-4 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
             </div>
         </div>
     </aside>
@@ -195,16 +196,21 @@
                 <button class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors" @click="toggleMobileSidebar">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
-                <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate uppercase">{{ activeTabTitle }}</h2>
+                <h2 class="font-bold text-xl text-[#171C8F] tracking-tight truncate uppercase">{{ activeTabTitle }}</h2>
             </div>
 
-            <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
-                <button @click="loadData(false)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="Refresh Data">
+            <div class="flex items-center space-x-2 md:space-x-4 shrink-0">
+                <button @click="loadData(false)" class="p-2 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="Refresh Data">
                     <i data-lucide="refresh-cw" class="w-5 h-5" :class="{'animate-spin': isSilentLoading}"></i>
                 </button>
-                <button id="logout-btn" class="flex items-center gap-1.5 bg-rose-500/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border border-rose-400/50">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">Logout</span>
-                </button>
+                
+                <!-- User Profile Box -->
+                <div @click="confirmLogout" class="flex items-center gap-3 bg-white border border-slate-200 pl-4 pr-1.5 py-1.5 rounded-full cursor-pointer hover:border-rose-200 hover:bg-rose-50 transition-all group">
+                    <span class="text-xs font-bold text-slate-600 group-hover:text-rose-600 hidden sm:block">{{ loggedInUser }}</span>
+                    <div class="w-8 h-8 rounded-full bg-[#171C8F] group-hover:bg-rose-500 flex items-center justify-center text-white text-xs font-bold shadow-sm transition-colors">
+                        {{ loggedInUser?.charAt(0) }}
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -314,7 +320,7 @@
             </div>
 
             <!-- Tab: Transaction -->
-            <div v-show="activeTab === 'transaction'" class="animate-fade-in max-w-lg mx-auto">
+            <div v-show="activeTab === 'transaction'" class="animate-fade-in max-w-5xl mx-auto">
                 <section class="glass-card overflow-hidden">
                     <div class="p-6 bg-brand-blue text-white">
                         <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
@@ -323,56 +329,58 @@
                         <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Direct Stock Adjustment</p>
                     </div>
                     
-                    <div class="p-6 space-y-6">
+                    <div class="p-8 space-y-8">
                         <!-- Type Switcher -->
-                        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl">
-                            <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'" class="py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Withdraw</button>
-                            <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'" class="py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Receive</button>
+                        <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl max-w-md mx-auto">
+                            <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Withdraw</button>
+                            <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Receive</button>
                         </div>
 
-                        <div class="space-y-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <!-- Product Search -->
                             <div class="relative">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Search Product</label>
                                 <div class="relative group">
-                                    <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
-                                    <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="Type name or code..." class="input-ci pl-11 pr-11">
-                                    <button v-if="searchTransaction" @click="clearSelection" class="absolute right-4 top-3 text-slate-300 hover:text-rose-500">
-                                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    <i data-lucide="search" class="absolute left-4 top-4 w-5 h-5 text-slate-400"></i>
+                                    <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="Type name or code..." class="input-ci pl-12 h-14 text-base">
+                                    <button v-if="searchTransaction" @click="clearSelection" class="absolute right-4 top-4 text-slate-300 hover:text-rose-500">
+                                        <i data-lucide="x-circle" class="w-5 h-5"></i>
                                     </button>
                                 </div>
                                 
                                 <!-- Search Dropdown -->
-                                <div v-if="showDropdown && filteredTransactionProducts.length > 0" class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto overflow-x-hidden glass-card">
+                                <div v-if="showDropdown && filteredTransactionProducts.length > 0" class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto overflow-x-hidden glass-card">
                                     <div v-for="p in filteredTransactionProducts" :key="p.id" @click="selectTransactionProduct(p)" class="p-4 border-b border-slate-50 hover:bg-brand-blue/[0.03] cursor-pointer flex justify-between items-center transition-colors">
                                         <div class="min-w-0 flex-1">
                                             <p class="text-sm font-semibold text-slate-700 truncate pr-4">{{ p.name }}</p>
                                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Current: {{ p.stock }} {{ p.unit }}</p>
                                         </div>
-                                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+                                        <i data-lucide="plus" class="w-4 h-4 text-brand-blue opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Quantity -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="relative">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Quantity</label>
-                                    <input type="number" v-model.number="form.qty" class="input-ci text-2xl font-bold text-center" placeholder="0">
-                                    <span class="absolute right-4 top-9 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ getSelectedProductUnit() }}</span>
+                            <!-- Controls -->
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="relative">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Quantity</label>
+                                        <input type="number" v-model.number="form.qty" class="input-ci h-14 text-2xl font-bold text-center" placeholder="0">
+                                        <span class="absolute right-4 top-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ getSelectedProductUnit() }}</span>
+                                    </div>
+                                    <div class="flex flex-col justify-end">
+                                        <button @click="verifyTransaction" :disabled="isSubmitting" class="btn-primary h-14 w-full text-sm tracking-widest">
+                                            <i v-if="isSubmitting" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                                            <i v-else data-lucide="check-circle" class="w-5 h-5"></i>
+                                            <span>{{ isSubmitting ? 'Processing...' : 'Submit Entry' }}</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex flex-col justify-end">
-                                    <button @click="verifyTransaction" :disabled="isSubmitting" class="btn-primary h-12 w-full">
-                                        <i v-if="isSubmitting" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                                        <i v-else data-lucide="check-circle" class="w-5 h-5"></i>
-                                        <span>{{ isSubmitting ? 'Processing...' : 'Submit Entry' }}</span>
-                                    </button>
-                                </div>
-                            </div>
 
-                            <button v-if="form.type === 'out'" @click="verifyAddPickList" class="w-full py-4 rounded-2xl border-2 border-brand-orange border-dashed text-brand-orange font-bold text-xs uppercase tracking-widest hover:bg-brand-orange/5 transition-colors flex items-center justify-center gap-2">
-                                <i data-lucide="clipboard-list" class="w-4 h-4"></i> Create Picklist (Reserve)
-                            </button>
+                                <button v-if="form.type === 'out'" @click="verifyAddPickList" class="w-full py-5 rounded-2xl border-2 border-brand-orange border-dashed text-brand-orange font-bold text-xs uppercase tracking-widest hover:bg-brand-orange/5 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Create Picklist (Reserve for Pickup)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -426,7 +434,7 @@
             </div>
 
             <!-- Tab: Manage (Admin) -->
-            <div v-show="activeTab === 'manage'" class="animate-fade-in max-w-2xl mx-auto space-y-6">
+            <div v-show="activeTab === 'manage'" class="animate-fade-in max-w-5xl mx-auto space-y-6">
                 <section class="glass-card overflow-hidden">
                     <div class="p-6 bg-slate-800 text-white">
                         <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
@@ -434,19 +442,21 @@
                         </h2>
                         <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Inventory Structure Management</p>
                     </div>
-                    <div class="p-8 space-y-8">
-                        <div class="space-y-4">
+                    <div class="p-10 space-y-10">
+                        <div class="space-y-6">
                             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Register New Product</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2">
-                                    <input type="text" v-model="newProductName" placeholder="Product Formal Name..." class="input-ci">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div class="md:col-span-3">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Product Name</label>
+                                    <input type="text" v-model="newProductName" placeholder="Full Product Description..." class="input-ci h-12">
                                 </div>
                                 <div>
-                                    <input type="text" v-model="newProductUnit" placeholder="Unit (e.g. Pcs)" class="input-ci text-center">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Base Unit</label>
+                                    <input type="text" v-model="newProductUnit" placeholder="e.g. Pcs" class="input-ci h-12 text-center">
                                 </div>
                             </div>
-                            <button @click="addProduct" class="w-full h-14 bg-slate-800 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2">
-                                <i data-lucide="plus-circle" class="w-5 h-5"></i> Add to Registry
+                            <button @click="addProduct" class="w-full h-16 bg-slate-800 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3">
+                                <i data-lucide="plus-circle" class="w-6 h-6"></i> Add to Registry
                             </button>
                         </div>
                     </div>
@@ -717,10 +727,20 @@
             this.initApp();
             window.addEventListener('resize', () => { this.isPC = window.innerWidth >= 768; });
         },
+        updated() {
+            lucide.createIcons();
+        },
         unmounted() {
             if(this.refreshInterval) clearInterval(this.refreshInterval);
         },
         methods: {
+            confirmLogout() {
+                this.showConfirmUI('Sign Out', 'Are you sure you want to end your session?', 'bg-rose-600', () => {
+                    localStorage.removeItem(APP_CONFIG.STORAGE_KEY); 
+                    localStorage.removeItem('akra_user_data');
+                    window.location.href = APP_CONFIG.PORTAL_URL;
+                });
+            },
             toggleMobileSidebar() {
                 this.sidebarMobileOpen = !this.sidebarMobileOpen;
             },
