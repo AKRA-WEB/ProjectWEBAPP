@@ -123,9 +123,9 @@
         }
     </style>
 </head>
-<body class="bg-[#f4f7fe]">
+<body class="bg-[#f4f7fe] h-screen overflow-hidden flex">
 
-<div id="app" v-cloak>
+<div id="app" v-cloak class="flex-1 h-full flex overflow-hidden w-full">
     <!-- Overlay Loading -->
     <div v-if="isLoading && !isSilentLoading" class="fixed inset-0 bg-white/95 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
         <div class="w-16 h-16 bg-brand-blue rounded-3xl flex items-center justify-center animate-bounce shadow-xl">
