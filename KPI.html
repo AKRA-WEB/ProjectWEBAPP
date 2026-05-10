@@ -6,56 +6,63 @@
     <title>KPI Dashboard | AKRA Premium</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-client.js"></script>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+        
         :root {
+            /* CI Colors */
             --brand-blue: #171C8F;
             --brand-blue-hover: #11146B;
             --brand-orange: #E35205;
-            --sidebar-width: clamp(72px, 8vw, 76px);
-            --header-height: 4rem;
-            --bg-main: #f4f7fe;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --card-radius: 1.5rem;
+            
+            /* Theme Variables */
+            --bg-main: #F4F7FE;
+            --card-radius: 1.25rem;
             --border-color: #E9EDF7;
-            --fluid-8xl: clamp(2.5rem, 6vw, 4.5rem);
-            --fluid-xl: clamp(1rem, 2vw, 1.25rem);
         }
-        body { font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #2B3674; overflow: hidden; letter-spacing: -0.01em; touch-action: manipulation; }
-        
-        /* Premium Sidebar (Desktop Only) */
-        .sidebar { width: var(--sidebar-width); background: white; transition: all 0.3s ease; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        @media (max-width: 1024px) { .sidebar { display: none; } }
-        
-        .nav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 1rem 0; color: #A3AED0; transition: all 0.2s ease; cursor: pointer; position: relative; }
-        .nav-link.active { color: var(--brand-blue); }
-        .nav-link.active::after { content: ''; position: absolute; right: 0; top: 20%; bottom: 20%; width: 4px; background: var(--brand-blue); border-radius: 4px 0 0 4px; }
-        .nav-link i { font-size: 1.2rem; }
-        .nav-link span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
-        /* Mobile Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding-bottom: var(--safe-bottom); z-index: 100; box-shadow: 0 -10px 25px rgba(0,0,0,0.03); }
-        .mobile-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 0.75rem 0; color: #A3AED0; transition: all 0.2s; }
-        .mobile-link.active { color: var(--brand-blue); }
-        .mobile-link i { font-size: 1.25rem; }
-        .mobile-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        @media (min-width: 1025px) { .bottom-nav { display: none; } }
+        body { 
+            font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-main);
+            color: #2B3674;
+            letter-spacing: -0.01em;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .card { background: white; border-radius: var(--card-radius); padding: 1.25rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        @media (min-width: 768px) { .card { border-radius: 1.5rem; padding: 1.5rem; } }
-        .card:hover { box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03); transform: translateY(-2px); }
+        /* 🎬 Animations */
+        section { display: none; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        section.active { display: block; }
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 📜 Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
         
-        .stat-card-red { background: linear-gradient(135deg, #FF6B6B 0%, #FF4D4D 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(255, 77, 77, 0.15); }
-        .stat-card-orange { background: linear-gradient(135deg, #FFD93D 0%, #FF9F0A 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(255, 159, 10, 0.15); }
-        .stat-card-purple { background: linear-gradient(135deg, #A78BFA 0%, #6366F1 100%); color: white; border-radius: 1.75rem; box-shadow: 0 12px 25px rgba(99, 102, 241, 0.15); }
+        /* 🎴 Components */
+        .glass-card { background: white; border-radius: var(--card-radius); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+        .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
         
+        .input-ci { background: #F4F7FE; border: 1px solid var(--border-color); border-radius: 0.875rem; padding: 10px 14px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none; }
+        .input-ci:focus { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); background: white; }
+        
+        /* 🎨 Custom SweetAlert2 (Modern Theme) */
+        div:where(.swal2-container) div:where(.swal2-popup) { background-color: white; color: #2B3674; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #E9EDF7; }
+        div:where(.swal2-container) h2:where(.swal2-title) { color: var(--brand-blue); font-family: 'Prompt', sans-serif; font-weight: 800; }
+        div:where(.swal2-container) div:where(.swal2-html-container) { color: #707EAE; font-family: 'Prompt', sans-serif; font-size: 0.875rem; }
+        div:where(.swal2-container) button:where(.swal2-confirm) { background-color: var(--brand-blue) !important; border-radius: 1rem; font-weight: 700; box-shadow: 0 10px 20px rgba(23, 28, 143, 0.1) !important; }
+        div:where(.swal2-container) button:where(.swal2-cancel) { background-color: #F4F7FE !important; color: #A3AED0 !important; border-radius: 1rem; font-weight: 700; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* KPI Specific Styles */
         .circle-progress { position: relative; width: 90px; height: 90px; }
-        @media (min-width: 768px) { .circle-progress { width: 100px; height: 100px; } }
         .circle-progress svg { transform: rotate(-90deg); }
         .circle-progress circle { fill: none; stroke-width: 12; stroke-linecap: round; }
         .circle-progress .bg { stroke: rgba(255,255,255,0.15); }
@@ -64,21 +71,9 @@
         .progress-bar-container { background: #EFF4FB; border-radius: 12px; height: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; border-radius: 12px; transition: width 1s ease-in-out; }
 
-        .btn-action { background: #2B3674; color: white; border-radius: 1.25rem; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(43, 54, 116, 0.12); cursor: pointer; min-height: 48px; }
-        .btn-action:active { transform: scale(0.96); opacity: 0.9; }
-
-        .toast { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translate(-50%, 150%); opacity: 0; }
-        .toast.show { transform: translate(-50%, -20px); opacity: 1; }
-        
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
-        
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }
+        .stat-card-red { background: linear-gradient(135deg, #FF6B6B 0%, #FF4D4D 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(255, 77, 77, 0.15); }
+        .stat-card-orange { background: linear-gradient(135deg, #FFD93D 0%, #FF9F0A 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(255, 159, 10, 0.15); }
+        .stat-card-purple { background: linear-gradient(135deg, #A78BFA 0%, #6366F1 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(99, 102, 241, 0.15); }
     </style>
 </head>
 <body class="antialiased h-screen flex">
@@ -91,92 +86,114 @@
 
     <!-- Security Error Overlay -->
     <div id="auth-error" class="fixed inset-0 bg-white z-[9999] hidden flex flex-col justify-center items-center p-6 text-center">
-        <div class="card p-10 max-w-sm shadow-2xl border-rose-50 border">
-            <i class="fa-solid fa-lock text-rose-500 text-4xl mb-6"></i>
+        <div class="glass-card p-10 max-w-sm shadow-2xl border-rose-50 border">
+            <i data-lucide="lock" class="text-rose-500 w-16 h-16 mx-auto mb-6"></i>
             <h2 class="text-xl font-bold text-slate-800 mb-2">ไม่สามารถเข้าถึงได้</h2>
             <p id="error-message" class="text-slate-400 text-sm mb-8 px-4">ระบบไม่พบสิทธิ์การใช้งานของคุณ</p>
-            <button onclick="window.location.href='./index.html'" class="w-full h-12 bg-[#2B3674] text-white rounded-2xl font-bold transition active:scale-95">กลับสู่หน้าหลัก</button>
+            <button onclick="window.location.href='./index.html'" class="w-full h-12 bg-[#171C8F] text-white rounded-2xl font-bold transition active:scale-95 shadow-lg">กลับสู่หน้าหลัก</button>
         </div>
     </div>
 
-    <!-- Main Sidebar (Desktop Only) -->
-    <aside id="main-sidebar" class="sidebar flex flex-col h-full z-50">
-        <div class="p-6 flex justify-center">
-            <div class="w-12 h-12 bg-[#171C8F] rounded-2xl flex items-center justify-center shadow-lg text-white font-bold text-xl ">A</div>
+    <!-- Main Sidebar (Desktop & Mobile Drawer) -->
+    <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
+        
+        <!-- Mobile Close Button -->
+        <button id="close-sidebar-btn" class="md:hidden absolute top-5 right-4 p-2 bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <div class="p-6 flex items-center space-x-3 border-b border-white/10 md:border-none">
+            <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
+                <i data-lucide="bar-chart-3" class="text-white w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA Pro</h1>
+                <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">KPI Dashboard</p>
+            </div>
         </div>
-        <nav class="flex-1 mt-6">
-            <div onclick="switchTab('record')" id="nav-record" class="nav-link active">
-                <i class="fa-solid fa-pen-to-square"></i>
-                <span>บันทึก</span>
-            </div>
-            <div onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link">
-                <i class="fa-solid fa-chart-pie"></i>
-                <span>วิเคราะห์</span>
-            </div>
-            <div onclick="switchTab('admin-dash')" id="nav-admin-dash" class="nav-link hidden">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>ภาพรวม</span>
-            </div>
-            <div onclick="switchTab('admin')" id="nav-admin" class="nav-link hidden">
-                <i class="fa-solid fa-users-gear"></i>
-                <span>จัดการ</span>
-            </div>
+        
+        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar" id="desktop-nav">
+            <button onclick="switchTab('record')" id="nav-record" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all active bg-white/10 text-[#E35205] font-bold shadow-sm">
+                <i data-lucide="edit-3" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">บันทึกข้อมูล</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                <i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">วิเคราะห์ทีม</span>
+            </button>
+            <button onclick="switchTab('admin-dash')" id="nav-admin-dash" class="nav-link w-full hidden flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                <i data-lucide="trending-up" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">ภาพรวมผู้บริหาร</span>
+            </button>
+            <button onclick="switchTab('admin')" id="nav-admin" class="nav-link w-full hidden flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                <i data-lucide="users" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">จัดการบุคลากร</span>
+            </button>
         </nav>
-        <div class="p-8 flex flex-col items-center gap-6">
-            <button onclick="syncDataFromSheet()" class="text-[#A3AED0] hover:text-[#171C8F] transition-colors"><i class="fa-solid fa-rotate"></i></button>
-            <button id="logout-btn-desktop" class="text-rose-300 hover:text-rose-600 transition-colors"><i class="fa-solid fa-power-off"></i></button>
+
+        <div class="p-5 border-t border-white/10 mt-auto bg-[#171C8F]">
+            <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+                <div id="user-avatar" class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">AD</div>
+                <div class="flex-1 overflow-hidden">
+                    <p class="text-xs font-bold text-white truncate" id="display-username">Administrator</p>
+                    <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>System Online</p>
+                </div>
+            </div>
+            <div class="flex justify-between mt-4 px-2">
+                <button onclick="syncDataFromSheet()" class="text-white/40 hover:text-white transition-colors"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                <button id="logout-btn-desktop" class="text-rose-400 hover:text-rose-500 transition-colors"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            </div>
         </div>
     </aside>
 
     <!-- Mobile Bottom Navigation -->
     <nav class="bottom-nav">
-        <div onclick="switchTab('record')" id="mob-record" class="mobile-link active">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>บันทึก</span>
-        </div>
-        <div onclick="switchTab('dashboard')" id="mob-dashboard" class="mobile-link">
-            <i class="fa-solid fa-chart-pie"></i>
-            <span>วิเคราะห์</span>
-        </div>
-        <div onclick="switchTab('admin-dash')" id="mob-admin-dash" class="mobile-link hidden">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>ภาพรวม</span>
-        </div>
-        <div onclick="switchTab('admin')" id="mob-admin" class="mobile-link hidden">
-            <i class="fa-solid fa-users-gear"></i>
-            <span>จัดการ</span>
-        </div>
-        <div id="logout-btn-mobile" class="mobile-link text-rose-300">
-            <i class="fa-solid fa-power-off"></i>
-            <span>ออก</span>
-        </div>
+        <button onclick="switchTab('record')" id="mob-record" class="mobile-link active flex flex-col items-center justify-center py-2">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold mt-1 uppercase">บันทึก</span>
+        </button>
+        <button onclick="switchTab('dashboard')" id="mob-dashboard" class="mobile-link flex flex-col items-center justify-center py-2">
+            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold mt-1 uppercase">วิเคราะห์</span>
+        </button>
+        <button onclick="switchTab('admin-dash')" id="mob-admin-dash" class="mobile-link hidden flex flex-col items-center justify-center py-2">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold mt-1 uppercase">ภาพรวม</span>
+        </button>
+        <button onclick="switchTab('admin')" id="mob-admin" class="mobile-link hidden flex flex-col items-center justify-center py-2">
+            <i data-lucide="users" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold mt-1 uppercase">จัดการ</span>
+        </button>
+        <button id="logout-btn-mobile" class="mobile-link text-rose-400 flex flex-col items-center justify-center py-2">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold mt-1 uppercase">ออก</span>
+        </button>
     </nav>
+
+    <!-- 📱 Sidebar Overlay (For Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
 
     <!-- App Container Wrapper -->
     <div id="app-content" class="hidden flex flex-1 h-screen w-full overflow-hidden">
         <main class="flex-1 h-full flex flex-col overflow-hidden relative">
             
-            <!-- Optimized Top Bar -->
-            <header class="h-14 md:h-16 flex items-center justify-between px-6 md:px-10 bg-[#F4F7FE]/80 backdrop-blur-xl sticky top-0 z-30">
+            <!-- Standardized Header -->
+            <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
                 <div class="flex items-center gap-3">
-                    <div class="hidden sm:block">
-                        <p class="text-xs font-bold text-[#707EAE] uppercase tracking-wider mb-0.5">ระบบปฏิบัติงาน</p>
-                        <h2 class="text-base md:text-lg font-bold text-[#2B3674] tracking-tight" id="page-title">บันทึกข้อมูล</h2>
-                    </div>
-                    <div class="sm:hidden">
-                        <h2 class="text-base font-bold text-[#2B3674] tracking-tight" id="page-title-mobile">บันทึกข้อมูล</h2>
-                        <p id="header-branch-name-mobile" class="text-xs font-bold text-[#A3AED0] uppercase leading-none mt-1">...</p>
+                    <!-- Hamburger Menu Button -->
+                    <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div>
+                        <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate" id="page-title">บันทึกข้อมูล</h2>
+                        <p id="header-branch-name" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">...</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <button onclick="syncDataFromSheet()" class="sm:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm text-[#A3AED0]"><i class="fa-solid fa-rotate text-xs"></i></button>
-                    <div class="flex items-center gap-3 bg-white p-1.5 rounded-full shadow-sm border border-white/50 pr-4">
-                        <div class="flex flex-col items-end hidden sm:flex">
-                            <p id="display-username" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
-                            <p id="header-branch-name" class="text-[8px] font-bold text-[#A3AED0] uppercase tracking-widest leading-none">...</p>
+                <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
+                    <button onclick="syncDataFromSheet()" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                    <div class="hidden sm:flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                        <div class="text-right">
+                            <p id="display-username-header" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
+                            <p class="text-[9px] font-bold text-emerald-500 flex items-center justify-end"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>Online</p>
                         </div>
-                        <div class="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center shadow-inner border border-white text-[#2B3674] text-xs font-bold">AK</div>
+                        <div class="w-8 h-8 bg-[#171C8F] rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">AK</div>
                     </div>
                 </div>
             </header>
@@ -185,157 +202,224 @@
             <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 pb-24 md:pb-12">
                 
                 <!-- [VIEW] RECORD -->
-                <section id="view-record" class="fade-in space-y-6 md:space-y-8 max-w-5xl mx-auto block">
+                <section id="view-record" class="active fade-in space-y-6 md:space-y-8 max-w-5xl mx-auto">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                         <div class="lg:col-span-4 space-y-6 md:space-y-8">
-                            <div class="card p-4 md:p-5">
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">วันที่ทำรายการ</label>
-                                <input type="date" id="record-date" class="w-full h-11 px-4 bg-[#F4F7FE] border-0 rounded-xl outline-none font-bold text-[#171C8F] text-base">
-                                <button id="btn-switch-branch" onclick="location.reload()" class="w-full mt-4 h-10 bg-slate-50 text-slate-400 font-bold rounded-xl hover:bg-slate-100 text-xs hidden">สลับจุดปฏิบัติงาน</button>
+                            <div class="glass-card p-5">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">วันที่ทำรายการ</label>
+                                <div class="relative">
+                                    <i data-lucide="calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                    <input type="date" id="record-date" class="w-full pl-10 pr-4 py-3 bg-[#F4F7FE] border border-slate-200 rounded-xl outline-none font-bold text-[#171C8F] text-sm focus:border-[#171C8F] transition-all">
+                                </div>
+                                <button id="btn-switch-branch" onclick="location.reload()" class="w-full mt-4 py-2.5 bg-slate-50 text-slate-400 font-bold rounded-xl hover:bg-slate-100 text-[10px] uppercase tracking-widest hidden border border-slate-200">สลับจุดปฏิบัติงาน</button>
                             </div>
                             
                             <div id="zone-2-container" class="space-y-4 hidden">
-                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest ml-4">ปริมาณงาน (Quota)</h3>
-                                <div class="grid grid-cols-1 gap-3 md:gap-4" id="volume-fields-grid"></div>
+                                <h3 class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest ml-4 flex items-center gap-2"><i data-lucide="package-2" class="w-3 h-3"></i> ปริมาณงาน (Quota)</h3>
+                                <div class="grid grid-cols-1 gap-3" id="volume-fields-grid"></div>
                             </div>
                         </div>
 
                         <div class="lg:col-span-8 space-y-6 md:space-y-8">
-                            <div class="card p-5 md:p-6 border-t-[6px] border-t-rose-500">
+                            <div class="glass-card p-6 border-t-4 border-t-rose-500">
                                 <div class="flex justify-between items-center mb-6">
                                     <div>
-                                        <h3 class="text-lg md:text-xl font-bold text-[#2B3674]">บันทึกความผิดพลาด</h3>
-                                        <p class="text-xs text-[#A3AED0] mt-0.5">ระบุเหตุการณ์ที่พบระหว่างวัน</p>
+                                        <h3 class="text-lg font-bold text-[#2B3674] flex items-center gap-2"><i data-lucide="alert-circle" class="text-rose-500 w-5 h-5"></i> บันทึกความผิดพลาด</h3>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ระบุเหตุการณ์ที่พบระหว่างวัน</p>
                                     </div>
-                                    <button onclick="addErrorEntryRow()" class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shadow-md active:scale-95"><i class="fa-solid fa-plus"></i></button>
+                                    <button onclick="addErrorEntryRow()" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shadow-sm hover:bg-rose-100 active:scale-95 transition-all border border-rose-100"><i data-lucide="plus" class="w-5 h-5"></i></button>
                                 </div>
-                                <div id="error-entries-container" class="space-y-4 md:space-y-6"></div>
+                                <div id="error-entries-container" class="space-y-4"></div>
                             </div>
 
-                            <div class="card p-5 md:p-6 border-t-[6px] border-t-indigo-600">
+                            <div class="glass-card p-6 border-t-4 border-t-[#171C8F]">
                                 <div class="flex justify-between items-center mb-6">
                                     <div>
-                                        <h3 class="text-lg md:text-xl font-bold text-[#2B3674]">แผนงานสัปดาห์นี้</h3>
-                                        <p class="text-xs text-[#A3AED0] mt-0.5">ความคืบหน้าของโครงการ</p>
+                                        <h3 class="text-lg font-bold text-[#2B3674] flex items-center gap-2"><i data-lucide="list-todo" class="text-[#171C8F] w-5 h-5"></i> แผนงานสัปดาห์นี้</h3>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ความคืบหน้าของโครงการ</p>
                                     </div>
-                                    <button onclick="addTaskEntryRow()" class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-md active:scale-95"><i class="fa-solid fa-plus"></i></button>
+                                    <button onclick="addTaskEntryRow()" class="w-10 h-10 rounded-xl bg-indigo-50 text-[#171C8F] flex items-center justify-center shadow-sm hover:bg-indigo-100 active:scale-95 transition-all border border-indigo-100"><i data-lucide="plus" class="w-5 h-5"></i></button>
                                 </div>
-                                <div id="task-entries-container" class="space-y-4 md:space-y-6"></div>
+                                <div id="task-entries-container" class="space-y-4"></div>
                             </div>
 
-                            <button onclick="saveDailyRecord()" id="btn-save" class="btn-action w-full h-14 md:h-15 text-base md:text-lg shadow-xl flex justify-center items-center gap-4 tracking-wide">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลทั้งหมด
+                            <button onclick="saveDailyRecord()" id="btn-save" class="w-full py-4 bg-[#171C8F] hover:bg-[#11146B] text-white rounded-2xl font-bold text-base shadow-xl flex justify-center items-center gap-3 tracking-wide transition-all active:scale-[0.98]">
+                                <i data-lucide="cloud-upload" class="w-5 h-5"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ
                             </button>
                         </div>
                     </div>
                 </section>
 
                 <!-- [VIEW] DASHBOARD -->
-                <section id="view-dashboard" class="hidden fade-in space-y-6 md:space-y-8">
+                <section id="view-dashboard" class="fade-in space-y-6 md:space-y-8">
                     <!-- Metrics Bar -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         <div id="dash-team-kpi-container"></div>
                         
-                        <div class="stat-card-red p-4 md:p-5 flex flex-col justify-between min-h-[110px] group">
-                            <p class="text-xs font-bold uppercase opacity-80">ความผิดพลาด</p>
-                            <h4 id="dash-total-errors" class="text-[var(--fluid-8xl)] font-bold tracking-tighter">0</h4>
-                            <p id="dash-err-compare" class="text-xs opacity-60 ">ข้อมูลเรียลไทม์</p>
+                        <div class="stat-card-red p-5 flex flex-col justify-between min-h-[120px] relative overflow-hidden group">
+                            <i data-lucide="alert-triangle" class="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">ความผิดพลาดรวม</p>
+                            <h4 id="dash-total-errors" class="text-5xl font-bold tracking-tighter">0</h4>
+                            <p id="dash-err-compare" class="text-[10px] font-medium opacity-60">สรุปข้อมูลเรียลไทม์</p>
                         </div>
 
-                        <div id="dash-vol-card" class="stat-card-orange p-4 md:p-5 flex flex-col justify-between min-h-[110px] group">
-                            <p class="text-xs font-bold uppercase opacity-80">ปริมาณงานรวม</p>
-                            <h4 id="dash-total-volume" class="text-[var(--fluid-8xl)] font-bold tracking-tighter">0</h4>
-                            <p id="dash-err-percent" class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded-full w-fit">อัตราผิดพลาด 0%</p>
+                        <div id="dash-vol-card" class="stat-card-orange p-5 flex flex-col justify-between min-h-[120px] relative overflow-hidden group">
+                            <i data-lucide="package" class="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">ปริมาณงานรวม</p>
+                            <h4 id="dash-total-volume" class="text-5xl font-bold tracking-tighter">0</h4>
+                            <div class="flex items-center gap-2">
+                                <span id="dash-err-percent" class="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-md">อัตราผิดพลาด 0%</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8">
                         <div class="xl:col-span-8 space-y-6 md:space-y-8">
-                            <div class="card p-6 md:p-8 bg-white border border-slate-50">
-                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-lightbulb text-indigo-400"></i> สรุปผลอัจฉริยะ</h3>
-                                <div id="dash-smart-summary" class="text-sm text-[#707EAE] space-y-4 md:space-y-6 font-medium leading-relaxed"></div>
+                            <div class="glass-card p-6 md:p-8 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 p-4 opacity-5"><i data-lucide="sparkles" class="w-12 h-12"></i></div>
+                                <h3 class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest mb-6 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> สรุปผลอัจฉริยะ (AI Summary)</h3>
+                                <div id="dash-smart-summary" class="text-sm text-slate-500 space-y-4 font-medium leading-relaxed"></div>
                             </div>
                             
-                            <div class="card p-6 md:p-8">
-                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-users text-blue-400"></i> ประสิทธิภาพรายบุคคล</h3>
-                                <div id="dash-emp-breakdown" class="space-y-6 md:space-y-8 custom-scroll overflow-y-auto max-h-[400px]"></div>
+                            <div class="glass-card p-6 md:p-8">
+                                <div class="flex justify-between items-center mb-8">
+                                    <h3 class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> ประสิทธิภาพรายบุคคล</h3>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="changeWeek(-1)" class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"><i data-lucide="chevron-left" class="w-4 h-4 text-slate-400"></i></button>
+                                        <span id="dash-week-label" class="text-[10px] font-bold text-[#171C8F] bg-[#171C8F]/5 px-3 py-1 rounded-full border border-[#171C8F]/10">สัปดาห์นี้</span>
+                                        <button onclick="changeWeek(1)" id="btn-next-week" class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"><i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i></button>
+                                    </div>
+                                </div>
+                                <div id="dash-emp-breakdown" class="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scroll"></div>
                             </div>
 
-                            <div class="card p-6 md:p-8">
-                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6 flex items-center gap-3"><i class="fa-solid fa-history text-rose-500"></i> ประวัติเหตุการณ์</h3>
-                                <div id="dash-error-notes" class="space-y-4 md:space-y-6 custom-scroll overflow-y-auto max-h-[450px]"></div>
+                            <div class="glass-card p-6 md:p-8 border-l-4 border-l-rose-500">
+                                <h3 class="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-6 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4"></i> ประวัติเหตุการณ์ความผิดพลาด</h3>
+                                <div id="dash-error-notes" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll"></div>
                             </div>
                         </div>
 
                         <div class="xl:col-span-4 space-y-6 md:space-y-8">
-                            <div class="card p-6 md:p-8">
-                                <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest mb-6">ความคืบหน้าแผนงาน</h3>
+                            <div class="glass-card p-6 md:p-8">
+                                <h3 class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest mb-6 flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4"></i> ความคืบหน้าแผนงาน</h3>
                                 <div id="dash-weekly-tasks" class="space-y-4"></div>
                             </div>
 
-                            <div class="card p-6 md:p-8">
+                            <div class="glass-card p-6 md:p-8">
                                 <div class="flex justify-between items-center mb-6">
-                                    <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest">บันทึกเพิ่มเติม</h3>
-                                    <span id="dash-customer-notes-count" class="bg-[#F4F7FE] text-[#171C8F] px-3 py-1 rounded-full text-xs font-bold">0</span>
+                                    <h3 class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4"></i> บันทึกเพิ่มเติม</h3>
+                                    <span id="dash-customer-notes-count" class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[10px] font-bold border border-slate-200">0</span>
                                 </div>
-                                <div id="dash-customer-notes" class="space-y-4 custom-scroll overflow-y-auto max-h-[400px]"></div>
+                                <div id="dash-customer-notes" class="space-y-4 max-h-[400px] overflow-y-auto custom-scroll pr-1"></div>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- [VIEW] EXECUTIVE -->
-                <section id="view-admin-dash" class="hidden fade-in space-y-6 md:space-y-8">
-                    <div class="card p-8 md:p-10 relative overflow-hidden">
+                <section id="view-admin-dash" class="fade-in space-y-6 md:space-y-8">
+                    <div class="glass-card p-6 md:p-10 relative overflow-hidden">
                         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
                             <div>
-                                <h2 class="text-2xl md:text-3xl font-bold text-[#2B3674] tracking-tight">สรุปภาพรวมผู้บริหาร</h2>
-                                <p class="text-xs text-[#A3AED0] font-bold mt-1">วิเคราะห์ประสิทธิภาพรายเดือนระดับองค์กร</p>
+                                <h2 class="text-2xl font-bold text-[#2B3674] tracking-tight">สรุปภาพรวมผู้บริหาร</h2>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">วิเคราะห์ประสิทธิภาพรายเดือนระดับองค์กร</p>
                             </div>
-                            <button onclick="exportAdminDataCSV()" class="btn-action px-8 h-12 flex items-center gap-3 text-xs">
-                                <i class="fa-solid fa-file-export text-lg"></i> ส่งออกข้อมูล (CSV)
+                            <button onclick="exportAdminDataCSV()" class="px-6 py-2.5 bg-[#171C8F] hover:bg-[#11146B] text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95">
+                                <i data-lucide="download" class="w-4 h-4"></i> ส่งออกข้อมูล (CSV)
                             </button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 bg-[#F4F7FE] p-6 md:p-8 rounded-3xl relative z-10 shadow-inner">
-                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">เลือกเดือน</label><input type="month" id="admin-dash-month" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#171C8F] text-base outline-none shadow-sm"></div>
-                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">สาขา</label><select id="admin-dash-branch" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#2B3674] text-sm outline-none shadow-sm" onchange="populateAdminEmpFilter(); renderAdminDashboard()"><option value="ALL">ทุกสาขา</option><option value="AKRA">คลัง AKRA</option><option value="TRD">หน้าร้าน TRD</option></select></div>
-                            <div class="space-y-1.5"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">พนักงาน</label><select id="admin-dash-emp" class="w-full h-11 px-4 bg-white rounded-xl font-bold text-[#2B3674] text-sm outline-none shadow-sm" onchange="renderAdminDashboard()"><option value="ALL">ทุกคน</option></select></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 bg-[#F4F7FE] p-6 rounded-2xl relative z-10 border border-white/50 shadow-inner">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">เลือกเดือน</label>
+                                <div class="relative">
+                                    <i data-lucide="calendar-days" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                    <input type="month" id="admin-dash-month" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-[#171C8F] text-sm outline-none focus:border-[#171C8F] transition-all">
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">สาขา</label>
+                                <select id="admin-dash-branch" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-[#2B3674] text-sm outline-none focus:border-[#171C8F] transition-all" onchange="populateAdminEmpFilter(); renderAdminDashboard()">
+                                    <option value="ALL">ทุกสาขา</option>
+                                    <option value="AKRA">คลัง AKRA</option>
+                                    <option value="TRD">หน้าร้าน TRD</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">พนักงาน</label>
+                                <select id="admin-dash-emp" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-[#2B3674] text-sm outline-none focus:border-[#171C8F] transition-all" onchange="renderAdminDashboard()">
+                                    <option value="ALL">ทุกคน</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-center">
-                        <div class="card p-6 md:p-8 flex flex-col justify-center border-l-[12px] border-l-rose-500">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">ความผิดพลาดสะสม (Global)</p>
-                            <h4 class="text-5xl md:text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-err">0</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                        <div class="glass-card p-6 md:p-8 flex flex-col justify-center border-l-8 border-l-rose-500">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">ความผิดพลาดสะสม (Global)</p>
+                            <h4 class="text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-err">0</h4>
                         </div>
-                        <div class="card p-6 md:p-8 flex flex-col justify-center border-l-[12px] border-l-blue-600">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">ปริมาณงานสะสม (Global)</p>
-                            <h4 class="text-5xl md:text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-vol">0</h4>
+                        <div class="glass-card p-6 md:p-8 flex flex-col justify-center border-l-8 border-l-[#171C8F]">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">ปริมาณงานสะสม (Global)</p>
+                            <h4 class="text-6xl font-bold text-[#2B3674] tracking-tighter" id="admin-stat-vol">0</h4>
                         </div>
                     </div>
-                    <div class="card overflow-hidden">
-                        <div class="px-8 py-5 bg-[#F4F7FE] border-b border-slate-50 flex justify-between items-center"><span class="font-bold text-xs text-[#707EAE] uppercase tracking-wider">กระแสข้อมูลล่าสุด</span><span id="admin-log-count" class="text-xs font-bold text-[#171C8F]">0 รายการ</span></div>
-                        <div id="admin-data-log" class="p-6 md:p-8 space-y-6 max-h-[800px] overflow-y-auto custom-scroll"></div>
+                    <div class="glass-card overflow-hidden">
+                        <div class="px-8 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase tracking-widest">กระแสข้อมูลล่าสุด</span>
+                            <span id="admin-log-count" class="text-[10px] font-bold text-[#171C8F] bg-[#171C8F]/10 px-2 py-0.5 rounded-md">0 รายการ</span>
+                        </div>
+                        <div id="admin-data-log" class="p-6 md:p-8 space-y-4 max-h-[800px] overflow-y-auto custom-scroll"></div>
                     </div>
                 </section>
 
                 <!-- [VIEW] PERSONNEL -->
                 <section id="view-admin" class="hidden fade-in space-y-8 max-w-6xl mx-auto">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <div class="lg:col-span-5 card p-8 md:p-10 relative overflow-hidden group border-t-[12px] border-t-[#171C8F]">
-                            <h2 class="text-xl md:text-2xl font-bold text-[#2B3674] mb-8 tracking-tight">ลงทะเบียนบุคลากร</h2>
+                        <div class="lg:col-span-5 glass-card p-8 md:p-10 relative overflow-hidden border-t-8 border-t-[#171C8F]">
+                            <h2 class="text-2xl font-bold text-[#2B3674] mb-8 tracking-tight">ลงทะเบียนบุคลากร</h2>
                             <div class="space-y-6">
-                                <div class="space-y-2"><label class="text-xs font-bold text-slate-400 uppercase ml-2">รหัสพนักงาน (UID)</label><input type="text" id="admin-input-uid" class="w-full h-13 px-5 bg-[#F4F7FE] rounded-2xl outline-none font-bold text-[#171C8F] text-xl shadow-inner uppercase tracking-tighter" placeholder="UID-X"></div>
-                                <div class="space-y-2"><label class="text-xs font-bold text-slate-400 uppercase ml-2">ชื่อเรียก (Name)</label><input type="text" id="admin-input-name" class="w-full h-13 px-5 bg-[#F4F7FE] rounded-2xl outline-none font-bold text-[#2B3674] text-xl shadow-inner" placeholder="ชื่อเล่นหรือชื่อจริง"></div>
-                                <div class="pt-4"><label class="text-xs font-bold text-slate-400 uppercase text-center block mb-6 ">สังกัดหน่วยงาน</label><div class="grid grid-cols-2 gap-4"><label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-8 rounded-[2rem] active:scale-95 transition-all"><input type="checkbox" id="admin-input-branch-akra" value="AKRA" class="rounded-lg text-[#171C8F]"><span class="text-xs font-bold text-slate-500 uppercase">AKRA HUB</span></label><label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-8 rounded-[2rem] active:scale-95 transition-all"><input type="checkbox" id="admin-input-branch-trd" value="TRD" class="rounded-lg text-[#171C8F]"><span class="text-xs font-bold text-slate-500 uppercase">TRD NODE</span></label></div></div>
-                                <div class="pt-8 flex flex-col gap-4"><button onclick="saveEmployeeFromAdmin()" id="btn-submit-emp" class="btn-action w-full h-14 text-lg tracking-wider"><i class="fa-solid fa-plus-circle mr-3"></i> บันทึกข้อมูลลงทะเบียน</button><button onclick="cancelEditAdminEmp()" id="btn-cancel-emp" class="hidden w-full h-12 bg-slate-50 text-slate-300 font-bold rounded-xl text-xs">ยกเลิก</button></div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">รหัสพนักงาน (UID)</label>
+                                    <input type="text" id="admin-input-uid" class="w-full h-12 px-5 bg-[#F4F7FE] border border-slate-200 rounded-2xl outline-none font-bold text-[#171C8F] text-lg uppercase tracking-tighter focus:border-[#171C8F] transition-all" placeholder="UID-X">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">ชื่อเรียก (Name)</label>
+                                    <input type="text" id="admin-input-name" class="w-full h-12 px-5 bg-[#F4F7FE] border border-slate-200 rounded-2xl outline-none font-bold text-[#2B3674] text-lg focus:border-[#171C8F] transition-all" placeholder="ชื่อเล่นหรือชื่อจริง">
+                                </div>
+                                <div class="pt-4">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center block mb-6">สังกัดหน่วยงาน</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-6 rounded-3xl border border-transparent hover:border-[#171C8F]/20 active:scale-95 transition-all">
+                                            <input type="checkbox" id="admin-input-branch-akra" value="AKRA" class="w-6 h-6 rounded-lg text-[#171C8F]">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AKRA HUB</span>
+                                        </label>
+                                        <label class="flex flex-col items-center gap-4 cursor-pointer bg-[#F4F7FE] p-6 rounded-3xl border border-transparent hover:border-[#171C8F]/20 active:scale-95 transition-all">
+                                            <input type="checkbox" id="admin-input-branch-trd" value="TRD" class="w-6 h-6 rounded-lg text-[#171C8F]">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">TRD NODE</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="pt-8 flex flex-col gap-4">
+                                    <button onclick="saveEmployeeFromAdmin()" id="btn-submit-emp" class="w-full py-4 bg-[#171C8F] hover:bg-[#11146B] text-white rounded-2xl font-bold text-base shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                                        <i data-lucide="user-plus" class="w-5 h-5"></i> บันทึกข้อมูลลงทะเบียน
+                                    </button>
+                                    <button onclick="cancelEditAdminEmp()" id="btn-cancel-emp" class="hidden w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-2xl text-[10px] uppercase tracking-widest border border-slate-200">ยกเลิกการแก้ไข</button>
+                                </div>
                             </div>
                         </div>
                         <div class="lg:col-span-7 flex flex-col h-full gap-8">
-                            <div class="card p-8 md:p-10 flex-1 shadow-lg min-h-[600px] flex flex-col border-t-[12px] border-t-indigo-600">
-                                <div class="flex justify-between items-center mb-8"><div><h3 class="text-3xl font-bold text-[#2B3674] tracking-tighter uppercase">ทำเนียบพนักงาน</h3></div><span id="admin-emp-count" class="bg-[#F4F7FE] text-[#171C8F] px-6 py-2 rounded-full font-bold text-2xl shadow-inner">0</span></div>
-                                <div id="admin-employee-list" class="space-y-4 overflow-y-auto custom-scroll flex-grow pr-2"></div>
+                            <div class="glass-card p-8 md:p-10 flex-1 flex flex-col border-t-8 border-t-[#E35205]">
+                                <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-[#2B3674] tracking-tight uppercase">ทำเนียบพนักงาน</h3>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">รายชื่อบุคลากรที่ลงทะเบียนในระบบ</p>
+                                    </div>
+                                    <span id="admin-emp-count" class="bg-[#171C8F] text-white px-4 py-1.5 rounded-full font-bold text-lg shadow-lg shadow-indigo-900/20">0</span>
+                                </div>
+                                <div id="admin-employee-list" class="space-y-3 overflow-y-auto custom-scroll flex-grow pr-2"></div>
                             </div>
-                            <button onclick="saveAdminConfig()" class="w-full h-14 bg-[#1B2559] text-white font-bold rounded-2xl shadow-xl active:scale-95 tracking-wide "><i class="fa-solid fa-save mr-3 opacity-30"></i> บันทึกโครงสร้างระบบถาวร</button>
+                            <button onclick="saveAdminConfig()" class="w-full py-4 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-xl active:scale-[0.98] tracking-widest uppercase text-xs flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-5 h-5"></i> บันทึกโครงสร้างระบบถาวร
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -343,8 +427,8 @@
             </div>
 
             <!-- UI Notification Hub -->
-            <div id="toast" class="toast fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-[#1B2559]/95 backdrop-blur-xl text-white px-10 py-5 rounded-full shadow-2xl flex items-center gap-5 min-w-[300px] border border-white/10">
-                <div class="p-2.5 bg-emerald-500 rounded-full"><i class="fa-solid fa-check text-xs"></i></div>
+            <div id="toast" class="toast fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-[#171C8F]/95 backdrop-blur-xl text-white px-10 py-5 rounded-full shadow-2xl flex items-center gap-5 min-w-[300px] border border-white/10">
+                <div class="p-2.5 bg-emerald-500 rounded-full shadow-lg"></div>
                 <span id="toast-msg" class="text-xs font-bold uppercase tracking-wide">สำเร็จ</span>
             </div>
 
@@ -438,6 +522,7 @@
                 const appContent = document.getElementById('app-content'); if(appContent) appContent.classList.remove('hidden');
                 
                 const nameDisplay = document.getElementById('display-username'); if(nameDisplay) nameDisplay.innerText = window.currentUserName || "ผู้ใช้งาน";
+                const nameDisplayHeader = document.getElementById('display-username-header'); if(nameDisplayHeader) nameDisplayHeader.innerText = window.currentUserName || "ผู้ใช้งาน";
                 const dateInput = document.getElementById('record-date'); if(dateInput) dateInput.valueAsDate = new Date();
                 
                 window.IS_ADMIN = window.currentRoles.some(r => String(r).toUpperCase() === 'ADMIN');
@@ -448,7 +533,8 @@
                 
                 applyRolePermissions(); 
                 AuthGuard.bindEvents(); 
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                initMobileMenu();
+                lucide.createIcons();
             },
             bindEvents: () => {
                 const term = () => { localStorage.removeItem(APP_CONFIG.STORAGE_KEY); window.location.href = APP_CONFIG.PORTAL_URL; };
@@ -457,27 +543,71 @@
             }
         };
 
+        // --- Hamburger Menu Logic ---
+        function initMobileMenu() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('close-sidebar-btn');
+
+            function toggleSidebar() {
+                const isOpen = sidebar.classList.contains('translate-x-0');
+                if (isOpen) {
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                } else {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                }
+            }
+
+            if(menuBtn) menuBtn.addEventListener('click', toggleSidebar);
+            if(closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+            if(overlay) overlay.addEventListener('click', toggleSidebar);
+            
+            window.closeMobileSidebar = () => {
+                if(window.innerWidth < 1024 && sidebar.classList.contains('translate-x-0')) {
+                    toggleSidebar();
+                }
+            };
+        }
+
         const PORTAL_URL = APP_CONFIG.PORTAL_URL;
         let currentBranch = sessionStorage.getItem('active_branch') || "", viewOffsetWeek = 0;
 
         // [Logic] UI Control
         function switchTab(tab) { 
-            ['record', 'dashboard', 'admin-dash', 'admin'].forEach(v => { 
-                const el = document.getElementById('view-' + v); if(el) el.classList.add('hidden'); 
-                const nav = document.getElementById('nav-' + v); if(nav) nav.classList.remove('active');
-                const mob = document.getElementById('mob-' + v); if(mob) mob.classList.remove('active');
+            const sections = ['record', 'dashboard', 'admin-dash', 'admin'];
+            sections.forEach(v => { 
+                const el = document.getElementById('view-' + v); if(el) el.classList.remove('active'); 
+                const nav = document.getElementById('nav-' + v); 
+                if(nav) {
+                    nav.classList.remove('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+                    nav.classList.add('text-white/70');
+                }
+                const mob = document.getElementById('mob-' + v); 
+                if(mob) mob.classList.remove('active', 'text-[#E35205]');
             }); 
-            const target = document.getElementById('view-' + tab); if(target) target.classList.remove('hidden'); 
-            const nav = document.getElementById('nav-' + tab); if(nav) nav.classList.add('active'); 
-            const mob = document.getElementById('mob-' + tab); if(mob) mob.classList.add('active'); 
+            const target = document.getElementById('view-' + tab); if(target) target.classList.add('active'); 
+            const nav = document.getElementById('nav-' + tab); 
+            if(nav) {
+                nav.classList.add('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+                nav.classList.remove('text-white/70');
+            }
+            const mob = document.getElementById('mob-' + tab); if(mob) mob.classList.add('active', 'text-[#E35205]'); 
             
             const titles = { 'record': 'บันทึกข้อมูลหน้างาน', 'dashboard': 'วิเคราะห์ประสิทธิภาพทีม', 'admin-dash': 'สรุปข้อมูลผู้บริหาร', 'admin': 'จัดการรายชื่อบุคลากร' };
             const pageTitle = document.getElementById('page-title'); if(pageTitle) pageTitle.innerText = titles[tab] || 'ระบบ KPI';
-            const pageTitleM = document.getElementById('page-title-mobile'); if(pageTitleM) pageTitleM.innerText = titles[tab] || 'ระบบ KPI';
 
             if(tab === 'dashboard') loadDashboardData(); 
             else if (tab === 'admin-dash') renderAdminDashboard(); 
             else if (tab === 'admin') renderAdminPanel(); 
+            
+            if(window.closeMobileSidebar) window.closeMobileSidebar();
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
@@ -514,24 +644,25 @@
             titleEl.innerText = title; textEl.innerHTML = message;
             const closeModal = () => { document.getElementById('custom-modal-content').classList.replace('scale-100', 'scale-95'); setTimeout(() => modal.classList.add('hidden'), 200); };
             modal.classList.remove('hidden'); setTimeout(() => document.getElementById('custom-modal-content').classList.replace('scale-95', 'scale-100'), 10);
-            if (type === 'alert') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-indigo-50 text-[#171C8F] shadow-xl"; iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-3xl"></i>'; actionsEl.innerHTML = `<button id="modal-btn-ok" class="btn-action w-full h-14 rounded-2xl active:scale-95 transition-all text-sm font-bold">ตกลง</button>`; document.getElementById('modal-btn-ok').onclick = closeModal; }
-            else if (type === 'confirm') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-rose-50 text-rose-500 shadow-xl"; iconEl.innerHTML = '<i class="fa-solid fa-question text-3xl"></i>'; actionsEl.innerHTML = `<button id="modal-btn-confirm" class="btn-action w-full h-14 rounded-2xl active:scale-95 transition-all text-sm font-bold">ยืนยัน</button><button id="modal-btn-cancel" class="w-full h-14 bg-slate-50 text-slate-400 font-bold rounded-2xl active:scale-95 transition-all text-sm">ยกเลิก</button>`; document.getElementById('modal-btn-cancel').onclick = closeModal; document.getElementById('modal-btn-confirm').onclick = () => { closeModal(); if(onConfirm) onConfirm(); }; }
+            if (type === 'alert') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-indigo-50 text-[#171C8F] shadow-xl"; iconEl.innerHTML = '<i data-lucide="info" class="w-10 h-10"></i>'; actionsEl.innerHTML = `<button id="modal-btn-ok" class="w-full py-4 bg-[#171C8F] text-white rounded-2xl active:scale-95 transition-all text-sm font-bold shadow-lg">ตกลง</button>`; document.getElementById('modal-btn-ok').onclick = closeModal; }
+            else if (type === 'confirm') { iconEl.className = "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 bg-rose-50 text-rose-500 shadow-xl"; iconEl.innerHTML = '<i data-lucide="help-circle" class="w-10 h-10"></i>'; actionsEl.innerHTML = `<button id="modal-btn-confirm" class="w-full py-4 bg-[#171C8F] text-white rounded-2xl active:scale-95 transition-all text-sm font-bold shadow-lg">ยืนยัน</button><button id="modal-btn-cancel" class="w-full py-4 bg-slate-50 text-slate-400 font-bold rounded-2xl active:scale-95 transition-all text-sm">ยกเลิก</button>`; document.getElementById('modal-btn-cancel').onclick = closeModal; document.getElementById('modal-btn-confirm').onclick = () => { closeModal(); if(onConfirm) onConfirm(); }; }
+            lucide.createIcons();
         }
 
-        function showToast(message, isError = false) { const toast = document.getElementById('toast'); if(!toast) return; document.getElementById('toast-msg').innerText = message; toast.querySelector('.p-2.5').className = isError ? 'p-2.5 bg-rose-500 rounded-full shadow-lg' : 'p-2.5 bg-emerald-500 rounded-full shadow-lg'; toast.querySelector('i').className = isError ? 'fa-solid fa-xmark text-xs' : 'fa-solid fa-check text-xs'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+        function showToast(message, isError = false) { const toast = document.getElementById('toast'); if(!toast) return; document.getElementById('toast-msg').innerText = message; toast.querySelector('.p-2.5').className = isError ? 'p-2.5 bg-rose-500 rounded-full shadow-lg' : 'p-2.5 bg-emerald-500 rounded-full shadow-lg'; toast.querySelector('div').innerHTML = isError ? '<i data-lucide="x" class="text-white w-4 h-4"></i>' : '<i data-lucide="check" class="text-white w-4 h-4"></i>'; toast.classList.add('show'); lucide.createIcons(); setTimeout(() => toast.classList.remove('show'), 3000); }
 
         async function syncDataFromSheet() { if(!currentBranch) return; try { const res = await AKRA_API.call('getKPIHistory'); if (res.success && res.history) { localStorage.setItem('kpiData_' + currentBranch, JSON.stringify(res.history.filter(h => h.branch === currentBranch))); if(!document.getElementById('view-dashboard').classList.contains('hidden')) loadDashboardData(); else if (!document.getElementById('view-admin-dash').classList.contains('hidden')) renderAdminDashboard(); else loadTasksForSelectedDate(); showToast("ซิงค์ข้อมูล Cloud สำเร็จ"); } } catch (error) { showToast("ทำงานในโหมด Offline", true); } }
 
         function initApp(branch, perms) {
-            const hNode = document.getElementById('header-branch-name'); if(hNode) hNode.innerText = `จุดปฏิบัติงาน: ${branch}`; 
-            const hNodeM = document.getElementById('header-branch-name-mobile'); if(hNodeM) hNodeM.innerText = `หน่วยงาน: ${branch}`; 
+            const hNode = document.getElementById('header-branch-name'); if(hNode) hNode.innerText = `${branch} HUB PERFORMANCE`; 
             const swBtn = document.getElementById('btn-switch-branch'); if(swBtn && perms.length > 1) swBtn.classList.remove('hidden');
             const z2 = document.getElementById('zone-2-container'); if(z2) z2.classList.toggle('hidden', !BRANCH_CONFIG[branch].showZone2);
             const vCard = document.getElementById('dash-vol-card'); if(vCard) vCard.classList.toggle('hidden', !BRANCH_CONFIG[branch].showZone2);
             const volGrid = document.getElementById('volume-fields-grid');
             if(volGrid && branch === 'AKRA') {
                 volGrid.innerHTML = [['vol-transfer', 'บิลย้ายคลัง', 'Inter-WH Sync'], ['vol-pickup', 'รับสินค้าหน้าคลัง', 'Self-Pickup'], ['vol-upcountry', 'ส่งต่างจังหวัด', 'Remote Logistics'], ['vol-inmarket', 'ส่งในตลาด', 'City Alpha Zone'], ['vol-outmarket', 'ส่งนอกตลาด', 'City Beta Zone']].map(([id, label, sub]) => `
-                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-50 transition-all hover:bg-slate-50 group"><div class="min-w-0 pr-2"><p class="text-xs font-bold text-[#171C8F] leading-none mb-0.5">${label}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">${sub}</p></div><div class="flex items-center gap-2 bg-[#F4F7FE] p-1 rounded-xl border border-white/50 shadow-inner group-hover:bg-white transition-all"><button onclick="adjVol('${id}', -1)" class="w-8 h-8 rounded-xl bg-white border border-slate-100 text-slate-300 hover:text-rose-500 transition-all shadow-sm active:scale-90"><i class="fa-solid fa-minus text-[10px]"></i></button><input type="number" id="${id}" value="0" class="w-10 text-center font-bold text-[#171C8F] bg-transparent outline-none text-lg tracking-tighter "><button onclick="adjVol('${id}', 1)" class="w-8 h-8 rounded-xl bg-white border border-slate-100 text-[#171C8F] transition-all shadow-sm active:scale-90"><i class="fa-solid fa-plus text-[10px]"></i></button></div></div>`).join('');
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-slate-100 transition-all hover:bg-slate-50 group"><div class="min-w-0 pr-2"><p class="text-[11px] font-bold text-[#171C8F] leading-none mb-0.5">${label}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none">${sub}</p></div><div class="flex items-center gap-1.5 bg-[#F4F7FE] p-1 rounded-lg border border-white/50 shadow-inner group-hover:bg-white transition-all"><button onclick="adjVol('${id}', -1)" class="w-7 h-7 rounded-lg bg-white border border-slate-100 text-slate-300 hover:text-rose-500 transition-all shadow-sm active:scale-90"><i data-lucide="minus" class="w-3 h-3 mx-auto"></i></button><input type="number" id="${id}" value="0" class="w-8 text-center font-bold text-[#171C8F] bg-transparent outline-none text-sm tracking-tighter"><button onclick="adjVol('${id}', 1)" class="w-7 h-7 rounded-lg bg-white border border-slate-100 text-[#171C8F] transition-all shadow-sm active:scale-90"><i data-lucide="plus" class="w-3 h-3 mx-auto"></i></button></div></div>`).join('');
+                lucide.createIcons();
             }
             const errCont = document.getElementById('error-entries-container'); if(errCont) errCont.innerHTML = ''; 
             addErrorEntryRow(); loadTasksForSelectedDate(); syncDataFromSheet();
@@ -542,21 +673,78 @@
         function addErrorEntryRow() {
             const container = document.getElementById('error-entries-container'); if(!container) return;
             const rowId = Date.now() + Math.floor(Math.random() * 1000), emps = BRANCH_CONFIG[currentBranch].employees;
-            const empsHtml = `<div class="flex flex-wrap gap-2.5 mt-3">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="emp-${rowId}-${i}" value="${emp}" class="hidden peer err-emp-cb"><label for="emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border-2 border-transparent rounded-xl px-4 py-2.5 text-xs font-bold text-[#707EAE] cursor-pointer peer-checked:bg-[#171C8F] peer-checked:text-white peer-checked:shadow-xl peer-checked:shadow-indigo-900/30 hover:bg-white hover:border-indigo-50 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
-            const row = document.createElement('div'); row.className = "p-6 md:p-8 bg-slate-50/50 border-2 border-slate-100 rounded-3xl relative animate-fade-in group shadow-sm transition-all hover:bg-white";
-            row.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-200 hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button><div class="mb-6 pr-10"><label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2 leading-none">ระบุตัวผู้รับผิดชอบ</label>${empsHtml}</div><div class="border-t border-slate-100 pt-6 space-y-6"><div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">ประเภทความผิดพลาด</label><select class="err-type w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-[#2B3674] outline-none cursor-pointer shadow-inner">${getErrorTypeOptionsHtml(currentBranch)}</select></div>${currentBranch === 'TRD' ? `<div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">จุดที่ตรวจพบ</label><select class="err-stage w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-orange-500 outline-none cursor-pointer shadow-inner"><option value="ถึงลูกค้าแล้ว">🚨 ถึงมือลูกค้าแล้ว</option><option value="แก้ไขได้ก่อนส่ง">🛡️ ตรวจเจอและแก้ไขทัน</option></select></div>` : ''}<div class="penalty-container hidden space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">ระดับบทลงโทษ</label><select class="err-penalty w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-rose-500 outline-none cursor-pointer shadow-inner"><option value="5">-5 HP (เบามาก)</option><option value="10">-10 HP (มาตรฐาน)</option><option value="15">-15 HP (รุนแรง)</option><option value="30">-30 HP (ร้ายแรง)</option></select></div><div class="space-y-2.5"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">รายละเอียดเพิ่มเติม</label><input type="text" class="err-note w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-sm font-bold text-[#2B3674] outline-none placeholder:text-slate-200 shadow-inner " placeholder="ระบุรายละเอียดเหตุการณ์..."></div></div>`;
-            container.appendChild(row); const select = row.querySelector('.err-type'); select.onchange = () => { row.querySelector('.penalty-container').classList.toggle('hidden', select.value !== 'ความผิดอื่น ๆ'); };
+            const empsHtml = `<div class="flex flex-wrap gap-2 mt-3">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="emp-${rowId}-${i}" value="${emp}" class="hidden peer err-emp-cb"><label for="emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-500 cursor-pointer peer-checked:bg-[#171C8F] peer-checked:text-white peer-checked:border-[#171C8F] peer-checked:shadow-md hover:bg-white hover:border-[#171C8F]/20 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
+            const row = document.createElement('div'); row.className = "p-5 bg-slate-50/50 border border-slate-200 rounded-2xl relative animate-in fade-in slide-in-from-top-2 duration-300 group hover:bg-white hover:border-[#171C8F]/20 transition-all shadow-sm";
+            row.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div class="mb-4 pr-8">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">ระบุตัวผู้รับผิดชอบ</label>
+                    ${empsHtml}
+                </div>
+                <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ประเภทความผิดพลาด</label>
+                            <select class="err-type w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-[#2B3674] outline-none cursor-pointer focus:border-[#171C8F] transition-all">
+                                ${getErrorTypeOptionsHtml(currentBranch)}
+                            </select>
+                        </div>
+                        ${currentBranch === 'TRD' ? `
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">จุดที่ตรวจพบ</label>
+                            <select class="err-stage w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-orange-500 outline-none cursor-pointer focus:border-[#171C8F] transition-all">
+                                <option value="ถึงลูกค้าแล้ว">🚨 ถึงมือลูกค้าแล้ว</option>
+                                <option value="แก้ไขได้ก่อนส่ง">🛡️ ตรวจเจอและแก้ไขทัน</option>
+                            </select>
+                        </div>` : ''}
+                    </div>
+                    <div class="penalty-container hidden space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ระดับบทลงโทษ</label>
+                        <select class="err-penalty w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-rose-500 outline-none cursor-pointer focus:border-[#171C8F] transition-all">
+                            <option value="5">-5 HP (เบามาก)</option>
+                            <option value="10">-10 HP (มาตรฐาน)</option>
+                            <option value="15">-15 HP (รุนแรง)</option>
+                            <option value="30">-30 HP (ร้ายแรง)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">รายละเอียดเพิ่มเติม</label>
+                        <input type="text" class="err-note w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-[#2B3674] outline-none placeholder:text-slate-300 focus:border-[#171C8F] transition-all" placeholder="ระบุรายละเอียดเหตุการณ์...">
+                    </div>
+                </div>`;
+            container.appendChild(row); 
+            const select = row.querySelector('.err-type'); 
+            select.onchange = () => { row.querySelector('.penalty-container').classList.toggle('hidden', select.value !== 'ความผิดอื่น ๆ'); };
+            lucide.createIcons();
         }
 
-        function getErrorTypeOptionsHtml(branch) { return BRANCH_CONFIG[branch].errorTypes.map(g => (g.group === "หมวดหมู่หลัก" ? "" : `<optgroup label="${g.group}" class="font-bold text-xs text-[#A3AED0]">`) + g.options.map(opt => `<option value="${opt}" class="text-sm font-bold">${opt}</option>`).join('') + (g.group === "หมวดหมู่หลัก" ? "" : `</optgroup>`)).join(''); }
+        function getErrorTypeOptionsHtml(branch) { return BRANCH_CONFIG[branch].errorTypes.map(g => (g.group === "หมวดหมู่หลัก" ? "" : `<optgroup label="${g.group}" class="font-bold text-[10px] text-[#A3AED0]">`) + g.options.map(opt => `<option value="${opt}" class="text-[11px] font-bold">${opt}</option>`).join('') + (g.group === "หมวดหมู่หลัก" ? "" : `</optgroup>`)).join(''); }
 
         function addTaskEntryRow(name = "", status = "ยังไม่เริ่ม", assignee = "") {
             const container = document.getElementById('task-entries-container'); if(!container) return;
             const rowId = 'task-' + Date.now(), emps = BRANCH_CONFIG[currentBranch].employees, assigneeArray = assignee ? assignee.split(',').map(a => a.trim()) : [];
-            const empsHtml = `<div class="flex flex-wrap gap-2.5 mt-4">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="task-emp-${rowId}-${i}" value="${emp}" class="hidden peer task-emp-cb" ${assigneeArray.includes(emp) ? 'checked' : ''}><label for="task-emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border-2 border-transparent rounded-xl px-5 py-2.5 text-xs font-bold text-[#707EAE] cursor-pointer peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-xl peer-checked:shadow-indigo-600/30 hover:bg-white hover:border-indigo-50 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
-            const row = document.createElement('div'); row.className = "p-6 md:p-8 bg-slate-50/50 border-2 border-slate-100 rounded-3xl relative animate-fade-in group shadow-sm transition-all hover:bg-white";
-            row.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-200 hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button><div class="space-y-3 mb-6"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">ชื่อแผนงาน</label><input type="text" class="task-name w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-base font-bold text-[#2B3674] outline-none shadow-inner" placeholder="ระบุสิ่งที่ต้องการทำ..." value="${name}"></div><div class="mb-8"><label class="text-xs font-bold text-slate-300 uppercase ml-3 block mb-2 leading-none ">ผู้รับผิดชอบ</label>${empsHtml}</div><div class="space-y-3"><label class="text-xs font-bold text-slate-300 uppercase ml-3 leading-none ">สถานะความคืบหน้า</label><select class="task-status w-full h-12 md:h-13 px-5 bg-[#F4F7FE] border-0 rounded-xl text-xs font-bold text-[#707EAE] outline-none cursor-pointer shadow-inner"><option value="ยังไม่เริ่ม" ${status==='ยังไม่เริ่ม'?'selected':''}>⚪ Standby (ยังไม่เริ่ม)</option><option value="กำลังทำ" ${status==='กำลังทำ'?'selected':''}>🔵 Active (กำลังทำ)</option><option value="เสร็จแล้ว" ${status==='เสร็จแล้ว'?'selected':''}>🟢 Finalized (สำเร็จ)</option></select></div>`;
+            const empsHtml = `<div class="flex flex-wrap gap-2 mt-3">${emps.map((emp, i) => `<div class="relative"><input type="checkbox" id="task-emp-${rowId}-${i}" value="${emp}" class="hidden peer task-emp-cb" ${assigneeArray.includes(emp) ? 'checked' : ''}><label for="task-emp-${rowId}-${i}" class="inline-block bg-[#F4F7FE] border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-500 cursor-pointer peer-checked:bg-[#171C8F] peer-checked:text-white peer-checked:border-[#171C8F] peer-checked:shadow-md hover:bg-white hover:border-[#171C8F]/20 transition-all tracking-tight">${emp}</label></div>`).join('')}</div>`;
+            const row = document.createElement('div'); row.className = "p-5 bg-slate-50/50 border border-slate-200 rounded-2xl relative animate-in fade-in slide-in-from-top-2 duration-300 group hover:bg-white hover:border-[#171C8F]/20 transition-all shadow-sm";
+            row.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div class="space-y-3 mb-4">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ชื่อแผนงาน</label>
+                    <input type="text" class="task-name w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-[#2B3674] outline-none focus:border-[#171C8F] transition-all" placeholder="ระบุสิ่งที่ต้องการทำ..." value="${name}">
+                </div>
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 block">ผู้รับผิดชอบ</label>
+                    ${empsHtml}
+                </div>
+                <div class="space-y-1.5 pt-4 border-t border-slate-100">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">สถานะความคืบหน้า</label>
+                    <select class="task-status w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 outline-none cursor-pointer focus:border-[#171C8F] transition-all">
+                        <option value="ยังไม่เริ่ม" ${status==='ยังไม่เริ่ม'?'selected':''}>⚪ Standby (ยังไม่เริ่ม)</option>
+                        <option value="กำลังทำ" ${status==='กำลังทำ'?'selected':''}>🔵 Active (กำลังทำ)</option>
+                        <option value="เสร็จแล้ว" ${status==='เสร็จแล้ว'?'selected':''}>🟢 Finalized (สำเร็จ)</option>
+                    </select>
+                </div>`;
             container.appendChild(row);
+            lucide.createIcons();
         }
 
         async function saveDailyRecord() {
@@ -579,9 +767,16 @@
                 ['transfer','pickup','upcountry','inmarket','outmarket'].forEach(k => { const el = document.getElementById('vol-'+k); if(el) vols['vol_'+k] = parseInt(el.value) || 0; });
             }
             if(!btn) return;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-sync fa-spin mr-3"></i> กำลังบันทึก...';
-            try { const res = await AKRA_API.call('submitKPI', { record: { branch: currentBranch, date: date, customer_notes: '', ...vols }, errors: errors, tasks: tasks }); if (res.success) { showToast("บันทึกข้อมูลสำเร็จ"); const ec = document.getElementById('error-entries-container'); if(ec) ec.innerHTML = ''; addErrorEntryRow(); if (BRANCH_CONFIG[currentBranch].showZone2) { ['transfer','pickup','upcountry','inmarket','outmarket'].forEach(k => { const el = document.getElementById('vol-'+k); if(el) el.value = '0'; }); } } else throw new Error(res.message); } catch(e) { showToast(e.message, true); } 
-            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-lg mr-3"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ'; }
+            btn.disabled = true; btn.innerHTML = '<i data-lucide="refresh-cw" class="w-5 h-5 animate-spin"></i> กำลังบันทึก...'; lucide.createIcons();
+            try { 
+                const res = await AKRA_API.call('submitKPI', { record: { branch: currentBranch, date: date, customer_notes: '', ...vols }, errors: errors, tasks: tasks }); 
+                if (res.success) { 
+                    showToast("บันทึกข้อมูลสำเร็จ"); 
+                    const ec = document.getElementById('error-entries-container'); if(ec) ec.innerHTML = ''; addErrorEntryRow(); 
+                    if (BRANCH_CONFIG[currentBranch].showZone2) { ['transfer','pickup','upcountry','inmarket','outmarket'].forEach(k => { const el = document.getElementById('vol-'+k); if(el) el.value = '0'; }); } 
+                } else throw new Error(res.message); 
+            } catch(e) { showToast(e.message, true); } 
+            finally { btn.disabled = false; btn.innerHTML = '<i data-lucide="cloud-upload" class="w-5 h-5"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ'; lucide.createIcons(); }
         }
 
         function loadDashboardData() {
@@ -590,7 +785,7 @@
             const end = new Date(start); end.setDate(end.getDate() + 6);
             const weekLbl = document.getElementById('dash-week-label'); if(weekLbl) weekLbl.innerText = viewOffsetWeek === 0 ? "สัปดาห์นี้" : (viewOffsetWeek === -1 ? "สัปดาห์ก่อน" : "ประวัติย้อนหลัง");
             const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}/${String(d.getFullYear()).substring(2)}`;
-            const dRange = document.getElementById('dash-date-range'); if(dRange) dRange.innerText = `${fmt(start)} — ${fmt(end)}`;
+            const dRange = document.getElementById('header-branch-name'); if(dRange) dRange.innerText = `${currentBranch} HUB PERFORMANCE | ${fmt(start)} — ${fmt(end)}`;
             let data = rawData.filter(d => { const id = new Date(d.date); return id >= start && id <= end; });
             let totalVol = 0, totalErr = 0, lostHP = 0, empErrMap = {}, empHP = {}, categorized = {}, tasks = {};
             BRANCH_CONFIG[currentBranch].employees.forEach(e => { empErrMap[e] = 0; empHP[e] = 100; categorized[e] = {}; });
@@ -611,20 +806,23 @@
             const dashKpi = document.getElementById('dash-team-kpi-container');
             if(dashKpi) {
                 dashKpi.innerHTML = `
-                <div class="stat-card-purple p-4 md:p-5 flex items-center gap-4 relative overflow-hidden group shadow-xl min-h-[110px]">
+                <div class="stat-card-purple p-5 flex items-center gap-5 relative overflow-hidden group shadow-xl min-h-[120px]">
                     <div class="circle-progress flex items-center justify-center relative z-10 shrink-0">
                         <svg width="90" height="90" viewBox="0 0 140 140"><circle class="bg" cx="70" cy="70" r="58"/><circle class="bar" cx="70" cy="70" r="58" style="stroke-dasharray: 364; stroke-dashoffset: ${364 - (364 * pct / 100)}"/></svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center transition-transform group-hover:scale-110">
-                            <span class="text-2xl md:text-3xl font-bold leading-none ">${grade}</span>
-                            <span class="text-[7px] font-bold uppercase opacity-60">Team Grade</span>
+                            <span class="text-3xl font-bold leading-none ">${grade}</span>
+                            <span class="text-[8px] font-bold uppercase opacity-60">Team Grade</span>
                         </div>
                     </div>
                     <div class="flex-1 relative z-10">
-                        <p class="text-xs font-bold uppercase opacity-80 mb-1 leading-none">ความสมบูรณ์ทีม</p>
-                        <h4 class="text-2xl md:text-3xl font-bold tracking-tighter leading-none">${pct}%</h4>
-                        <div class="mt-3 flex flex-col gap-1">
-                            <span class="text-[10px] font-bold opacity-60 leading-none ">${currentHP} / ${startHP} HP</span>
-                            <div class="w-full h-1 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full transition-all duration-1000" style="width: ${pct}%"></div></div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1 leading-none">ความสมบูรณ์ทีม</p>
+                        <h4 class="text-4xl font-bold tracking-tighter leading-none">${pct}%</h4>
+                        <div class="mt-4 flex flex-col gap-1.5">
+                            <div class="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                                <span class="opacity-60">Health Points</span>
+                                <span class="opacity-80">${currentHP} / ${startHP}</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full transition-all duration-1000" style="width: ${pct}%"></div></div>
                         </div>
                     </div>
                 </div>`;
@@ -635,49 +833,137 @@
             const tPct = document.getElementById('dash-err-percent'); if(tPct) tPct.innerText = totalVol > 0 ? 'อัตราผิดพลาด ' + ((totalErr / totalVol) * 100).toFixed(1) + '%' : 'ดีเยี่ยม 100%';
             
             let tHtml = ''; for (const [name, d] of Object.entries(tasks)) { 
-                let b_c = d.status === 'เสร็จแล้ว' ? 'bg-emerald-500' : (d.status === 'กำลังทำ' ? 'bg-blue-600 shadow-blue-500/30' : 'bg-slate-100 text-slate-400'); 
-                tHtml += `<div class="p-6 bg-[#F4F7FE]/40 rounded-2xl border border-slate-50 transition-all hover:bg-white group"><div class="flex flex-col mb-3"><p class="text-sm font-bold text-[#2B3674] tracking-tight truncate mb-1 group-hover:text-[#171C8F] transition-colors">${name}</p><p class="text-xs font-bold text-slate-400 uppercase truncate">${d.assignee}</p></div><div class="flex justify-between items-center"><span class="text-[8px] font-bold px-3 py-1.5 rounded-xl shadow-lg ${b_c} text-white leading-none">${d.status}</span><i class="fa-solid fa-chevron-right text-slate-100 group-hover:text-indigo-100 transition-colors"></i></div></div>`; 
+                let b_c = d.status === 'เสร็จแล้ว' ? 'bg-emerald-500' : (d.status === 'กำลังทำ' ? 'bg-[#171C8F]' : 'bg-slate-200 text-slate-500'); 
+                tHtml += `
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white group hover:border-[#171C8F]/20">
+                    <div class="flex flex-col mb-3">
+                        <p class="text-sm font-bold text-[#2B3674] tracking-tight truncate mb-1 group-hover:text-[#171C8F] transition-colors">${name}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase truncate">${d.assignee}</p>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-bold px-2.5 py-1 rounded-lg ${b_c} text-white leading-none shadow-sm uppercase tracking-wider">${d.status}</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-200 group-hover:text-[#171C8F] transition-colors"></i>
+                    </div>
+                </div>`; 
             }
-            const dashTasks = document.getElementById('dash-weekly-tasks'); if(dashTasks) dashTasks.innerHTML = tHtml || '<p class="text-center text-slate-200 py-10 font-bold uppercase text-xs ">ไม่มีข้อมูล</p>';
+            const dashTasks = document.getElementById('dash-weekly-tasks'); if(dashTasks) dashTasks.innerHTML = tHtml || '<p class="text-center text-slate-300 py-10 font-bold uppercase text-[10px] tracking-widest">ไม่มีข้อมูล</p>';
             
             let eHtml = ''; BRANCH_CONFIG[currentBranch].employees.sort((a,b) => (empErrMap[b]||0) - (empErrMap[a]||0)).forEach(name => { 
                 let c = empErrMap[name] || 0, p = (c / (totalErr||1)) * 100; 
-                eHtml += `<div class="group"><div class="flex justify-between items-end text-xs font-bold mb-2 uppercase tracking-tighter "><span class="text-[#707EAE] group-hover:text-[#171C8F] transition-colors">${name}</span><span class="${c > 0 ? 'text-rose-500' : 'text-emerald-500'}">${c} ครั้ง</span></div><div class="progress-bar-container shadow-inner"><div class="progress-bar-fill ${c > 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-emerald-500 shadow-lg shadow-emerald-500/20'}" style="width: ${c > 0 ? p : 100}%"></div></div></div>`; 
+                eHtml += `
+                <div class="group">
+                    <div class="flex justify-between items-end text-[10px] font-bold mb-2 uppercase tracking-widest">
+                        <span class="text-slate-500 group-hover:text-[#171C8F] transition-colors">${name}</span>
+                        <span class="${c > 0 ? 'text-rose-500' : 'text-emerald-500'} bg-white px-2 py-0.5 rounded-md border border-slate-100 shadow-sm">${c} ครั้ง</span>
+                    </div>
+                    <div class="progress-bar-container shadow-inner">
+                        <div class="progress-bar-fill ${c > 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-emerald-500 shadow-lg shadow-emerald-500/20'}" style="width: ${c > 0 ? p : 100}%"></div>
+                    </div>
+                </div>`; 
             });
-            const dashEmp = document.getElementById('dash-emp-breakdown'); if(dashEmp) dashEmp.innerHTML = eHtml || '<p class="text-center text-slate-200 py-12 font-bold text-xs ">ไม่พบข้อมูล</p>';
+            const dashEmp = document.getElementById('dash-emp-breakdown'); if(dashEmp) dashEmp.innerHTML = eHtml || '<p class="text-center text-slate-300 py-12 font-bold text-[10px] tracking-widest">ไม่พบข้อมูล</p>';
             
             let nHtml = ''; for (const [name, types] of Object.entries(categorized)) { 
                 if (Object.keys(types).length === 0) continue; 
-                nHtml += `<div class="bg-[#F4F7FE]/30 p-6 rounded-3xl border border-slate-50 group hover:bg-white transition-all shadow-sm mb-4"><p class="text-xs font-bold text-[#171C8F] uppercase tracking-widest mb-4 border-b border-slate-100 pb-3">${name}</p><div class="space-y-4">`; 
+                nHtml += `
+                <div class="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 group hover:bg-white hover:border-[#171C8F]/20 transition-all shadow-sm mb-4">
+                    <p class="text-[10px] font-bold text-[#171C8F] uppercase tracking-widest mb-4 border-b border-slate-200 pb-2 flex justify-between items-center">
+                        <span>${name}</span>
+                        <span class="bg-[#171C8F]/10 px-2 py-0.5 rounded text-[9px] font-bold">${Object.values(types).flat().length} เหตุการณ์</span>
+                    </p>
+                    <div class="space-y-3">`; 
                 for (const [type, list] of Object.entries(types)) { 
-                    list.forEach(n => { nHtml += `<div class="flex justify-between items-start gap-4"><div class="text-xs font-medium text-[#707EAE] leading-relaxed ">${n.note}</div><span class="text-xs font-bold text-slate-200 uppercase whitespace-nowrap mt-1 leading-none">${fmt(new Date(n.date))}</span></div>`; }); 
+                    list.forEach(n => { nHtml += `
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="text-[11px] font-medium text-slate-500 leading-relaxed"><span class="text-[#171C8F] font-bold mr-1">●</span>${n.note}</div>
+                        <span class="text-[9px] font-bold text-slate-300 uppercase whitespace-nowrap mt-1 leading-none tracking-tighter">${fmt(new Date(n.date))}</span>
+                    </div>`; }); 
                 } nHtml += `</div></div>`; 
             }
-            const dashErrNotes = document.getElementById('dash-error-notes'); if(dashErrNotes) dashErrNotes.innerHTML = nHtml || '<p class="text-center text-slate-200 py-24 font-bold text-sm ">รักษาระดับความสมบูรณ์สำเร็จ</p>';
-            const dashSmart = document.getElementById('dash-smart-summary'); if(dashSmart) dashSmart.innerHTML = '<p class="text-xs font-bold text-slate-400 tracking-wider leading-loose ">เชื่อมต่อฐานข้อมูล Cloud สำเร็จ ระบบวิเคราะห์อัจฉริยะพร้อมใช้งาน</p>';
+            const dashErrNotes = document.getElementById('dash-error-notes'); if(dashErrNotes) dashErrNotes.innerHTML = nHtml || '<p class="text-center text-slate-300 py-24 font-bold text-[10px] tracking-widest uppercase">รักษาระดับความสมบูรณ์สำเร็จ</p>';
+            const dashSmart = document.getElementById('dash-smart-summary'); if(dashSmart) dashSmart.innerHTML = '<p class="text-[11px] font-bold text-slate-400 tracking-widest leading-loose uppercase">เชื่อมต่อฐานข้อมูล Cloud สำเร็จ ระบบวิเคราะห์อัจฉริยะพร้อมใช้งาน</p>';
+            lucide.createIcons();
         }
 
         async function syncAllBranchesForAdmin() { if (!window.IS_ADMIN) return; const res = await AKRA_API.call('getKPIHistory'); if (res.success && res.history) { localStorage.setItem('kpiData_AKRA', JSON.stringify(res.history.filter(h => h.branch === 'AKRA'))); localStorage.setItem('kpiData_TRD', JSON.stringify(res.history.filter(h => h.branch === 'TRD'))); } }
+        
         function renderAdminDashboard() {
             if (!window.IS_ADMIN) return; 
             const monthEl = document.getElementById('admin-dash-month'); if(!monthEl) return;
             const m = monthEl.value, b = document.getElementById('admin-dash-branch').value, f = document.getElementById('admin-dash-emp').value;
             let all = []; if (b === 'ALL' || b === 'AKRA') all = all.concat(JSON.parse(localStorage.getItem('kpiData_AKRA') || '[]')); if (b === 'ALL' || b === 'TRD') all = all.concat(JSON.parse(localStorage.getItem('kpiData_TRD') || '[]'));
             let data = all.filter(d => d.date && d.date.startsWith(m)), errs = 0, vols = 0, logs = '';
-            data.forEach(day => { vols += ((day.vol_transfer||0) + (day.vol_pickup||0) + (day.vol_upcountry||0) + (day.vol_inmarket||0) + (day.vol_outmarket||0)); (day.error_logs || []).forEach(e => { if (f !== 'ALL' && e.employee_id !== f) return; errs++; logs += `<div class="bg-white border-2 border-slate-50 p-5 md:p-6 rounded-3xl shadow-sm group animate-fade-in hover:shadow-xl"><div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4"><span class="text-xs font-bold text-slate-300 uppercase ">${formatDisplayDate(day.date)}</span><span class="text-xs font-bold text-[#171C8F] bg-[#F4F7FE] px-4 py-1.5 rounded-full uppercase ">${day.branch} HUB</span></div><div class="flex items-start gap-6"><div class="w-12 h-12 rounded-2xl bg-[#F4F7FE] flex items-center justify-center shrink-0 border border-white group-hover:bg-[#2B3674] group-hover:text-white transition-all "><i class="fa-solid fa-user-tag text-lg opacity-20 group-hover:opacity-100"></i></div><div class="min-w-0 pr-4"><p class="text-base md:text-lg font-bold text-[#2B3674] tracking-tighter uppercase group-hover:text-[#171C8F] transition-colors">${e.employee_id}</p><p class="text-xs font-bold text-rose-500 uppercase leading-none ">${e.error_type}</p><p class="text-xs text-[#707EAE] mt-5 font-medium leading-relaxed bg-[#F4F7FE]/50 p-6 rounded-2xl shadow-inner border border-white">${e.note}</p></div></div></div>`; }); });
+            data.forEach(day => { vols += ((day.vol_transfer||0) + (day.vol_pickup||0) + (day.vol_upcountry||0) + (day.vol_inmarket||0) + (day.vol_outmarket||0)); (day.error_logs || []).forEach(e => { if (f !== 'ALL' && e.employee_id !== f) return; errs++; logs += `
+                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm group animate-in fade-in slide-in-from-top-2 duration-300 hover:border-[#171C8F]/20 hover:shadow-md transition-all">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">${formatDisplayDate(day.date)}</span>
+                        <span class="text-[9px] font-bold text-[#171C8F] bg-[#171C8F]/5 px-2.5 py-1 rounded-lg uppercase tracking-wider">${day.branch} HUB</span>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:bg-[#171C8F] group-hover:text-white transition-all duration-300">
+                            <i data-lucide="user" class="w-5 h-5 opacity-40 group-hover:opacity-100"></i>
+                        </div>
+                        <div class="min-w-0 pr-2">
+                            <p class="text-sm font-bold text-[#2B3674] tracking-tight uppercase group-hover:text-[#171C8F] transition-colors">${e.employee_id}</p>
+                            <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest mt-0.5">${e.error_type}</p>
+                            <p class="text-[11px] text-slate-500 mt-3 font-medium leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-inner group-hover:bg-white transition-all">${e.note}</p>
+                        </div>
+                    </div>
+                </div>`; }); });
             const s_err = document.getElementById('admin-stat-err'), s_vol = document.getElementById('admin-stat-vol'); if(s_err) s_err.innerText = errs; if(s_vol) s_vol.innerText = vols;
-            const logCont = document.getElementById('admin-data-log'); if(logCont) logCont.innerHTML = logs || '<p class="text-center py-40 text-slate-200 font-bold uppercase text-lg ">ไม่มีข้อมูล</p>';
+            const logCont = document.getElementById('admin-data-log'); if(logCont) { logCont.innerHTML = logs || '<p class="text-center py-40 text-slate-300 font-bold uppercase text-[10px] tracking-[0.2em]">ไม่มีข้อมูล</p>'; document.getElementById('admin-log-count').innerText = errs + ' รายการ'; lucide.createIcons(); }
         }
 
-        let editingIndex = -1; function renderAdminPanel() { const c = document.getElementById('admin-employee-list'); if(!c) return; document.getElementById('admin-emp-count').innerText = GLOBAL_CONFIG_LIST.length; c.innerHTML = GLOBAL_CONFIG_LIST.map((e, i) => `<div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-100 flex justify-between items-center group hover:bg-[#F4F7FE] transition-all animate-fade-in shadow-xl shadow-indigo-900/5"><div class="min-w-0 pr-6"><p class="text-base md:text-xl font-bold text-[#2B3674] tracking-tighter uppercase truncate leading-none group-hover:text-[#171C8F] transition-colors">${e.name}</p><p class="text-xs font-bold text-[#A3AED0] uppercase mt-3 leading-none">UID: ${e.uid} — LINK: ${e.branches}</p></div><div class="flex gap-3 md:gap-4"><button onclick="editEmployeeFromAdmin(${i})" class="w-12 h-12 rounded-xl bg-[#F4F7FE] text-[#171C8F] hover:bg-[#171C8F] hover:text-white transition-all flex items-center justify-center active:scale-90"><i class="fa-solid fa-pen text-lg"></i></button><button onclick="removeEmployeeFromAdmin(${i})" class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center active:scale-90"><i class="fa-solid fa-trash-can text-lg"></i></button></div></div>`).join('') || '<p class="text-center py-32 text-slate-200 font-bold uppercase text-lg ">ไม่มีข้อมูลพนักงาน</p>'; }
-        function editEmployeeFromAdmin(i) { editingIndex = i; const e = GLOBAL_CONFIG_LIST[i]; document.getElementById('admin-input-uid').value = e.uid; document.getElementById('admin-input-name').value = e.name; document.getElementById('admin-input-branch-akra').checked = e.branches.includes('AKRA'); document.getElementById('admin-input-branch-trd').checked = e.branches.includes('TRD'); document.getElementById('btn-submit-emp').innerHTML = '<i class="fa-solid fa-save text-2xl mr-3"></i> แก้ไขข้อมูลบุคลากร'; document.getElementById('btn-cancel-emp').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function cancelEditAdminEmp() { editingIndex = -1; ['admin-input-uid', 'admin-input-name'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); ['admin-input-branch-akra', 'admin-input-branch-trd'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; }); document.getElementById('btn-submit-emp').innerHTML = '<i class="fa-solid fa-plus-circle text-2xl mr-3"></i> ลงทะเบียนบุคลากร'; document.getElementById('btn-cancel-emp').classList.add('hidden'); }
+        let editingIndex = -1; 
+        function renderAdminPanel() { 
+            const c = document.getElementById('admin-employee-list'); if(!c) return; 
+            document.getElementById('admin-emp-count').innerText = GLOBAL_CONFIG_LIST.length; 
+            c.innerHTML = GLOBAL_CONFIG_LIST.map((e, i) => `
+                <div class="bg-white p-4 rounded-xl border border-slate-100 flex justify-between items-center group hover:bg-[#F4F7FE] transition-all animate-in fade-in duration-300 shadow-sm">
+                    <div class="min-w-0 pr-4">
+                        <p class="text-base font-bold text-[#2B3674] tracking-tight uppercase truncate group-hover:text-[#171C8F] transition-colors">${e.name}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-2 tracking-widest">UID: ${e.uid} — LINK: ${e.branches}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editEmployeeFromAdmin(${i})" class="w-10 h-10 rounded-xl bg-slate-50 text-[#171C8F] hover:bg-[#171C8F] hover:text-white transition-all flex items-center justify-center active:scale-90 border border-slate-100">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="removeEmployeeFromAdmin(${i})" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center active:scale-90 border border-rose-100">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>`).join('') || '<p class="text-center py-32 text-slate-300 font-bold uppercase text-[10px] tracking-[0.2em]">ไม่มีข้อมูลพนักงาน</p>'; 
+            lucide.createIcons();
+        }
+
+        function editEmployeeFromAdmin(i) { editingIndex = i; const e = GLOBAL_CONFIG_LIST[i]; document.getElementById('admin-input-uid').value = e.uid; document.getElementById('admin-input-name').value = e.name; document.getElementById('admin-input-branch-akra').checked = e.branches.includes('AKRA'); document.getElementById('admin-input-branch-trd').checked = e.branches.includes('TRD'); document.getElementById('btn-submit-emp').innerHTML = '<i data-lucide="save" class="w-5 h-5 mr-2"></i> บันทึกการแก้ไข'; document.getElementById('btn-cancel-emp').classList.remove('hidden'); lucide.createIcons(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        
+        function cancelEditAdminEmp() { editingIndex = -1; ['admin-input-uid', 'admin-input-name'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); ['admin-input-branch-akra', 'admin-input-branch-trd'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; }); document.getElementById('btn-submit-emp').innerHTML = '<i data-lucide="user-plus" class="w-5 h-5 mr-2"></i> บันทึกข้อมูลลงทะเบียน'; document.getElementById('btn-cancel-emp').classList.add('hidden'); lucide.createIcons(); }
+        
         function saveEmployeeFromAdmin() { const u = document.getElementById('admin-input-uid').value.trim(), n = document.getElementById('admin-input-name').value.trim(), a = document.getElementById('admin-input-branch-akra').checked, t = document.getElementById('admin-input-branch-trd').checked; if(!u || !n || (!a && !t)) return showToast("กรุณากรอกข้อมูลให้ครบถ้วน", true); let b = []; if(a) b.push("AKRA"); if(t) b.push("TRD"); const d = { uid: u, name: n, branches: b.join(",") }; if(editingIndex >= 0) GLOBAL_CONFIG_LIST[editingIndex] = d; else GLOBAL_CONFIG_LIST.push(d); showToast("ปรับปรุงทำเนียบพนักงานสำเร็จ"); cancelEditAdminEmp(); refreshConfigsFromList(); renderAdminPanel(); }
+        
         function removeEmployeeFromAdmin(i) { showModal("ลบพนักงาน", "คุณแน่ใจหรือไม่ที่จะลบรายชื่อพนักงานท่านนี้ออกจากการลงทะเบียน?", "confirm", () => { GLOBAL_CONFIG_LIST.splice(i, 1); refreshConfigsFromList(); renderAdminPanel(); showToast("ลบข้อมูลสำเร็จ"); }); }
+        
         function saveAdminConfig() { localStorage.setItem('kpi_local_config', JSON.stringify(GLOBAL_CONFIG_LIST)); showToast("บันทึกข้อมูลถาวรแล้ว"); }
+        
         function changeWeek(o) { viewOffsetWeek += o; if(viewOffsetWeek > 0) viewOffsetWeek = 0; document.getElementById('btn-next-week').disabled = (viewOffsetWeek === 0); loadDashboardData(); }
-        function loadTasksForSelectedDate() { const dateInput = document.getElementById('record-date'); if(!dateInput || !dateInput.value) return; const date = dateInput.value; const start = getStartOfWeek(new Date(date)), end = new Date(start); end.setDate(end.getDate() + 6); const raw = JSON.parse(localStorage.getItem('kpiData_' + currentBranch) || '[]'); let weekly = {}; raw.filter(d => { const id = new Date(d.date); return id >= start && id <= end; }).forEach(day => { if(day.tasks) day.tasks.forEach(t => weekly[t.task_name] = { status: t.status, assignee: Array.isArray(t.assignees) ? t.assignees.join(', ') : t.assignees }); }); const taskCont = document.getElementById('task-entries-container'); if(taskCont) taskCont.innerHTML = ''; let has = false; for (const [n, d] of Object.entries(weekly)) { addTaskEntryRow(n, d.status, d.assignee); has = true; } if(!has) addTaskEntryRow(); }
+        
+        function loadTasksForSelectedDate() { 
+            const dateInput = document.getElementById('record-date'); if(!dateInput || !dateInput.value) return; 
+            const date = dateInput.value; 
+            const start = getStartOfWeek(new Date(date)), end = new Date(start); end.setDate(end.getDate() + 6); 
+            const raw = JSON.parse(localStorage.getItem('kpiData_' + currentBranch) || '[]'); 
+            let weekly = {}; 
+            raw.filter(d => { const id = new Date(d.date); return id >= start && id <= end; }).forEach(day => { 
+                if(day.tasks) day.tasks.forEach(t => weekly[t.task_name] = { status: t.status, assignee: Array.isArray(t.assignees) ? t.assignees.join(', ') : t.assignees }); 
+            }); 
+            const taskCont = document.getElementById('task-entries-container'); if(taskCont) taskCont.innerHTML = ''; 
+            let has = false; for (const [n, d] of Object.entries(weekly)) { addTaskEntryRow(n, d.status, d.assignee); has = true; } 
+            if(!has) addTaskEntryRow(); 
+        }
+        
         function populateAdminEmpFilter() { const branchEl = document.getElementById('admin-dash-branch'); if(!branchEl) return; const b = branchEl.value, s = document.getElementById('admin-dash-emp'); let emps = GLOBAL_CONFIG_LIST.filter(e => b === 'ALL' || e.branches.includes(b)).map(e => e.name); emps = [...new Set(emps)].sort(); if(s) s.innerHTML = '<option value="ALL">ทุกคน</option>' + emps.map(e => `<option value="${e}">${e}</option>`).join(''); }
+        
         function exportAdminDataCSV() { const m = document.getElementById('admin-dash-month').value, b = document.getElementById('admin-dash-branch').value, f = document.getElementById('admin-dash-emp').value; let all = []; if (b === 'ALL' || b === 'AKRA') all = all.concat(JSON.parse(localStorage.getItem('kpiData_AKRA') || '[]')); if (b === 'ALL' || b === 'TRD') all = all.concat(JSON.parse(localStorage.getItem('kpiData_TRD') || '[]')); let data = all.filter(d => d.date && d.date.startsWith(m)); let csv = "\uFEFFวันที่,หน่วยงาน,พนักงาน,หัวข้อความผิดพลาด,รายละเอียด\n"; data.forEach(day => { (day.error_logs || []).forEach(e => { if (f !== 'ALL' && e.employee_id !== f) return; csv += `"${day.date}","${day.branch}","${e.employee_id}","${e.error_type}","${e.note.replace(/"/g, '""')}"\n`; }); }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", `KPI_DATA_${m}.csv`); link.click(); }
 
         window.addEventListener('DOMContentLoaded', AuthGuard.init);

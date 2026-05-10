@@ -94,18 +94,39 @@
 - [x] **Consistent Session Storage**: Standardized `STORAGE_KEY` naming to `akra_[app]_session_token` for all sub-apps
 - [x] **SSO Parity**: All apps now correctly handle `?sso=` tokens and sync with the main portal's identity
 
+### 🔐 Portal (index.html) Final Refinement (2026-05-09)
+- [x] **Pixel-Perfect Sync**: Synchronized `:root` variables, glass-morphism classes (`.glass-card`), and input styles (`.input-ci`) with the `Return&Claim.html` gold standard.
+- [x] **Typography Overhaul**: Standardized body font to `'Prompt' + 'Plus Jakarta Sans'`. Globally removed `italic`, `font-black`, and `font-extrabold` classes, replacing them with professional `font-bold` and `font-semibold`.
+- [x] **Theme Harmonization**: Removed dark gradient background from `<body>` to align with the light "Premium Minimal" theme family.
+- [x] **Layout Clean-up**:
+    - **Login**: Refined the login card to use standardized radii and borders.
+    - **Dashboard**: Updated the portal header and navigation to match the height and spacing of sub-apps.
+    - **App Grid**: Updated app cards to use the `glass-card` style with subtle hover transitions.
+    - **Admin**: Standardized admin tabs, sidebar, and table matrix layout.
+- [x] **Logic Preservance**: All SSO handling, login sequence, and admin data fetching remain 100% functional.
+
 ### 🗂️ Documentation & Logging (Requirement: Applied Solutions)
 - [x] **Technical Ledger Created**: Established `docs/applied_solutions.md` to log all technical methods, troubleshooting steps, and engineering solutions immediately after resolution.
 - [x] **Knowledge Capture**: Updated `CLAUDE.md` to prioritize the new Technical Ledger for session continuity.
 
 ### 🎨 UI/UX Consolidation (2026-05-09)
-- [x] **Premium Minimal DNA (Option 2):** ปรับโฉมแอปทั้งระบบ (Portal, KPI, PR, PO, GR, W5, Return&Claim, Transfers) ให้ใช้มาตรฐาน Sidebar (Desktop) / Bottom Nav (Mobile) พร้อมสไตล์ Minimal (ตัวตรง ไม่เอียง ลดความหนา ลดความดุดัน)
-- [x] **Typography Duo:** ใช้ 'Prompt' คู่กับ 'Plus Jakarta Sans' เพื่อยกระดับความพรีเมียมของภาษาอังกฤษและตัวเลข (ใช้ font-semibold แทน font-black)
-- [x] **Icon Standardization:** เปลี่ยนจาก Material/FontAwesome เป็น Lucide Icons ทั้งระบบ
-- [x] **Glass-morphism:** นำดีไซน์ขอบขาว (Border 1px) และ Soft Shadow มาใช้กับการ์ดทุกใบ
+- [x] **Premium Minimal Gold Standard:** ปรับโฉมแอปทั้งระบบ (Portal, KPI, PR, PO, GR, W5, Return&Claim, Transfers) ให้ตรงตามมาตรฐานสูงสุด (Gold Standard) โดยอ้างอิงจาก `Return&Claim.html` 100%
+- [x] **Pixel-Perfect Alignment:** ซิงค์ CSS Variables, Component Classes (.glass-card, .input-ci), และ Layout Shell ให้เป็นพิมพ์เขียวเดียวกันทุกไฟล์
+- [x] **No Italic / No Black Weight:** เคลียร์สไตล์ตัวเอียงและฟ้อนต์หนาพิเศษออกทั้งหมด ใช้ความหนาแบบพอดี (font-bold/semibold) เพื่อความสะอาดตาและเป็นมืออาชีพ
+- [x] **Standardized Shell:** ทุกแอปใช้ระบบ Sidebar (w-64 Drawer) สำหรับ Desktop และ Bottom Nav สำหรับ Mobile เหมือนกันเป๊ะ
+- [x] **Lucide Icon Standard:** เปลี่ยนมาใช้ Lucide Icons ทั้งระบบ 100% (รวมถึงใน JavaScript dynamic rows)
+- [x] **Unified AuthGuard:** ระบบตรวจสอบสิทธิ์ SSO Handshake เป็นมาตรฐานเดียวกัน มั่นใจเรื่องความปลอดภัยและการเชื่อมต่อ
 
 
 ### 🔐 Infrastructure & SSO (2026-05-09)
 - [x] **Full SSO Sync:** ทุกแอปใช้ `akra_session_token` ซิงค์กับ `akra_user_data` อย่างสมบูรณ์
 - [x] **API Layer Standard:** ลบ `apiCall` wrapper ใน PR/GR และใช้ `AKRA_API.call` ตรงจากไฟล์กลาง
 - [x] **AuthGuard Parity:** ทุกแอปมี Logic ตรวจสอบสิทธิ์แบบเดียวกัน มั่นใจเรื่องความปลอดภัย
+
+### 📦 Inter-Warehouse Transfers Final Refinement (2026-05-09)
+- [x] **Pixel-Perfect Sync:** Synchronized `:root` variables, glass-morphism classes (`.glass-card`), and input styles (`.input-ci`) with the `Return&Claim.html` gold standard.
+- [x] **Typography Overhaul:** Standardized body font to `'Prompt' + 'Plus Jakarta Sans'`. Globally removed `italic`, `font-black`, and `font-extrabold` classes, replacing them with professional `font-bold` and `font-semibold`.
+- [x] **UI Shell Standardization:** Implemented the mobile drawer sidebar (`w-64` style), backdrop-blur header, and responsive layout shell.
+- [x] **Component Alignment:** Refined the W1 Request form, W2 Task cards, and Dashboard Insight cards to match the high-density minimal look.
+- [x] **UX Enhancement:** Integrated global loader for data fetching and submission actions, replacing simple toasts with professional progress indicators.
+- [x] **Logic Preservation:** All transfer logic, data fetching, and AuthGuard handshake remain 100% functional.

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AKRA Portal | Centralized System</title>
     
-    <!-- ฟอนต์ Sarabun & Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- ฟอนต์ Prompt & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['"Sarabun"', '"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Prompt"', '"Plus Jakarta Sans"', 'sans-serif'],
                     }
                 }
             }
@@ -37,8 +37,28 @@
     <script src="supabase-client.js"></script>
     
     <style>
-        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn {
+        :root {
+            /* CI Colors */
+            --brand-blue: #171C8F;
+            --brand-blue-hover: #11146B;
+            --brand-orange: #E35205;
+            
+            /* Theme Variables */
+            --bg-main: #F4F7FE;
+            --card-radius: 1.25rem;
+            --border-color: #E9EDF7;
+        }
+
+        body { 
+            font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-main);
+            color: #2B3674;
+            letter-spacing: -0.01em;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fade-in { animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
@@ -54,43 +74,74 @@
             to { transform: translateX(120%); opacity: 0; }
         }
 
+        /* 📜 Custom Scrollbar */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
         
+        /* 🎴 Components */
+        .glass-card { 
+            background: white; 
+            border-radius: var(--card-radius); 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); 
+            border: 1px solid var(--border-color); 
+            transition: all 0.3s ease; 
+        }
+        .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+        
+        .input-ci { 
+            background: #F4F7FE; 
+            border: 1px solid var(--border-color); 
+            border-radius: 0.875rem; 
+            padding: 10px 14px; 
+            font-size: 14px; 
+            font-weight: 500; 
+            transition: all 0.2s; 
+            outline: none; 
+        }
+        .input-ci:focus { 
+            border-color: var(--brand-blue); 
+            box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); 
+            background: white; 
+        }
+
         .role-card.active {
-            border-color: #E35205;
+            border-color: var(--brand-orange);
             background-color: #fffaf5;
             box-shadow: 0 10px 25px -3px rgba(227, 82, 5, 0.1);
         }
-        .role-card.active .icon-bg { background-color: #E35205; color: white; }
+        .role-card.active .icon-bg { background-color: var(--brand-orange); color: white; }
         
         .app-preview-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); filter: grayscale(100%) opacity(40%); }
-        .app-preview-card.unlocked { filter: grayscale(0%) opacity(100%); transform: translateY(0); border-color: #E9EDF7; }
-        .app-preview-card.unlocked:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); border-color: #171C8F; }
+        .app-preview-card.unlocked { filter: grayscale(0%) opacity(100%); transform: translateY(0); border-color: var(--border-color); }
+        .app-preview-card.unlocked:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); border-color: var(--brand-blue); }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#171C8F] to-[#11146B] min-h-screen text-[#2B3674] flex items-center justify-center p-4">
+<body class="min-h-screen text-[#2B3674] flex items-center justify-center p-4">
 
     <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
 
     <!-- 1. ส่วนลงชื่อเข้าใช้ (Login Section) -->
     <main id="login-section" class="w-full max-w-md hidden fade-in">
-        <section class="bg-white/95 backdrop-blur-3xl rounded-[3rem] p-12 shadow-[0_30px_70px_rgba(0,0,0,0.3)] text-center border-t-[12px] border-t-brand-orange relative overflow-hidden border border-white/40">
-            <div class="bg-[#F4F7FE] p-7 rounded-[2.5rem] inline-block mb-8 shadow-inner border border-white group transition-all duration-500 hover:scale-110">
-                <i data-lucide="shield-check" class="w-16 h-16 text-brand-blue group-hover:text-brand-orange transition-colors"></i>
+        <section class="glass-card p-10 text-center border-t-8 border-t-brand-orange relative overflow-hidden">
+            <div class="bg-[#F4F7FE] p-6 rounded-3xl inline-block mb-8 shadow-inner border border-white group transition-all duration-500 hover:scale-110">
+                <i data-lucide="shield-check" class="w-14 h-14 text-brand-blue group-hover:text-brand-orange transition-colors"></i>
             </div>
-            <h1 class="text-4xl font-[Plus_Jakarta_Sans] font-semibold mb-2 text-brand-blue tracking-tight uppercase leading-none">AKRA HUB</h1>
-            <p class="text-slate-400 font-[Plus_Jakarta_Sans] mb-12 text-[10px] font-bold uppercase tracking-widest leading-none">Centralized System Portal</p>
+            <h1 class="text-3xl font-bold mb-2 text-brand-blue tracking-tight uppercase leading-none">AKRA HUB</h1>
+            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-none mb-10">Centralized System Portal</p>
 
-            <form id="login-form" class="space-y-8" novalidate>
+            <form id="login-form" class="space-y-6" novalidate>
                 <div class="relative group">
                     <input type="password" id="password-input" placeholder="PASSCODE" 
-                        class="w-full px-8 py-6 rounded-3xl bg-[#F4F7FE] border-2 border-transparent focus:outline-none focus:border-brand-blue/30 focus:bg-white text-center text-4xl font-semibold tracking-[0.5em] text-brand-blue transition-all shadow-inner placeholder:text-slate-200 uppercase placeholder:tracking-normal placeholder:font-bold placeholder:text-sm"
+                        class="w-full px-6 py-5 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:outline-none focus:border-brand-blue/30 focus:bg-white text-center text-3xl font-bold tracking-[0.5em] text-brand-blue transition-all shadow-inner placeholder:text-slate-200 uppercase placeholder:tracking-normal placeholder:font-bold placeholder:text-sm"
                         required autocomplete="current-password">
                 </div>
                 <button type="submit" id="login-btn" 
-                    class="w-full bg-brand-orange hover:bg-[#c94804] text-white font-[Plus_Jakarta_Sans] font-semibold py-6 px-8 rounded-3xl transition-all transform active:scale-95 flex justify-center items-center shadow-2xl shadow-brand-orange/30 disabled:opacity-70 disabled:transform-none uppercase tracking-widest text-lg">
+                    class="w-full bg-brand-orange hover:bg-[#c94804] text-white font-bold py-5 px-8 rounded-2xl transition-all transform active:scale-95 flex justify-center items-center shadow-lg shadow-brand-orange/20 disabled:opacity-70 disabled:transform-none uppercase tracking-widest text-base">
                     <span id="login-btn-text">Authenticate</span>
                 </button>
             </form>
@@ -99,147 +150,147 @@
 
     <!-- 2. ส่วนหน้าหลัก (Dashboard Section) -->
     <main id="dashboard-section" class="w-full max-w-6xl hidden fade-in py-8 h-screen flex flex-col">
-        <header class="flex flex-col sm:flex-row justify-between items-center mb-10 bg-white/95 backdrop-blur-3xl p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 shrink-0">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-10 glass-card p-6 shrink-0">
             <div class="text-center sm:text-left mb-6 sm:mb-0 flex items-center gap-6">
-                <div class="w-16 h-16 bg-[#F4F7FE] rounded-3xl flex items-center justify-center border border-white shadow-inner">
-                    <i data-lucide="layout-grid" class="text-brand-blue w-8 h-8"></i>
+                <div class="w-14 h-14 bg-[#F4F7FE] rounded-2xl flex items-center justify-center border border-white shadow-inner">
+                    <i data-lucide="layout-grid" class="text-brand-blue w-7 h-7"></i>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-[Plus_Jakarta_Sans] font-semibold text-brand-blue tracking-tight uppercase leading-none mb-2">System Desktop</h2>
-                    <p class="text-slate-400 font-[Plus_Jakarta_Sans] text-[10px] font-bold uppercase tracking-widest leading-none">AKRA-TRD Operational Network</p>
+                    <h2 class="text-2xl font-bold text-brand-blue tracking-tight uppercase leading-none mb-2">System Desktop</h2>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-none">AKRA-TRD Operational Network</p>
                 </div>
             </div>
-            <nav class="flex items-center gap-4 bg-[#F4F7FE]/50 p-2 rounded-[2rem] border border-white shadow-inner backdrop-blur-md">
-                <div class="text-right hidden sm:block px-5">
-                    <p class="text-[9px] font-[Plus_Jakarta_Sans] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Access User</p>
-                    <p id="user-name-display" class="font-[Plus_Jakarta_Sans] font-bold text-brand-blue text-xl leading-none">...</p>
+            <nav class="flex items-center gap-4 bg-[#F4F7FE]/50 p-2 rounded-2xl border border-white shadow-inner backdrop-blur-md">
+                <div class="text-right hidden sm:block px-4">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Access User</p>
+                    <p id="user-name-display" class="font-bold text-brand-blue text-lg leading-none">...</p>
                 </div>
-                <div class="h-12 w-12 bg-white rounded-2xl flex items-center justify-center text-xl font-bold text-brand-blue shadow-sm border border-indigo-50">
-                    <i data-lucide="user-check" class="w-6 h-6"></i>
+                <div class="h-11 w-11 bg-white rounded-xl flex items-center justify-center text-xl font-bold text-brand-blue shadow-sm border border-indigo-50">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
                 </div>
                 <div class="w-px h-8 bg-slate-200/60 mx-1 hidden sm:block"></div>
                 <div class="flex gap-1 pr-1">
-                    <button id="admin-btn" class="hidden p-3.5 text-slate-400 hover:text-brand-blue hover:bg-white rounded-2xl transition-all shadow-none hover:shadow-sm" title="จัดการผู้ใช้งาน">
-                        <i data-lucide="settings-2" class="w-5.5 h-5.5"></i>
+                    <button id="admin-btn" class="hidden p-3 text-slate-400 hover:text-brand-blue hover:bg-white rounded-xl transition-all shadow-none hover:shadow-sm" title="จัดการผู้ใช้งาน">
+                        <i data-lucide="settings-2" class="w-5 h-5"></i>
                     </button>
-                    <button id="logout-btn" class="p-3.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all shadow-none hover:shadow-sm" title="ออกจากระบบ">
-                        <i data-lucide="power" class="w-5.5 h-5.5"></i>
+                    <button id="logout-btn" class="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shadow-none hover:shadow-sm" title="ออกจากระบบ">
+                        <i data-lucide="power" class="w-5 h-5"></i>
                     </button>
                 </div>
             </nav>
         </header>
 
-        <section id="app-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 relative flex-grow overflow-y-auto pr-2 custom-scrollbar pb-10"></section>
+        <section id="app-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 relative flex-grow overflow-y-auto pr-2 custom-scroll pb-10"></section>
         
-        <footer class="py-6 text-center text-white/50 text-[10px] font-semibold uppercase tracking-widest shrink-0">
+        <footer class="py-6 text-center text-white/50 text-[10px] font-bold uppercase tracking-widest shrink-0">
             &copy; 2026 AKRA INFRASTRUCTURE HUB
         </footer>
     </main>
 
     <!-- 3. ส่วนจัดการผู้ใช้งาน (Admin Section) -->
     <main id="admin-section" class="w-full max-w-7xl hidden fade-in py-6 h-screen max-h-[900px] flex flex-col">
-        <header class="flex flex-col sm:flex-row justify-between items-center mb-6 bg-white/95 backdrop-blur-3xl p-6 rounded-[2.5rem] shadow-xl border border-white/60 shrink-0 gap-4">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-6 glass-card p-4 shrink-0 gap-4">
             <div class="flex items-center gap-4 w-full sm:w-auto">
-                <div class="bg-[#F4F7FE] p-2 rounded-2xl flex gap-1 shadow-inner shrink-0 overflow-x-auto w-full sm:w-auto border border-white">
-                    <button id="tab-btn-users" onclick="AdminInteractive.switchTab('users')" class="px-6 py-2.5 rounded-xl font-extrabold bg-white text-brand-blue shadow-sm transition-all flex items-center gap-2 whitespace-nowrap uppercase italic tracking-tight">
+                <div class="bg-[#F4F7FE] p-1.5 rounded-xl flex gap-1 shadow-inner shrink-0 overflow-x-auto w-full sm:w-auto border border-white">
+                    <button id="tab-btn-users" onclick="AdminInteractive.switchTab('users')" class="px-5 py-2 rounded-lg font-bold bg-white text-brand-blue shadow-sm transition-all flex items-center gap-2 whitespace-nowrap uppercase tracking-tight text-sm">
                         <i data-lucide="users" class="w-4 h-4"></i> จัดการพนักงาน
                     </button>
-                    <button id="tab-btn-apps" onclick="AdminInteractive.switchTab('apps')" class="px-6 py-2.5 rounded-xl font-extrabold text-slate-400 hover:text-brand-blue transition-all flex items-center gap-2 whitespace-nowrap uppercase italic tracking-tight">
+                    <button id="tab-btn-apps" onclick="AdminInteractive.switchTab('apps')" class="px-5 py-2 rounded-lg font-bold text-slate-400 hover:text-brand-blue transition-all flex items-center gap-2 whitespace-nowrap uppercase tracking-tight text-sm">
                         <i data-lucide="layout-grid" class="w-4 h-4"></i> ตั้งค่าการเห็นแอป
                     </button>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <button id="refresh-data-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl transition-colors flex items-center gap-2 font-extrabold uppercase italic tracking-tight text-xs">
-                    <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i> รีเฟรชข้อมูล
+            <div class="flex gap-2">
+                <button id="refresh-data-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-bold uppercase tracking-tight text-xs">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refresh-icon"></i> รีเฟรชข้อมูล
                 </button>
-                <button id="back-to-dash-btn" class="bg-brand-blue hover:bg-[#121670] text-white px-7 py-2.5 rounded-2xl font-extrabold shadow-lg transition-all flex items-center gap-2 uppercase italic tracking-tight">
+                <button id="back-to-dash-btn" class="bg-brand-blue hover:bg-[#121670] text-white px-6 py-2 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 uppercase tracking-tight text-sm">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับหน้าหลัก
                 </button>
             </div>
         </header>
 
         <!-- [TAB 1] จัดการรายชื่อพนักงาน -->
-        <section id="tab-content-users" class="flex flex-grow bg-white rounded-[3rem] shadow-2xl border-t-8 border-t-brand-orange overflow-hidden border border-white/60">
+        <section id="tab-content-users" class="flex flex-grow glass-card border-t-4 border-t-brand-orange overflow-hidden">
             <!-- Sidebar: User List -->
             <aside class="w-80 border-r border-slate-100 flex flex-col bg-[#F4F7FE]/30">
-                <div class="p-6 border-b border-slate-100 bg-white">
+                <div class="p-5 border-b border-slate-100 bg-white">
                     <div class="relative">
                         <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                         <input type="text" id="search-input" placeholder="ค้นหาชื่อหรือรหัส..." 
-                            class="w-full pl-12 pr-4 py-3.5 bg-[#F4F7FE] border-transparent rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-brand-orange/10 focus:border-brand-orange outline-none transition-all text-sm font-bold">
+                            class="w-full pl-11 pr-4 py-3 bg-[#F4F7FE] border-transparent rounded-xl focus:bg-white focus:ring-4 focus:ring-brand-orange/10 focus:border-brand-orange outline-none transition-all text-sm font-bold">
                     </div>
                 </div>
                 
-                <div class="flex-grow overflow-y-auto p-4 space-y-2 custom-scroll" id="user-list-container">
+                <div class="flex-grow overflow-y-auto p-3 space-y-1 custom-scroll" id="user-list-container">
                     <!-- Loading State -->
                     <div id="list-loading-state" class="p-10 text-center text-slate-400">
-                        <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto mb-4 opacity-20 text-brand-blue"></i>
-                        <p class="text-xs font-extrabold uppercase tracking-widest">กำลังโหลด...</p>
+                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-4 opacity-20 text-brand-blue"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">กำลังโหลด...</p>
                     </div>
                 </div>
 
-                <div class="p-6 bg-white border-t border-slate-100">
-                    <button onclick="AdminInteractive.setupNewUser()" class="w-full bg-brand-orange hover:bg-[#c94804] text-white py-4 rounded-2xl font-extrabold flex items-center justify-center gap-2 shadow-xl shadow-brand-orange/30 transition-all active:scale-95 uppercase italic tracking-wider">
-                        <i data-lucide="plus-circle" class="w-5 h-5"></i> เพิ่มพนักงานใหม่
+                <div class="p-5 bg-white border-t border-slate-100">
+                    <button onclick="AdminInteractive.setupNewUser()" class="w-full bg-brand-orange hover:bg-[#c94804] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 transition-all active:scale-95 uppercase tracking-wider text-sm">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มพนักงานใหม่
                     </button>
                 </div>
             </aside>
 
             <!-- Main Content: Form -->
-            <article class="flex-grow p-10 overflow-y-auto relative bg-white">
+            <article class="flex-grow p-8 overflow-y-auto relative bg-white">
                 <div id="empty-selection-state" class="h-full flex flex-col items-center justify-center text-slate-300 opacity-40">
-                    <i data-lucide="user-plus" class="w-24 h-24 mb-6 stroke-[0.5]"></i>
-                    <p class="text-xl font-extrabold text-slate-400 uppercase italic tracking-widest text-center leading-relaxed">เลือกพนักงานจากรายการซ้ายมือ <br> หรือกดปุ่มเพิ่มเพื่อสร้างใหม่</p>
+                    <i data-lucide="user-plus" class="w-20 h-20 mb-6 stroke-[0.5]"></i>
+                    <p class="text-lg font-bold text-slate-400 uppercase tracking-widest text-center leading-relaxed">เลือกพนักงานจากรายการซ้ายมือ <br> หรือกดปุ่มเพิ่มเพื่อสร้างใหม่</p>
                 </div>
 
                 <form id="interactive-form" class="hidden h-full flex flex-col">
-                    <div class="flex justify-between items-start mb-10">
+                    <div class="flex justify-between items-start mb-8">
                         <div>
-                            <h3 id="form-title" class="text-3xl font-[Plus_Jakarta_Sans] font-extrabold text-brand-blue uppercase italic tracking-tight">เพิ่มพนักงานใหม่</h3>
-                            <p class="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">ตั้งค่ารหัส ชื่อ และสิทธิ์การเข้าใช้งาน (Role)</p>
+                            <h3 id="form-title" class="text-2xl font-bold text-brand-blue uppercase tracking-tight">เพิ่มพนักงานใหม่</h3>
+                            <p class="text-slate-400 font-bold text-[10px] mt-1 uppercase tracking-widest">ตั้งค่ารหัส ชื่อ และสิทธิ์การเข้าใช้งาน (Role)</p>
                         </div>
-                        <button type="button" id="btn-delete-user" class="hidden text-red-400 hover:text-red-600 hover:bg-red-50 p-3 rounded-2xl transition-all">
-                            <i data-lucide="trash-2" class="w-6 h-6"></i>
+                        <button type="button" id="btn-delete-user" class="hidden text-rose-400 hover:text-rose-600 hover:bg-rose-50 p-2.5 rounded-xl transition-all">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-10 mb-12">
-                        <div class="space-y-8">
-                            <div class="space-y-3">
-                                <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">รหัสพนักงาน (ID / Password)</label>
+                    <div class="grid grid-cols-2 gap-8 mb-10">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">รหัสพนักงาน (ID / Password)</label>
                                 <input type="text" id="user-id-input" placeholder="เช่น 250001" required
-                                    class="w-full px-6 py-4 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-black text-brand-blue text-2xl tracking-widest shadow-inner uppercase">
+                                    class="w-full px-5 py-3.5 rounded-xl bg-[#F4F7FE] border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-bold text-brand-blue text-xl tracking-widest shadow-inner uppercase">
                             </div>
-                            <div class="space-y-3">
-                                <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">ชื่อ-นามสกุล</label>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ชื่อ-นามสกุล</label>
                                 <input type="text" id="user-name-input" placeholder="ชื่อจริงพนักงาน" required
-                                    class="w-full px-6 py-4 rounded-2xl bg-[#F4F7FE] border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-extrabold text-brand-blue shadow-inner uppercase">
+                                    class="w-full px-5 py-3.5 rounded-xl bg-[#F4F7FE] border-2 border-transparent focus:border-brand-orange focus:bg-white outline-none transition-all font-bold text-brand-blue shadow-inner uppercase">
                             </div>
                         </div>
 
-                        <div class="space-y-5">
-                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1 block">สิทธิ์การเข้าใช้งาน (Roles)</label>
-                            <div class="grid grid-cols-1 gap-3" id="role-selector-grid">
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 block">สิทธิ์การเข้าใช้งาน (Roles)</label>
+                            <div class="grid grid-cols-1 gap-2" id="role-selector-grid">
                                 <!-- Role cards will be injected here -->
                             </div>
                         </div>
                     </div>
 
                     <!-- App Access Preview -->
-                    <div class="mb-12">
-                        <div class="flex items-center gap-3 mb-6">
-                            <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">พรีวิวการเข้าถึงแอป (App Access Preview)</label>
-                            <span class="bg-blue-50 text-blue-600 text-[9px] font-extrabold px-3 py-1 rounded-full border border-blue-100 uppercase tracking-widest">Live Sync</span>
+                    <div class="mb-10">
+                        <div class="flex items-center gap-3 mb-4">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">พรีวิวการเข้าถึงแอป (App Access Preview)</label>
+                            <span class="bg-blue-50 text-blue-600 text-[8px] font-bold px-2 py-0.5 rounded-full border border-blue-100 uppercase tracking-widest">Live Sync</span>
                         </div>
-                        <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4" id="app-preview-grid"></div>
+                        <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3" id="app-preview-grid"></div>
                     </div>
 
                     <!-- Sticky Footer Actions -->
-                    <div class="mt-auto pt-8 border-t border-slate-100 flex justify-end items-center gap-5">
-                        <button type="button" onclick="AdminInteractive.cancelEdit()" class="text-slate-400 font-extrabold px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all uppercase italic tracking-widest text-sm">ยกเลิก</button>
-                        <button type="submit" class="bg-brand-blue text-white px-12 py-4 rounded-2xl font-extrabold shadow-2xl shadow-brand-blue/30 hover:bg-[#121670] transition-all transform active:scale-95 flex items-center gap-3 uppercase italic tracking-widest">
-                            <i data-lucide="check-circle-2" class="w-6 h-6"></i> บันทึกข้อมูล
+                    <div class="mt-auto pt-6 border-t border-slate-100 flex justify-end items-center gap-4">
+                        <button type="button" onclick="AdminInteractive.cancelEdit()" class="text-slate-400 font-bold px-6 py-3 rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">ยกเลิก</button>
+                        <button type="submit" class="bg-brand-blue text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-brand-blue/20 hover:bg-[#121670] transition-all transform active:scale-95 flex items-center gap-2 uppercase tracking-widest text-sm">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i> บันทึกข้อมูล
                         </button>
                     </div>
                 </form>
@@ -247,31 +298,31 @@
         </section>
 
         <!-- [TAB 2] จัดการแอป -->
-        <section id="tab-content-apps" class="hidden flex-col flex-grow bg-white rounded-[3rem] shadow-2xl border-t-8 border-t-brand-blue overflow-hidden p-8 border border-white/60">
+        <section id="tab-content-apps" class="hidden flex-col flex-grow glass-card border-t-4 border-t-brand-blue overflow-hidden p-8">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
                 <div>
-                    <h3 class="text-2xl font-[Plus_Jakarta_Sans] font-extrabold text-brand-blue flex items-center gap-3 uppercase italic tracking-tight">
-                        <i data-lucide="sliders" class="w-7 h-7 text-brand-orange"></i> ตารางสิทธิ์การมองเห็นแอป
+                    <h3 class="text-xl font-bold text-brand-blue flex items-center gap-3 uppercase tracking-tight">
+                        <i data-lucide="sliders" class="w-6 h-6 text-brand-orange"></i> ตารางสิทธิ์การมองเห็นแอป
                     </h3>
-                    <p class="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">กำหนดว่าแอปพลิเคชันไหน อนุญาตให้กลุ่มใด (Role) ใช้งานได้บ้าง</p>
+                    <p class="text-slate-400 font-bold text-[10px] mt-1 uppercase tracking-widest">กำหนดว่าแอปพลิเคชันไหน อนุญาตให้กลุ่มใด (Role) ใช้งานได้บ้าง</p>
                 </div>
-                <button onclick="AdminInteractive.saveAppConfig()" class="bg-brand-blue hover:bg-[#121670] text-white px-8 py-3 rounded-2xl font-extrabold shadow-lg transition-all flex items-center gap-2 uppercase italic tracking-widest shrink-0">
-                    <i data-lucide="save" class="w-5 h-5"></i> บันทึกการตั้งค่าแอป
+                <button onclick="AdminInteractive.saveAppConfig()" class="bg-brand-blue hover:bg-[#121670] text-white px-6 py-2.5 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 uppercase tracking-widest text-sm shrink-0">
+                    <i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่าแอป
                 </button>
             </div>
 
-            <div class="overflow-x-auto border border-slate-100 rounded-[2rem] shadow-inner">
+            <div class="overflow-x-auto border border-slate-100 rounded-2xl shadow-inner">
                 <table class="w-full text-left border-collapse min-w-[700px]">
                     <thead class="bg-[#F4F7FE]">
                         <tr id="app-matrix-header-row" class="border-b border-slate-100">
-                            <th class="p-6 font-extrabold text-slate-400 uppercase tracking-widest text-[10px] bg-slate-50 border-r border-slate-100">แอปพลิเคชัน / ระบบ</th>
+                            <th class="p-5 font-bold text-slate-400 uppercase tracking-widest text-[9px] bg-slate-50 border-r border-slate-100">แอปพลิเคชัน / ระบบ</th>
                         </tr>
                     </thead>
                     <tbody id="app-permission-matrix" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
-            <div class="mt-6 p-6 bg-orange-50/50 text-brand-orange rounded-[1.5rem] text-[11px] font-bold flex items-start gap-4 border border-orange-100">
-                <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+            <div class="mt-6 p-5 bg-orange-50/50 text-brand-orange rounded-xl text-[10px] font-bold flex items-start gap-4 border border-orange-100">
+                <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
                 <p class="leading-relaxed"><b class="uppercase tracking-widest">หมายเหตุ:</b> การตั้งค่าส่วนนี้จะถูกจัดเก็บลงฐานข้อมูล (app_config) เพื่อให้ระบบ SSO นำไปใช้กำหนดการมองเห็นของแอปสำหรับพนักงานทุกคนทันทีที่เข้าสู่ระบบ</p>
             </div>
         </section>
@@ -319,10 +370,10 @@
                 const container = document.getElementById('toast-container');
                 const toast = document.createElement('div');
                 let config = { bg: 'bg-[#171C8F]', icon: 'check-circle' };
-                if (type === 'error') config = { bg: 'bg-red-500', icon: 'x-circle' };
+                if (type === 'error') config = { bg: 'bg-rose-500', icon: 'x-circle' };
                 if (type === 'warning') config = { bg: 'bg-[#E35205]', icon: 'alert-triangle' };
 
-                toast.className = `flex items-center gap-3 ${config.bg} text-white px-5 py-3 rounded-xl shadow-xl toast-slide-in min-w-[250px] font-medium text-sm`;
+                toast.className = `flex items-center gap-3 ${config.bg} text-white px-5 py-3 rounded-xl shadow-xl toast-slide-in min-w-[250px] font-bold text-sm`;
                 toast.innerHTML = `<i data-lucide="${config.icon}" class="w-5 h-5"></i> <span>${message}</span>`;
                 container.appendChild(toast);
                 lucide.createIcons();
@@ -390,7 +441,7 @@
                             <i data-lucide="${r.icon}" class="w-5 h-5"></i>
                         </div>
                         <div class="flex-grow">
-                            <p class="text-xs font-extrabold text-slate-800 uppercase tracking-widest leading-none mb-1.5">${r.label}</p>
+                            <p class="text-xs font-bold text-slate-800 uppercase tracking-widest leading-none mb-1.5">${r.label}</p>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">${r.desc}</p>
                         </div>
                         <div class="check-icon opacity-0 group-hover:opacity-20 transition-opacity">
@@ -683,24 +734,24 @@
             },
 
             renderDashboard: () => {
-                document.getElementById('user-name-display').innerHTML = `${state.currentUser} <span class="text-[10px] font-semibold text-brand-orange uppercase bg-orange-50 px-2.5 py-1 rounded-lg ml-2 border border-orange-100/50">${state.currentRoles[0]}</span>`;
+                document.getElementById('user-name-display').innerHTML = `${state.currentUser} <span class="text-[9px] font-bold text-brand-orange uppercase bg-orange-50 px-2 py-1 rounded-lg ml-2 border border-orange-100/50">${state.currentRoles[0]}</span>`;
                 const adminBtn = document.getElementById('admin-btn');
                 state.currentRoles.includes("ADMIN") ? adminBtn.classList.remove('hidden') : adminBtn.classList.add('hidden');
                 const grid = document.getElementById('app-grid');
                 grid.innerHTML = ''; 
                 const allowedApps = state.appConfig.filter(app => app.roles.some(role => state.currentRoles.includes(role)));
                 if (allowedApps.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-[3rem] p-16 text-center shadow-2xl"><i data-lucide="lock" class="w-20 h-20 text-slate-200 mx-auto mb-6"></i><h3 class="text-2xl font-semibold text-slate-300 uppercase tracking-widest">Locked Access</h3></div>`;
+                    grid.innerHTML = `<div class="col-span-full glass-card p-16 text-center"><i data-lucide="lock" class="w-16 h-16 text-slate-200 mx-auto mb-6"></i><h3 class="text-xl font-bold text-slate-300 uppercase tracking-widest">Locked Access</h3></div>`;
                 } else {
                     allowedApps.forEach(app => {
                         grid.innerHTML += `
                             <button onclick="AKRA_SSO.openApp('${app.url}', '${app.id}')" 
-                                class="bg-white p-7 rounded-[2.5rem] border-2 border-transparent hover:border-brand-blue/30 transition-all transform hover:-translate-y-2 text-left group flex flex-col h-full shadow-[0_15px_35px_rgba(0,0,0,0.05)] hover:shadow-indigo-900/20">
-                                <div class="bg-[#F4F7FE] w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-blue transition-all duration-300 border border-white shadow-inner group-hover:scale-110">
-                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-6 h-6 transition-colors"></i>
+                                class="glass-card p-6 text-left group flex flex-col h-full hover:-translate-y-1 active:scale-95">
+                                <div class="bg-[#F4F7FE] w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:bg-brand-blue transition-all duration-300 border border-white shadow-inner group-hover:scale-110">
+                                    <i data-lucide="${app.icon}" class="text-brand-blue group-hover:text-white w-5 h-5 transition-colors"></i>
                                 </div>
-                                <h3 class="text-xl font-[Plus_Jakarta_Sans] font-semibold text-brand-blue uppercase tracking-tight group-hover:text-brand-orange transition-colors leading-tight mb-2">${app.name}</h3>
-                                <p class="text-[9px] font-[Plus_Jakarta_Sans] font-bold text-slate-300 uppercase tracking-widest leading-none">Operational Node</p>
+                                <h3 class="text-lg font-bold text-brand-blue uppercase tracking-tight group-hover:text-brand-orange transition-colors leading-tight mb-1.5">${app.name}</h3>
+                                <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest leading-none">Operational Node</p>
                             </button>`;
                     });
                 }
@@ -717,8 +768,5 @@
 
         document.addEventListener('DOMContentLoaded', App.init);
     </script>
-</body>
-</html>
-   </script>
 </body>
 </html>

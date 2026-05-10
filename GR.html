@@ -12,91 +12,58 @@
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
-  <script>
-    tailwind.config = { 
-      theme: { 
-        extend: { 
-          colors: { 
-            brand: { 
-              blue: '#171C8F', 
-              orange: '#E35205', 
-              blueLight: '#E8E9F4', 
-              orangeLight: '#FCECE5',
-              navy: '#2B3674',
-              gray: '#A3AED0'
-            } 
-          },
-          borderRadius: {
-            '3xl': '1.5rem',
-            '4xl': '2rem',
-          }
-        } 
-      } 
-    }
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+    
     :root {
+      /* CI Colors */
       --brand-blue: #171C8F;
       --brand-blue-hover: #11146B;
       --brand-orange: #E35205;
-      --brand-orange-hover: #B54104;
-      --bg-main: #f4f7fe;
-      --sidebar-width: 76px;
-      --header-height: 4rem;
-      --card-radius: 1.5rem;
-      --border-color: rgba(226, 232, 240, 0.8);
       
-      /* Fluid Scaling */
-      --fluid-2xs: clamp(0.69rem, 0.68rem + 0.03vw, 0.71rem);
-      --fluid-xs: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
-      --fluid-sm: clamp(0.88rem, 0.84rem + 0.17vw, 0.98rem);
-      --fluid-base: clamp(1rem, 0.94rem + 0.28vw, 1.15rem);
-      --fluid-md: clamp(1.13rem, 1.05rem + 0.4vw, 1.34rem);
-      --fluid-lg: clamp(1.27rem, 1.16rem + 0.55vw, 1.56rem);
-      --fluid-xl: clamp(1.42rem, 1.28rem + 0.73vw, 1.82rem);
+      /* Theme Variables */
+      --bg-main: #F4F7FE;
+      --card-radius: 1.25rem;
+      --border-color: #E9EDF7;
     }
 
     body { 
       font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
-      background-color: var(--bg-main); 
-      color: var(--brand-navy); 
-      letter-spacing: -0.01em; 
+      background-color: var(--bg-main);
+      color: #2B3674;
+      letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Italic Overrides */
-    .font-italic-bold { font-weight: 700; text-transform: uppercase; }
+    /* 🎬 Animations */
+    .view-content { display: none; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .view-content.active { display: block; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 📜 Custom Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
     
-    .glass-card { 
-      background: rgba(255, 255, 255, 0.9); 
-      backdrop-filter: blur(10px);
-      border-radius: var(--card-radius); 
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); 
-      border: 1px solid var(--border-color); 
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
-    .glass-card:hover { 
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); 
-      transform: translateY(-2px); 
-      border-color: rgba(227, 82, 5, 0.2);
-    }
+    /* 🎴 Components */
+    .glass-card { background: white; border-radius: var(--card-radius); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+    .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+    
+    .input-ci { background: #F4F7FE; border: 1px solid var(--border-color); border-radius: 0.875rem; padding: 10px 14px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none; }
+    .input-ci:focus { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); background: white; }
+    
+    /* 🎨 Custom SweetAlert2 (Modern Theme) */
+    div:where(.swal2-container) div:where(.swal2-popup) { background-color: white; color: #2B3674; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #E9EDF7; }
+    div:where(.swal2-container) h2:where(.swal2-title) { color: var(--brand-blue); font-family: 'Prompt', sans-serif; font-weight: 800; }
+    div:where(.swal2-container) div:where(.swal2-html-container) { color: #707EAE; font-family: 'Prompt', sans-serif; font-size: 0.875rem; }
+    div:where(.swal2-container) button:where(.swal2-confirm) { background-color: var(--brand-blue) !important; border-radius: 1rem; font-weight: 700; box-shadow: 0 10px 20px rgba(23, 28, 143, 0.1) !important; }
+    div:where(.swal2-container) button:where(.swal2-cancel) { background-color: #F4F7FE !important; color: #A3AED0 !important; border-radius: 1rem; font-weight: 700; }
 
-    .input-field { 
-      width: 100%; 
-      height: 2.75rem;
-      padding: 0 1rem; 
-      border-radius: 0.875rem; 
-      border: 1.5px solid var(--border-color); 
-      background: white; 
-      outline: none; 
-      transition: all 0.2s; 
-      font-size: 0.875rem; 
-      font-weight: 600;
-    }
-    .input-field:focus { 
-      border-color: var(--brand-orange); 
-      box-shadow: 0 0 0 4px rgba(227, 82, 5, 0.1); 
-    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    
+    /* Input error state */
+    .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; }
 
     .sidebar-item {
       display: flex;
@@ -149,6 +116,7 @@
       gap: 0.35rem;
     }
 
+
     .toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 10000; display: flex; flex-direction: column; gap: 0.75rem; }
     .toast { min-width: 280px; max-width: 380px; padding: 1rem; border-radius: 1.25rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.875rem; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; background: white; border: 1px solid var(--border-color); }
     
@@ -177,27 +145,40 @@
       </div>
   </div>
 
-  <!-- Sidebar (Desktop Only) -->
-  <aside id="main-sidebar" class="hidden md:flex flex-col items-center py-6 bg-white border-r border-slate-100 w-[76px] shrink-0 z-50">
-      <div class="w-10 h-10 bg-brand-orange rounded-2xl flex items-center justify-center mb-10 shadow-lg shadow-orange-500/20">
-          <i data-lucide="package-search" class="w-5 h-5 text-white"></i>
+  <!-- 🧭 Sidebar (Desktop & Mobile Drawer) -->
+  <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
+      
+      <!-- Mobile Close Button -->
+      <button id="close-sidebar-btn" class="md:hidden absolute top-5 right-4 p-2 bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="p-6 flex items-center space-x-3 border-b border-white/10 md:border-none">
+          <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
+              <i data-lucide="package-search" class="text-white w-5 h-5"></i>
+          </div>
+          <div>
+              <h1 class="text-white font-bold text-lg leading-none tracking-tight">WMS Pro</h1>
+              <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Receiving (GR)</p>
+          </div>
       </div>
       
-      <div class="flex flex-col gap-6 flex-1">
-          <div onclick="showView('receiving-list-view')" class="sidebar-item active" title="Manifest (List)">
-              <i data-lucide="layout-grid" class="w-5 h-5"></i>
-          </div>
-          <div onclick="showView('receiving-detail-view')" class="sidebar-item" title="Processing (Detail)">
-              <i data-lucide="file-text" class="w-5 h-5"></i>
-          </div>
-      </div>
+      <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar" id="desktop-nav">
+          <button onclick="showView('receiving-list-view')" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all active bg-white/10 text-[#E35205] font-bold shadow-sm" id="nav-manifest">
+              <i data-lucide="layout-grid" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">Manifest (รอรับ)</span>
+          </button>
+          <button onclick="showView('receiving-detail-view')" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all border border-transparent" id="nav-process">
+              <i data-lucide="file-text" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">Process (จัดการบิล)</span>
+          </button>
+      </nav>
 
-      <div class="mt-auto flex flex-col gap-6">
-          <div onclick="openReceiving(true)" class="sidebar-item" title="Refresh Data">
-              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-          </div>
-          <div id="logout-btn" class="sidebar-item hover:!text-rose-500" title="Sign Out">
-              <i data-lucide="power" class="w-5 h-5"></i>
+      <div class="p-5 border-t border-white/10 mt-auto bg-[#171C8F]">
+          <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+              <div id="user-avatar" class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">GR</div>
+              <div class="flex-1 overflow-hidden">
+                  <p class="text-xs font-bold text-white truncate" id="display-username">Administrator</p>
+                  <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>System Online</p>
+              </div>
           </div>
       </div>
   </aside>
@@ -206,62 +187,53 @@
   <div id="app-content" class="hidden flex-1 flex flex-col h-screen overflow-hidden relative">
       
       <!-- Top Bar -->
-      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0 z-40 px-4 md:px-8 flex items-center justify-between">
-          <div class="flex items-center gap-4">
-              <div class="md:hidden w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center">
-                  <i data-lucide="package-search" class="w-4 h-4 text-white"></i>
-              </div>
-              <div>
-                  <h1 class="text-sm md:text-base font-bold text-brand-navy uppercase tracking-tight leading-none">Receiving App</h1>
-                  <p class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mt-1 leading-none">Goods Receipt (GR)</p>
-              </div>
-          </div>
-
+      <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
           <div class="flex items-center gap-3">
-              <div class="flex flex-col items-end mr-1 text-right">
-                  <span id="display-username" class="text-xs font-bold text-brand-navy uppercase tracking-tight leading-none mb-1">...</span>
-                  <div class="flex items-center gap-1.5">
-                      <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      <span class="text-[8px] font-bold text-brand-gray uppercase tracking-widest leading-none">Active Node</span>
-                  </div>
-              </div>
-              <div class="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center border border-white shadow-inner">
-                  <i data-lucide="user" class="w-5 h-5 text-brand-navy"></i>
-              </div>
+              <!-- Hamburger Menu Button -->
+              <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
+                  <i data-lucide="menu" class="w-6 h-6"></i>
+              </button>
+              <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate" id="active-tab-title">รายการรอรับสินค้าเข้าคลัง</h2>
+          </div>
+          <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
+              <button onclick="openReceiving(true)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+              <button id="logout-btn" class="flex items-center gap-1.5 bg-rose-500/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border border-rose-400/50">
+                  <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">ออกจากระบบ</span>
+              </button>
           </div>
       </header>
 
       <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar pb-32 md:pb-8">
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 w-full custom-scrollbar pb-32 md:pb-8">
         <div class="max-w-[1400px] mx-auto">
           
           <!-- Manifest View -->
-          <section id="receiving-list-view" class="block animate-fade-in">
-            <div class="flex justify-between items-end mb-8">
+          <section id="receiving-list-view" class="view-content active">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
-                  <h2 class="text-2xl md:text-3xl font-bold text-brand-navy tracking-tight uppercase">Manifest <span class="text-brand-orange">Pending</span></h2>
-                  <p class="text-[10px] font-bold text-brand-gray uppercase tracking-widest mt-1">รายการรอรับสินค้าเข้าคลัง</p>
+                  <h2 class="text-2xl font-bold text-[#171C8F] tracking-tight uppercase">Manifest <span class="text-[#E35205]">Pending</span></h2>
+                  <p class="text-xs text-slate-500 mt-1">รายการรอรับสินค้าเข้าคลัง</p>
               </div>
-              <div class="flex flex-col items-end gap-2">
-                <span class="badge-base bg-brand-orange/10 text-brand-orange border border-brand-orange/20" id="pending-count">0 Manifests</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold text-[#E35205] bg-[#E35205]/10 px-3 py-1.5 rounded-lg border border-[#E35205]/20 shadow-sm" id="pending-count">0 Manifests</span>
               </div>
             </div>
 
             <!-- Filters -->
-            <div class="mb-10 flex flex-col md:flex-row gap-4">
-              <div class="relative flex-1 group">
-                  <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-brand-orange transition-colors"></i>
-                  <input type="text" id="r-search-input" oninput="renderPOListForReceiving()" placeholder="Search by SKU, Vendor, or PO#..." class="input-field m-0 pl-11 bg-white !h-12 !rounded-2xl border-slate-100 shadow-sm font-bold">
+            <div class="mb-8 flex flex-col lg:flex-row gap-4">
+              <div class="relative flex-1">
+                  <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                  <input type="text" id="r-search-input" oninput="renderPOListForReceiving()" placeholder="ค้นหา SKU, Vendor, หรือ PO#..." class="w-full pl-11 pr-4 py-3.5 input-ci rounded-xl font-bold text-sm">
               </div>
               <div class="flex gap-4">
-                <select id="r-status-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-brand-navy uppercase text-xs !h-12 !rounded-2xl appearance-none pr-10 min-w-[160px]">
+                <select id="r-status-filter" onchange="renderPOListForReceiving()" class="px-4 py-3.5 input-ci rounded-xl font-bold text-[#171C8F] uppercase text-xs min-w-[160px] cursor-pointer">
                   <option value="">📌 ALL STATUS</option>
                   <option value="Overdue">🚨 OVERDUE</option>
                   <option value="Draft GR">📦 DRAFTING</option>
                   <option value="Pending Review">⏳ PROCESSING</option>
                   <option value="Pending GR">🕒 AWAITING</option>
                 </select>
-                <select id="r-warehouse-filter" onchange="renderPOListForReceiving()" class="input-field m-0 bg-white shadow-sm border-slate-100 font-bold text-brand-blue uppercase text-xs !h-12 !rounded-2xl appearance-none pr-10 min-w-[140px]">
+                <select id="r-warehouse-filter" onchange="renderPOListForReceiving()" class="px-4 py-3.5 input-ci rounded-xl font-bold text-[#171C8F] uppercase text-xs min-w-[140px] cursor-pointer">
                   <option value="">🏢 ALL HUBS</option>
                   <option value="W1">W1 (WHITE)</option><option value="W2">W2 (ORANGE)</option><option value="W3">W3 (YELLOW)</option>
                   <option value="W4">W4 (GREEN)</option><option value="W5">W5 (GRAY)</option><option value="C1">C1 (SKY)</option><option value="C2">C2 (DEEP)</option>
@@ -274,19 +246,19 @@
           </section>
 
           <!-- Detail View -->
-          <section id="receiving-detail-view" class="hidden">
-            <div class="max-w-4xl mx-auto animate-fade-in">
-              <button type="button" onclick="showView('receiving-list-view')" class="inline-flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-brand-gray hover:text-brand-orange transition-all group">
-                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center border border-slate-100 group-hover:bg-brand-orange group-hover:text-white transition-all shadow-sm">
+          <section id="receiving-detail-view" class="view-content">
+            <div class="max-w-4xl mx-auto">
+              <button type="button" onclick="showView('receiving-list-view')" class="inline-flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-[#E35205] transition-all group">
+                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center border border-slate-200 group-hover:bg-[#E35205] group-hover:text-white transition-all shadow-sm">
                   <i data-lucide="chevron-left" class="w-4 h-4"></i>
                 </div>
                 Return to Manifest List
               </button>
 
-              <div class="glass-card overflow-hidden border-t-8 border-t-brand-orange">
+              <div class="glass-card overflow-hidden border-t-8 border-t-[#E35205]">
                 <div class="p-6 md:p-8">
                   <!-- Form Header -->
-                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-10 border-b border-slate-100">
+                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-10 border-b border-slate-200">
                     <div class="flex items-center gap-5" id="r-display-vendor-header">
                       <!-- Vendor Info Injection -->
                     </div>
@@ -296,20 +268,20 @@
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                    <div class="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex items-center justify-between">
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 flex items-center justify-between shadow-sm">
                       <div class="flex flex-col">
-                        <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-2 leading-none">PO REFERENCE</span>
-                        <span class="text-xl font-bold text-brand-blue uppercase tracking-tight leading-none" id="r-display-po">-</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-none">PO REFERENCE</span>
+                        <span class="text-xl font-bold text-[#171C8F] uppercase tracking-tight leading-none" id="r-display-po">-</span>
                       </div>
                       <div class="text-right">
-                        <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-2 leading-none">ORDER DATE</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-none">ORDER DATE</span>
                         <p class="text-sm font-bold text-slate-600 leading-none" id="r-display-date">-</p>
                       </div>
                     </div>
                     
-                    <div class="bg-orange-50/30 p-6 rounded-3xl border border-orange-100/50 shadow-inner group transition-all focus-within:ring-4 focus-within:ring-brand-orange/10">
-                      <label class="block text-[9px] font-bold text-brand-orange uppercase tracking-widest mb-2 ml-1 leading-none">วันที่มาส่ง (ATA) <span class="text-rose-500">*</span></label>
-                      <input type="date" id="r-ata" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-brand-navy tracking-tight">
+                    <div class="bg-[#E35205]/5 p-6 rounded-3xl border border-[#E35205]/20 shadow-sm transition-all focus-within:ring-4 focus-within:ring-[#E35205]/10">
+                      <label class="block text-[10px] font-bold text-[#E35205] uppercase tracking-widest mb-2 ml-1 leading-none">วันที่มาส่ง (ATA) <span class="text-rose-500">*</span></label>
+                      <input type="date" id="r-ata" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#171C8F] tracking-tight">
                     </div>
                   </div>
                   
@@ -319,11 +291,11 @@
                     <!-- Manifest Items -->
                     <div>
                       <div class="flex items-center justify-between mb-6 px-1">
-                        <h3 class="font-bold text-brand-navy uppercase tracking-tight flex items-center gap-3 text-lg">
-                          <i data-lucide="list-checks" class="w-6 h-6 text-brand-blue"></i>
+                        <h3 class="font-bold text-[#171C8F] uppercase tracking-tight flex items-center gap-3 text-lg">
+                          <i data-lucide="list-checks" class="w-6 h-6 text-[#171C8F]"></i>
                           Manifest Processing
                         </h3>
-                        <button type="button" onclick="readAllPOItems()" class="w-10 h-10 flex items-center justify-center bg-brand-orange text-white rounded-2xl shadow-lg shadow-orange-500/20 hover:scale-110 active:scale-90 transition-all">
+                        <button type="button" onclick="readAllPOItems()" class="w-10 h-10 flex items-center justify-center bg-[#E35205] text-white rounded-2xl shadow-lg shadow-[#E35205]/20 hover:scale-110 active:scale-90 transition-all">
                             <i data-lucide="volume-2" class="w-5 h-5"></i>
                         </button>
                       </div>
@@ -331,13 +303,13 @@
                     </div>
 
                     <!-- Extra Items Section -->
-                    <div class="bg-indigo-50/20 p-6 md:p-8 rounded-4xl border border-indigo-100/50">
-                      <h3 class="font-bold text-brand-blue uppercase tracking-tight mb-6 flex items-center gap-3 text-lg">
-                        <i data-lucide="gift" class="w-6 h-6"></i>
+                    <div class="bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-200">
+                      <h3 class="font-bold text-[#171C8F] uppercase tracking-tight mb-6 flex items-center gap-3 text-lg">
+                        <i data-lucide="gift" class="w-6 h-6 text-[#E35205]"></i>
                         Extra / Bonus Stock
                       </h3>
                       <div id="r-extra-items-container" class="space-y-4 mb-6"></div>
-                      <button type="button" onclick="addExtraItemRow()" class="w-full h-20 border-2 border-dashed border-indigo-200 text-brand-gray bg-white/50 hover:bg-white hover:text-brand-blue hover:border-brand-blue/30 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-3 shadow-sm group">
+                      <button type="button" onclick="addExtraItemRow()" class="w-full h-20 border-2 border-dashed border-slate-200 text-slate-400 bg-white hover:bg-slate-50 hover:text-[#171C8F] hover:border-[#171C8F]/30 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-3 shadow-sm group">
                         <i data-lucide="plus-circle" class="w-5 h-5 group-hover:scale-125 transition-transform"></i> 
                         Append Bonus Item
                       </button>
@@ -348,22 +320,22 @@
 
                     <!-- Remarks & Receiver -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div class="bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
-                        <label class="block text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-3 ml-1 leading-none">หมายเหตุท้ายบิล (REMARKS)</label>
+                      <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 leading-none">หมายเหตุท้ายบิล (REMARKS)</label>
                         <textarea id="r-remark" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-600 min-h-[80px] resize-none" placeholder="ระบุข้อมูลที่จำเป็นสำหรับการตั้งหนี้..."></textarea>
                       </div>
-                      <div class="bg-indigo-50/20 p-6 rounded-3xl border border-indigo-100/50 shadow-inner group focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all">
-                        <label class="block text-[9px] font-bold text-brand-blue uppercase tracking-widest mb-3 ml-1 leading-none">ผู้รับสินค้า (RECEIVER) <span class="text-rose-500">*</span></label>
-                        <input type="text" id="r-receiver" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-brand-navy tracking-tight" placeholder="REQUIRED">
+                      <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm transition-all focus-within:ring-4 focus-within:ring-[#171C8F]/5">
+                        <label class="block text-[10px] font-bold text-[#171C8F] uppercase tracking-widest mb-3 ml-1 leading-none">ผู้รับสินค้า (RECEIVER) <span class="text-rose-500">*</span></label>
+                        <input type="text" id="r-receiver" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#171C8F] tracking-tight" placeholder="REQUIRED">
                       </div>
                     </div>
 
                     <!-- Action Bar -->
                     <div class="pt-10 flex flex-col md:flex-row gap-4">
-                      <button type="button" id="btn-draft" class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest bg-white text-brand-gray hover:text-brand-navy border border-slate-200 shadow-sm rounded-2xl transition-all order-2 md:order-1 flex-1 active:scale-95">
+                      <button type="button" id="btn-draft" class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest bg-white text-slate-500 hover:text-[#171C8F] border border-slate-200 shadow-sm rounded-2xl transition-all order-2 md:order-1 flex-1 active:scale-95">
                         <i data-lucide="save" class="w-4 h-4 inline mb-0.5 mr-2"></i> Save Draft
                       </button>
-                      <button type="button" id="btn-review" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-brand-orange text-white rounded-2xl shadow-xl shadow-orange-500/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-brand-orange-hover">
+                      <button type="button" id="btn-review" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-[#E35205] text-white rounded-2xl shadow-xl shadow-[#E35205]/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-[#B54104]">
                         <i data-lucide="send" class="w-5 h-5 inline mb-1 mr-2"></i> Submit for Review
                       </button>
                       <button type="button" id="btn-confirm-receive" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-emerald-500 text-white rounded-2xl shadow-xl shadow-emerald-500/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-emerald-600 hidden">
@@ -380,17 +352,17 @@
       </main>
 
       <!-- Bottom Nav (Mobile Only) -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-2 z-50">
-          <div onclick="showView('receiving-list-view')" class="bottom-nav-item active">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-200 flex items-center justify-around px-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+          <div onclick="showView('receiving-list-view')" class="bottom-nav-item active" id="mobile-nav-manifest">
               <i data-lucide="layout-grid" class="w-6 h-6"></i>
               <span>Manifest</span>
           </div>
-          <div onclick="showView('receiving-detail-view')" class="bottom-nav-item">
+          <div onclick="showView('receiving-detail-view')" class="bottom-nav-item" id="mobile-nav-process">
               <i data-lucide="file-text" class="w-6 h-6"></i>
               <span>Process</span>
           </div>
           <div onclick="openReceiving(true)" class="bottom-nav-item">
-              <div class="w-12 h-12 bg-brand-orange rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-orange-500/30 text-white border-4 border-white">
+              <div class="w-12 h-12 bg-[#E35205] rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-[#E35205]/30 text-white border-4 border-white">
                   <i data-lucide="refresh-cw" class="w-5 h-5"></i>
               </div>
           </div>
@@ -407,7 +379,7 @@
 
   <div id="data-loader" class="fixed inset-0 bg-white/80 z-[9000] hidden flex-col justify-center items-center backdrop-blur-sm">
       <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#E35205] mb-4"></div>
-      <p class="text-brand-orange font-black uppercase tracking-widest text-[10px]" id="data-loader-text">Syncing...</p>
+      <p class="text-[#E35205] font-bold uppercase tracking-widest text-[10px]" id="data-loader-text">Syncing...</p>
   </div>
   <div id="toast-container" class="toast-container"></div>
 
@@ -445,34 +417,26 @@
             UI.showLoading();
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const ssoToken  = urlParams.get('sso');
-
+                const ssoToken = urlParams.get('sso');
                 if (ssoToken) {
                     const data = await AKRA_API.login(ssoToken);
                     if (data.status === 'success') {
                         const sessionData = { name: data.user.name, id: data.user.id, roles: data.user.roles };
                         localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify(sessionData));
                         localStorage.setItem('akra_user_data', JSON.stringify(sessionData));
-                        window.currentUser = data.user.name;
-                        UI.showApp(data.user.name);
-                        AuthGuard.bindEvents();
-                        await openReceiving();
+                        
                         window.history.replaceState({}, document.title, window.location.pathname);
+                        AuthGuard.startApp(data.user);
                         return;
                     }
                 }
-
                 const cached = localStorage.getItem(APP_CONFIG.STORAGE_KEY) || localStorage.getItem('akra_user_data');
-                if (!cached) { UI.showError("กรุณาเข้าสู่ระบบผ่านหน้า Portal"); return; }
+                if (!cached) { window.location.href = APP_CONFIG.PORTAL_URL; return; }
                 let session = JSON.parse(cached);
                 const hasPermission = APP_CONFIG.REQUIRED_ROLES.length === 0 || session.roles.some(r => APP_CONFIG.REQUIRED_ROLES.includes(r));
                 if (!hasPermission) { UI.showError("คุณไม่มีสิทธิ์เข้าถึง"); return; }
-
-                window.currentUser = session.name;
-                UI.showApp(session.name);
-                AuthGuard.bindEvents();
-                await openReceiving();
                 
+                AuthGuard.startApp(session);
             } catch (error) {
                 UI.showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
             }
@@ -483,11 +447,24 @@
                 if (btn) { 
                     btn.addEventListener('click', () => { 
                         localStorage.removeItem(APP_CONFIG.STORAGE_KEY); 
-                        localStorage.removeItem('akra_user_data'); 
+                        localStorage.removeItem('akra_user_data');
                         window.location.href = APP_CONFIG.PORTAL_URL; 
                     }); 
                 }
             });
+        },
+        startApp: (user) => {
+            window.currentUser = user.name;
+            UI.showApp(user.name);
+            AuthGuard.bindEvents();
+            
+            // Initialize UI with user data
+            if (document.getElementById('display-username')) document.getElementById('display-username').innerText = user.name;
+            if (document.getElementById('user-avatar')) document.getElementById('user-avatar').innerText = user.name.substring(0, 2).toUpperCase();
+
+            initMobileMenu();
+            openReceiving();
+            lucide.createIcons();
         }
     };
     document.addEventListener('DOMContentLoaded', AuthGuard.init);
@@ -508,27 +485,41 @@
         
         // Update Sections
         document.querySelectorAll('main section').forEach(section => {
-            section.classList.add('hidden');
+            section.classList.remove('active');
         }); 
-        document.getElementById(viewId).classList.remove('hidden'); 
+        document.getElementById(viewId).classList.add('active'); 
         
         // Update Sidebar Active State
-        document.querySelectorAll('.sidebar-item').forEach(item => {
-            item.classList.remove('active');
-            if ((viewId === 'receiving-list-view' && item.title && item.title.includes('Manifest')) || 
-                (viewId === 'receiving-detail-view' && item.title && item.title.includes('Processing'))) {
-                item.classList.add('active');
+        const navManifest = document.getElementById('nav-manifest');
+        const navProcess = document.getElementById('nav-process');
+        
+        if (navManifest && navProcess) {
+            navManifest.classList.remove('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+            navManifest.classList.add('text-white/70', 'border-transparent');
+            navProcess.classList.remove('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+            navProcess.classList.add('text-white/70', 'border-transparent');
+
+            if (viewId === 'receiving-list-view') {
+                navManifest.classList.remove('text-white/70', 'border-transparent');
+                navManifest.classList.add('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+                document.getElementById('active-tab-title').innerText = 'รายการรอรับสินค้าเข้าคลัง';
+            } else {
+                navProcess.classList.remove('text-white/70', 'border-transparent');
+                navProcess.classList.add('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+                document.getElementById('active-tab-title').innerText = 'รายละเอียดการรับสินค้า';
             }
-        });
+        }
 
         // Update Bottom Nav Active State
         document.querySelectorAll('.bottom-nav-item').forEach(item => {
-            item.classList.remove('active');
+            item.classList.remove('active', 'text-[#E35205]');
+            item.classList.add('text-slate-400');
             const span = item.querySelector('span');
             if (span) {
                 if ((viewId === 'receiving-list-view' && span.innerText === 'Manifest') || 
                     (viewId === 'receiving-detail-view' && span.innerText === 'Process')) {
-                    item.classList.add('active');
+                    item.classList.add('active', 'text-[#E35205]');
+                    item.classList.remove('text-slate-400');
                 }
             }
         });
@@ -537,15 +528,16 @@
     }
 
     function getWarehouseBadge(warehouse) {
+        const base = "text-[10px] font-bold px-2.5 py-1 rounded-md border shadow-sm uppercase tracking-wider";
         switch(warehouse) {
-            case 'W1': return `<span class="badge-base bg-white text-slate-500 border border-slate-100 shadow-sm uppercase tracking-[0.2em] italic">W1 WHITE</span>`;
-            case 'W2': return `<span class="badge-base bg-brand-orange text-white shadow-lg shadow-orange-500/20 uppercase tracking-[0.2em] italic">W2 ORANGE</span>`;
-            case 'W3': return `<span class="badge-base bg-amber-400 text-amber-900 shadow-lg shadow-amber-400/20 uppercase tracking-[0.2em] italic">W3 YELLOW</span>`;
-            case 'W4': return `<span class="badge-base bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 uppercase tracking-[0.2em] italic">W4 GREEN</span>`;
-            case 'W5': return `<span class="badge-base bg-slate-500 text-white shadow-lg shadow-slate-500/20 uppercase tracking-[0.2em] italic">W5 GRAY</span>`;
-            case 'C1': return `<span class="badge-base bg-sky-400 text-white shadow-lg shadow-sky-400/20 uppercase tracking-[0.2em] italic">C1 SKY</span>`;
-            case 'C2': return `<span class="badge-base bg-brand-blue text-white shadow-lg shadow-blue-500/20 uppercase tracking-[0.2em] italic">C2 DEEP</span>`;
-            default: return `<span class="badge-base bg-gray-200 text-gray-700 shadow-sm uppercase tracking-[0.2em] italic">${warehouse} HUB</span>`;
+            case 'W1': return `<span class="${base} bg-white text-slate-500 border-slate-200">W1 WHITE</span>`;
+            case 'W2': return `<span class="${base} bg-[#E35205] text-white border-[#E35205] shadow-[#E35205]/20">W2 ORANGE</span>`;
+            case 'W3': return `<span class="${base} bg-amber-400 text-amber-900 border-amber-500 shadow-amber-400/20">W3 YELLOW</span>`;
+            case 'W4': return `<span class="${base} bg-emerald-500 text-white border-emerald-600 shadow-emerald-500/20">W4 GREEN</span>`;
+            case 'W5': return `<span class="${base} bg-slate-500 text-white border-slate-600 shadow-slate-500/20">W5 GRAY</span>`;
+            case 'C1': return `<span class="${base} bg-sky-400 text-white border-sky-500 shadow-sky-400/20">C1 SKY</span>`;
+            case 'C2': return `<span class="${base} bg-[#171C8F] text-white border-[#171C8F] shadow-[#171C8F]/20">C2 DEEP</span>`;
+            default: return `<span class="${base} bg-slate-100 text-slate-600 border-slate-200">${warehouse} HUB</span>`;
         }
     }
 
@@ -630,60 +622,60 @@
         displayGroups.forEach(group => {
             const idx = groupedPOs.indexOf(group);
             const hasOverdue = group.items.some(i => i.displayStatus === 'Overdue'); 
-            const isDraft = g.items.some(i => i.status === 'Draft GR');
-            const isPendingReview = g.items.some(i => i.status === 'Pending Review');
+            const isDraft = group.items.some(i => i.status === 'Draft GR');
+            const isPendingReview = group.items.some(i => i.status === 'Pending Review');
 
-            let cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-slate-200 group relative overflow-hidden animate-fade-in";
-            let statusBadge = `<span class="badge-base bg-slate-50 text-brand-gray border border-slate-100">AWAITING</span>`;
+            let cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-slate-200 group relative overflow-hidden animate-fade-in transition-all";
+            let statusBadge = `<span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded border border-slate-100">AWAITING</span>`;
             
             if (hasOverdue && !isPendingReview) {
-                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-rose-500 bg-rose-50/10 group relative overflow-hidden animate-fade-in";
-                statusBadge = `<span class="badge-base bg-white text-rose-500 border border-rose-100 shadow-sm font-bold"><i data-lucide="alert-triangle" class="w-3 h-3"></i> OVERDUE</span>`;
+                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-rose-500 bg-rose-50/5 group relative overflow-hidden animate-fade-in transition-all";
+                statusBadge = `<span class="text-[10px] font-bold text-rose-500 bg-white px-2 py-1 rounded border border-rose-100 shadow-sm flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> OVERDUE</span>`;
             } else if (isPendingReview) {
-                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-brand-orange bg-orange-50/10 group relative overflow-hidden animate-fade-in";
-                statusBadge = `<span class="badge-base bg-white text-brand-orange border border-orange-100 shadow-sm font-bold"><i data-lucide="send" class="w-3 h-3"></i> REVIEWING</span>`;
+                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-[#E35205] bg-[#E35205]/5 group relative overflow-hidden animate-fade-in transition-all";
+                statusBadge = `<span class="text-[10px] font-bold text-[#E35205] bg-white px-2 py-1 rounded border border-[#E35205]/10 shadow-sm flex items-center gap-1"><i data-lucide="send" class="w-3 h-3"></i> REVIEWING</span>`;
             } else if (isDraft) {
-                cardClass = "glass-card p-6 flex flex-col h-[380px] cursor-pointer border-t-8 border-t-brand-blue bg-brand-blue/5 group relative overflow-hidden animate-fade-in";
-                statusBadge = `<span class="badge-base bg-white text-brand-blue border border-brand-blue/10 shadow-sm font-bold"><i data-lucide="save" class="w-3 h-3"></i> DRAFTING</span>`;
+                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-[#171C8F] bg-[#171C8F]/5 group relative overflow-hidden animate-fade-in transition-all";
+                statusBadge = `<span class="text-[10px] font-bold text-[#171C8F] bg-white px-2 py-1 rounded border border-[#171C8F]/10 shadow-sm flex items-center gap-1"><i data-lucide="save" class="w-3 h-3"></i> DRAFTING</span>`;
             }
             
-            let productsHtml = '<div class="space-y-3 mt-6 flex-1 overflow-hidden">';
+            let productsHtml = '<div class="space-y-2.5 mt-5 flex-1 overflow-hidden">';
             group.items.slice(0,4).forEach((item, i) => {
                 productsHtml += `
-                  <div class="flex items-start gap-3">
-                    <span class="text-[10px] font-bold text-brand-gray/40 mt-0.5">0${i+1}</span>
-                    <p class="font-bold text-brand-navy text-xs leading-tight line-clamp-2">${item.product}</p>
+                  <div class="flex items-start gap-2.5">
+                    <span class="text-[10px] font-bold text-slate-300 mt-0.5">${i+1}.</span>
+                    <p class="font-bold text-[#2B3674] text-xs leading-tight line-clamp-2 uppercase">${item.product}</p>
                   </div>`;
             });
-            if(group.items.length > 4) productsHtml += `<p class="text-[9px] font-bold text-brand-orange mt-3 uppercase tracking-widest ml-7">+ ${group.items.length - 4} More SKUs</p>`;
+            if(group.items.length > 4) productsHtml += `<p class="text-[9px] font-bold text-[#E35205] mt-2 uppercase tracking-widest ml-5">+ ${group.items.length - 4} More SKUs</p>`;
             productsHtml += '</div>';
 
             htmlStr += `
             <div class="${cardClass}" onclick="openReceivingDetail(${idx})">
-                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <i data-lucide="package" class="w-24 h-24"></i>
+                <div class="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <i data-lucide="package" class="w-20 h-20"></i>
                 </div>
                 
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex flex-col gap-1.5">
-                      <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest leading-none">Reference No.</span>
-                      <span class="text-xl font-bold text-brand-blue uppercase tracking-tight leading-none">${group.poNumber || 'UNLINKED'}</span>
+                <div class="flex justify-between items-start mb-5 pb-4 border-b border-slate-50">
+                    <div class="flex flex-col">
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Reference No.</span>
+                      <span class="text-lg font-bold text-[#171C8F] uppercase tracking-tight">${group.poNumber || 'UNLINKED'}</span>
                     </div>
                     ${statusBadge}
                 </div>
 
                 ${productsHtml}
 
-                <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-4">
+                <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-3.5">
                     <div class="flex items-center justify-between">
-                        <div class="flex flex-col gap-1">
-                            <p class="font-bold text-brand-navy text-[11px] uppercase truncate max-w-[150px]">${group.vendor}</p>
-                            <p class="text-[9px] font-bold text-brand-gray uppercase leading-none">${group.poDate}</p>
+                        <div class="flex flex-col">
+                            <p class="font-bold text-[#2B3674] text-[11px] uppercase truncate max-w-[150px]">${group.vendor}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">${group.poDate}</p>
                         </div>
                         ${getWarehouseBadge(group.warehouse)}
                     </div>
                     
-                    <div class="w-full py-3 bg-slate-50 rounded-xl flex items-center justify-center text-[10px] font-bold text-brand-gray uppercase tracking-widest group-hover:bg-brand-orange group-hover:text-white transition-all">
+                    <div class="w-full py-2.5 bg-slate-50 rounded-xl flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:bg-[#E35205] group-hover:text-white transition-all shadow-sm">
                        Process Manifest
                     </div>
                 </div>
@@ -786,48 +778,49 @@
         group.items.forEach((item, i) => {
             const isSavedData = item.status === 'Draft GR' || item.status === 'Pending Review';
             htmlStr += `
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm po-item-row hover:border-brand-orange/30 transition-all animate-fade-in group" data-pouid="${item.poUid}">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-8 border-b border-slate-50">
-                    <div class="flex items-start gap-5 flex-1">
-                      <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-brand-blue text-xl shadow-inner border border-white shrink-0">0${i+1}</div>
-                      <div class="flex flex-col gap-2">
-                        <span class="font-bold text-brand-navy text-lg tracking-tight leading-tight uppercase line-clamp-2">${item.product}</span>
-                        <div class="flex items-center gap-4">
-                          <span class="text-[10px] font-bold text-brand-gray uppercase tracking-widest">Target Manifest SKU</span>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm po-item-row hover:border-[#E35205]/30 transition-all animate-fade-in group" data-pouid="${item.poUid}">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 pb-5 border-b border-slate-50">
+                    <div class="flex items-start gap-4 flex-1">
+                      <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center font-bold text-[#171C8F] text-lg shadow-inner border border-white shrink-0">${i+1}</div>
+                      <div class="flex flex-col gap-1 overflow-hidden">
+                        <span class="font-bold text-[#2B3674] text-base tracking-tight leading-tight uppercase truncate">${item.product}</span>
+                        <div class="flex items-center gap-3">
+                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Target SKU: ${item.sku || '-'}</span>
                           <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
-                          <span class="text-[10px] font-bold text-brand-blue uppercase tracking-widest">${item.unit || 'UNIT'}</span>
+                          <span class="text-[9px] font-bold text-[#171C8F] uppercase tracking-widest">${item.unit || 'UNIT'}</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div class="flex items-center gap-4 shrink-0">
-                      <div class="bg-brand-blue/5 px-5 py-3 rounded-2xl border border-brand-blue/5 shadow-inner text-right min-w-[100px]">
-                        <p class="text-[9px] font-bold text-brand-blue/50 uppercase tracking-widest leading-none mb-2">PO DEMAND</p>
-                        <p class="text-xl font-bold text-brand-blue tracking-tight leading-none">${item.quantity} <span class="text-[10px] uppercase font-bold opacity-50 ml-1">${item.unit || ''}</span></p>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-right min-w-[90px]">
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">PO DEMAND</p>
+                        <p class="text-lg font-bold text-[#171C8F] tracking-tight leading-none">${item.quantity} <span class="text-[9px] uppercase font-bold opacity-50 ml-1">${item.unit || ''}</span></p>
                       </div>
-                      <button type="button" data-text="${item.product} จำนวน ${item.quantity} ${item.unit || ''}" onclick="speakText(this.dataset.text)" class="w-14 h-14 flex items-center justify-center bg-orange-50 text-brand-orange hover:bg-brand-orange hover:text-white rounded-2xl transition-all shadow-lg shadow-orange-500/10 active:scale-90 border border-orange-100 group-hover:scale-105">
-                          <i data-lucide="volume-2" class="w-6 h-6"></i>
+                      <button type="button" data-text="${item.product} จำนวน ${item.quantity} ${item.unit || ''}" onclick="speakText(this.dataset.text)" class="w-12 h-12 flex items-center justify-center bg-orange-50 text-[#E35205] hover:bg-[#E35205] hover:text-white rounded-xl transition-all shadow-sm active:scale-95 border border-[#E35205]/10">
+                          <i data-lucide="volume-2" class="w-5 h-5"></i>
                       </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50 shadow-inner group-focus-within:border-brand-orange transition-all">
-                      <label class="block text-[10px] font-bold text-brand-orange uppercase tracking-widest mb-2 ml-1 leading-none">Received Qty</label>
-                      <input type="number" class="w-full bg-transparent border-none outline-none text-2xl font-bold text-brand-orange tracking-tight placeholder:text-brand-orange/20" placeholder="0" value="${isSavedData ? (item.grQty||'') : ''}">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-orange-50/30 p-3 rounded-xl border border-orange-100/50 shadow-inner transition-all focus-within:border-[#E35205]">
+                      <label class="block text-[9px] font-bold text-[#E35205] uppercase tracking-widest mb-1 leading-none">Received Qty</label>
+                      <input type="number" class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#E35205] tracking-tight placeholder:text-[#E35205]/20" placeholder="0" value="${isSavedData ? (item.grQty||'') : ''}">
                     </div>
-                    <div class="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col justify-center opacity-60">
-                      <label class="block text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-2 ml-1 leading-none">Unit Measure</label>
-                      <input type="text" class="bg-transparent border-none outline-none text-xs font-bold text-brand-gray uppercase ml-1" value="${item.unit || '-'}" readonly tabindex="-1">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center opacity-60">
+                      <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Unit Measure</label>
+                      <input type="text" class="bg-transparent border-none outline-none text-[10px] font-bold text-slate-500 uppercase" value="${item.unit || '-'}" readonly tabindex="-1">
                     </div>
-                    <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all">
-                      <label class="block text-[10px] font-bold text-brand-gray uppercase tracking-widest mb-2 ml-1 leading-none">Expiry (EXP)</label>
-                      <input type="text" class="w-full bg-transparent border-none outline-none text-base font-bold text-brand-navy tracking-widest placeholder:text-slate-200 placeholder:font-medium" placeholder="DD/MM/YYYY" value="${isSavedData ? (item.exp||'') : ''}">
+                    <div class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-all">
+                      <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Expiry (EXP)</label>
+                      <input type="text" class="w-full bg-transparent border-none outline-none text-sm font-bold text-[#2B3674] tracking-widest placeholder:text-slate-200" placeholder="DD/MM/YYYY" value="${isSavedData ? (item.exp||'') : ''}">
                     </div>
-                    <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-brand-blue/5">
-                      <label class="block text-[10px] font-bold text-brand-blue uppercase tracking-widest mb-2 ml-1 leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
-                      <input type="text" class="w-full bg-transparent border-none outline-none text-base font-bold text-brand-blue uppercase tracking-widest placeholder:text-slate-200" placeholder="LOC-X-01" value="${isSavedData ? (item.locIn||'') : ''}">
+                    <div class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-[#171C8F]/5">
+                      <label class="block text-[9px] font-bold text-[#171C8F] uppercase tracking-widest mb-1 leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
+                      <input type="text" class="w-full bg-transparent border-none outline-none text-sm font-bold text-[#171C8F] uppercase tracking-widest placeholder:text-slate-200" placeholder="LOC-X-01" value="${isSavedData ? (item.locIn||'') : ''}">
                     </div>
+                    <input type="hidden" value="${item.oldStock || '0'}">
                 </div>
             </div>`;
         });

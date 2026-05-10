@@ -18,29 +18,62 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+    
     :root {
+      /* CI Colors */
       --brand-blue: #171C8F;
       --brand-blue-hover: #11146B;
       --brand-orange: #E35205;
-      --sidebar-width: clamp(72px, 8vw, 76px);
-      --header-height: 4rem;
-      --bg-main: #f4f7fe;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --card-radius: 1.5rem;
+      
+      /* Theme Variables */
+      --bg-main: #F4F7FE;
+      --card-radius: 1.25rem;
       --border-color: #E9EDF7;
-      --fluid-8xl: clamp(2.5rem, 6vw, 4.5rem);
+      
+      /* PR Specific Layout */
+      --sidebar-width: 64px; /* Standardized small width, will adjust to w-64 in Task 2 if expanded is needed, but plan says w-64 style */
+      --header-height: 4rem;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
-    body { font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #2B3674; overflow: hidden; letter-spacing: -0.01em; touch-action: manipulation; }
+
+    body { 
+      font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; 
+      background-color: var(--bg-main);
+      color: #2B3674;
+      letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+    }
+    
+    /* 🎬 Animations */
+    .view-section { display: none; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .view-section.active { display: block; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 📜 Custom Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+
+    /* 🎴 Components */
+    .glass-card { background: white; border-radius: var(--card-radius); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+    .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+    
+    .input-ci { background: #F4F7FE; border: 1px solid var(--border-color); border-radius: 0.875rem; padding: 10px 14px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none; width: 100%; }
+    .input-ci:focus { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); background: white; }
+    .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important; background-color: #fef2f2 !important; }
     
     /* Premium Sidebar (Desktop Only) */
-    .sidebar { width: var(--sidebar-width); background: white; transition: all 0.3s ease; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+    .sidebar { width: var(--sidebar-width); background: var(--brand-blue); transition: all 0.3s ease; flex-shrink: 0; z-index: 60; }
     @media (max-width: 1024px) { .sidebar { display: none; } }
     
-    .nav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 1rem 0; color: #A3AED0; transition: all 0.2s ease; cursor: pointer; position: relative; }
-    .nav-link.active { color: var(--brand-blue); }
-    .nav-link.active::after { content: ''; position: absolute; right: 0; top: 20%; bottom: 20%; width: 4px; background: var(--brand-blue); border-radius: 4px 0 0 4px; }
-    .nav-link i, .nav-link svg { font-size: 1.2rem; width: 1.2rem; height: 1.2rem; }
-    .nav-link span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; padding: 1.25rem 0; color: rgba(255,255,255,0.6); transition: all 0.2s ease; cursor: pointer; position: relative; }
+    .nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
+    .nav-link.active { color: var(--brand-orange); background: rgba(255,255,255,0.1); font-weight: 700; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    .nav-link.active i, .nav-link.active svg { color: var(--brand-orange); }
+    .nav-link i, .nav-link svg { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+    .nav-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
     /* Mobile Bottom Nav */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding-bottom: var(--safe-bottom); z-index: 100; box-shadow: 0 -10px 25px rgba(0,0,0,0.03); }
@@ -50,32 +83,15 @@
     .mobile-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     @media (min-width: 1025px) { .bottom-nav { display: none; } }
 
-    .glass-card { background: white; border-radius: var(--card-radius); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid var(--border-color); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .glass-card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); transform: translateY(-1.5px); }
-    
-    .input-field { width: 100%; padding: 8px 12px; border-radius: 0.75rem; border: 1px solid var(--border-color); background: #f4f7fe; outline: none; transition: all 0.2s; font-size: 13px; font-weight: 500; height: 2.75rem; }
-    .input-field:focus { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); background: white;}
-    .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important; background-color: #fef2f2 !important; }
-    
-    .btn-action { background: #2B3674; color: white; border-radius: 1.25rem; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(43, 54, 116, 0.12); cursor: pointer; min-height: 48px; display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 100%; }
-    .btn-action:active { transform: scale(0.96); opacity: 0.9; }
+    .btn-action { background: var(--brand-blue); color: white; border-radius: 1rem; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(23, 28, 143, 0.12); cursor: pointer; min-height: 48px; display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: 100%; border: none; }
+    .btn-action:hover { background: var(--brand-blue-hover); transform: translateY(-1px); box-shadow: 0 12px 24px rgba(23, 28, 143, 0.15); }
+    .btn-action:active { transform: scale(0.98); }
     .btn-action:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 10000; display: flex; flex-direction: column; gap: 0.75rem; }
     .toast { min-width: 280px; max-width: 380px; padding: 1rem; border-radius: 1rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.875rem; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; background: white; border: 1px solid var(--border-color); }
-    .toast.closing { animation: slideOutRight 0.3s ease-in forwards; }
-    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
     
-    .loading-active { overflow: hidden; }
-    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
-    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
-    
-    .suggestion-box { box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .suggestion-box { box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 1rem; overflow: hidden; }
   </style>
 </head>
 <body class="antialiased h-screen flex">
@@ -94,75 +110,85 @@
       </div>
   </div>
 
-  <!-- Main Sidebar (Desktop Only) -->
-  <aside id="main-sidebar" class="sidebar flex flex-col h-full z-50">
-      <div class="p-6 flex justify-center">
-          <div class="w-12 h-12 bg-[#171C8F] rounded-2xl flex items-center justify-center shadow-lg text-white font-black text-xl italic">A</div>
-      </div>
-      <nav class="flex-1 mt-6">
-          <div onclick="switchTab('submit-pr')" id="nav-submit-pr" class="nav-link active">
-              <i data-lucide="file-plus"></i>
-              <span>ขอซื้อ</span>
+  <!-- 📱 Sidebar Overlay (For Mobile) -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
+
+  <!-- Main Sidebar (Desktop & Mobile Drawer) -->
+  <aside id="main-sidebar" class="sidebar fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
+      
+      <!-- Mobile Close Button -->
+      <button id="close-sidebar-btn" class="md:hidden absolute top-5 right-4 p-2 bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="p-6 flex items-center space-x-3">
+          <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
+              <i data-lucide="shopping-cart" class="text-white w-5 h-5"></i>
           </div>
-          <div onclick="switchTab('history')" id="nav-history" class="nav-link">
-              <i data-lucide="history"></i>
-              <span>ประวัติ</span>
+          <div>
+              <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA Pro</h1>
+              <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Purchase Request</p>
+          </div>
+      </div>
+      
+      <nav class="flex-1 px-4 py-4 space-y-1">
+          <div onclick="switchTab('submit-pr')" id="nav-submit-pr" class="nav-link active flex flex-row items-center !justify-start px-4 py-3 rounded-xl gap-3">
+              <i data-lucide="file-plus" class="w-5 h-5"></i>
+              <span class="text-sm font-medium">ส่งคำขอซื้อ</span>
+          </div>
+          <div onclick="switchTab('history')" id="nav-history" class="nav-link flex flex-row items-center !justify-start px-4 py-3 rounded-xl gap-3">
+              <i data-lucide="history" class="w-5 h-5"></i>
+              <span class="text-sm font-medium">ประวัติคำขอ</span>
           </div>
       </nav>
-      <div class="p-8 flex flex-col items-center gap-6">
-          <button id="logout-btn-desktop" class="text-rose-300 hover:text-rose-600 transition-colors"><i data-lucide="power"></i></button>
+
+      <div class="p-5 border-t border-white/10 mt-auto bg-[#171C8F]">
+          <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+              <div id="user-avatar-desktop" class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">PR</div>
+              <div class="flex-1 overflow-hidden">
+                  <p class="text-xs font-bold text-white truncate" id="display-username-sidebar">Requester</p>
+                  <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>Online</p>
+              </div>
+              <button id="logout-btn-desktop" class="text-white/40 hover:text-rose-400 transition-colors">
+                  <i data-lucide="power" class="w-4 h-4"></i>
+              </button>
+          </div>
       </div>
   </aside>
-
-  <!-- Mobile Bottom Navigation -->
-  <nav class="bottom-nav">
-      <div onclick="switchTab('submit-pr')" id="mob-submit-pr" class="mobile-link active">
-          <i data-lucide="file-plus"></i>
-          <span>ขอซื้อ</span>
-      </div>
-      <div onclick="switchTab('history')" id="mob-history" class="mobile-link">
-          <i data-lucide="history"></i>
-          <span>ประวัติ</span>
-      </div>
-      <div id="logout-btn-mobile" class="mobile-link text-rose-300">
-          <i data-lucide="power"></i>
-          <span>ออก</span>
-      </div>
-  </nav>
 
   <!-- App Content -->
   <div id="app-content" class="hidden flex flex-1 h-screen w-full overflow-hidden">
       <main class="flex-1 h-full flex flex-col overflow-hidden relative">
           
           <!-- Optimized Top Bar -->
-          <header class="h-14 md:h-16 flex items-center justify-between px-6 md:px-10 bg-[#F4F7FE]/80 backdrop-blur-xl sticky top-0 z-30">
-              <div class="flex items-center gap-3">
-                  <div class="hidden sm:block">
-                      <p class="text-xs font-bold text-[#707EAE] uppercase tracking-wider mb-0.5">ระบบจัดซื้อสินค้า</p>
-                      <h2 class="text-base md:text-lg font-bold text-[#2B3674] tracking-tight" id="page-title">แบบฟอร์มขอซื้อ (PR)</h2>
-                  </div>
-                  <div class="sm:hidden">
-                      <h2 class="text-base font-bold text-[#2B3674] tracking-tight" id="page-title-mobile">แบบฟอร์มขอซื้อ (PR)</h2>
-                      <p id="header-branch-name-mobile" class="text-xs font-bold text-[#A3AED0] uppercase leading-none mt-1">PR Portal</p>
+          <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
+              <div class="flex items-center gap-3 w-3/4">
+                  <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
+                      <i data-lucide="menu" class="w-6 h-6"></i>
+                  </button>
+                  <div>
+                      <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate" id="page-title">แบบฟอร์มขอซื้อ (PR)</h2>
+                      <p id="header-subtitle" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">Purchase Request System</p>
                   </div>
               </div>
 
-              <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-3 bg-white p-1.5 rounded-full shadow-sm border border-white/50 pr-4">
-                      <div class="flex flex-col items-end hidden sm:flex">
-                          <p id="display-username" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
-                          <p class="text-[8px] font-bold text-[#A3AED0] uppercase tracking-widest leading-none">PR requester</p>
+              <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
+                  <button onclick="loadInitialData(true)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+                  <div class="flex items-center gap-3 bg-slate-50 p-1.5 rounded-full border border-slate-200 pr-4 ml-2">
+                      <div class="w-8 h-8 bg-[#171C8F] rounded-full flex items-center justify-center text-white text-xs font-bold uppercase" id="user-initials">PR</div>
+                      <div class="flex flex-col hidden sm:flex">
+                          <p id="display-username" class="text-[11px] font-bold text-[#171C8F] leading-none mb-0.5">...</p>
+                          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none">Requester</p>
                       </div>
-                      <div class="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center shadow-inner border border-white text-[#2B3674] text-xs font-bold uppercase" id="user-initials">PR</div>
                   </div>
               </div>
           </header>
 
           <!-- Scrollable Viewport -->
-          <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 pb-24 md:pb-12">
+          <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 pb-12">
               
               <!-- [VIEW] SUBMIT PR -->
-              <section id="view-submit-pr" class="fade-in max-w-4xl mx-auto block">
+              <section id="view-submit-pr" class="view-section active max-w-4xl mx-auto">
                 <div class="mb-8 text-center sm:text-left">
                     <h2 class="text-2xl font-bold text-[#2B3674] tracking-tight uppercase">ส่งคำขอสั่งซื้อสินค้า</h2>
                     <p class="text-[10px] font-bold text-[#A3AED0] uppercase tracking-wider mt-1 ml-0.5">ข้อมูลจะถูกส่งไปยังฝ่ายจัดซื้อเพื่อพิจารณา</p>
@@ -172,12 +198,12 @@
                   <form id="form-pr" onsubmit="submitPR(event)" novalidate>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-indigo-50">
                       <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">ชื่อผู้ขอซื้อ</label>
-                        <input type="text" id="pr-requester" required class="input-field bg-[#f4f7fe] cursor-not-allowed opacity-70" readonly>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">ชื่อผู้ขอซื้อ</label>
+                        <input type="text" id="pr-requester" required class="input-ci bg-[#f4f7fe] cursor-not-allowed opacity-70" readonly>
                       </div>
                       <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">สาขาที่ต้องการ <span class="text-rose-500">*</span></label>
-                        <select id="pr-warehouse" required class="input-field text-brand-blue font-bold appearance-none">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">สาขาที่ต้องการ <span class="text-rose-500">*</span></label>
+                        <select id="pr-warehouse" required class="input-ci text-brand-blue font-bold appearance-none">
                           <option value="" disabled selected>เลือกสาขา/คลังสินค้า...</option>
                           <option value="W1">W1 (สีขาว)</option><option value="W2">W2 (สีส้ม)</option>
                           <option value="W3">W3 (สีเหลือง)</option><option value="W4">W4 (สีเขียว)</option>
@@ -187,18 +213,18 @@
                     </div>
                     
                     <div class="mb-4 flex justify-between items-end px-1">
-                      <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-wider">รายการสินค้าที่ต้องการ</h3>
+                      <h3 class="text-xs font-bold text-[#2B3674] uppercase tracking-widest">รายการสินค้าที่ต้องการ</h3>
                       <span class="text-[10px] font-bold text-brand-blue bg-[#f4f7fe] px-3 py-1.5 rounded-xl border border-indigo-50 shadow-sm" id="pr-total-items">1 รายการ</span>
                     </div>
                     
                     <div id="pr-items-container" class="space-y-4"></div>
                     
-                    <button type="button" onclick="addEmptyItemRow()" class="mt-6 w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-brand-blue hover:border-brand-blue/50 hover:bg-[#f4f7fe] py-4 rounded-2xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
+                    <button type="button" onclick="addEmptyItemRow()" class="mt-6 w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-brand-blue hover:border-brand-blue/50 hover:bg-[#f4f7fe] py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95">
                       <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มรายการสินค้า
                     </button>
 
                     <div class="mt-10 pt-6 border-t border-indigo-50">
-                      <button type="submit" id="btn-submit-pr" class="btn-action text-base font-bold py-4 tracking-wide">
+                      <button type="submit" id="btn-submit-pr" class="btn-action text-base font-bold py-4 tracking-widest">
                         <i data-lucide="check-circle" class="w-5 h-5"></i> ส่งคำขอสั่งซื้อ (SUBMIT PR)
                       </button>
                     </div>
@@ -207,7 +233,7 @@
               </section>
 
               <!-- [VIEW] HISTORY -->
-              <section id="view-history" class="hidden fade-in max-w-4xl mx-auto">
+              <section id="view-history" class="view-section max-w-4xl mx-auto">
                 <div class="mb-6 flex justify-between items-center px-1">
                     <div>
                         <h2 class="text-xl font-bold text-[#2B3674] tracking-tight flex items-center gap-2 uppercase">
@@ -249,37 +275,73 @@
         showApp: (user) => { 
             document.getElementById('auth-loading').classList.add('hidden'); 
             document.getElementById('app-content').classList.remove('hidden'); 
-            document.getElementById('display-username').innerText = user.name; 
+            
+            // Populate User info
+            const nameEl = document.getElementById('display-username');
+            const sidebarNameEl = document.getElementById('display-username-sidebar');
+            if(nameEl) nameEl.innerText = user.name;
+            if(sidebarNameEl) sidebarNameEl.innerText = user.name;
+            
             document.getElementById('pr-requester').value = user.name;
             
             // Set initials
             const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('user-initials').innerText = initials || 'PR';
+            const initialsEl = document.getElementById('user-initials');
+            const avatarEl = document.getElementById('user-avatar-desktop');
+            if(initialsEl) initialsEl.innerText = initials || 'PR';
+            if(avatarEl) avatarEl.innerText = initials || 'PR';
             
+            initMobileMenu();
             lucide.createIcons();
         }
     };
 
+    function initMobileMenu() {
+        const sidebar = document.getElementById('main-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const closeBtn = document.getElementById('close-sidebar-btn');
+
+        function toggleSidebar() {
+            const isOpen = sidebar.classList.contains('translate-x-0');
+            if (isOpen) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        if(menuBtn) menuBtn.onclick = toggleSidebar;
+        if(closeBtn) closeBtn.onclick = toggleSidebar;
+        if(overlay) overlay.onclick = toggleSidebar;
+        
+        window.closeMobileSidebar = () => {
+            if(window.innerWidth < 768 && sidebar.classList.contains('translate-x-0')) toggleSidebar();
+        };
+    }
+
     function switchTab(tab) {
+        if(window.closeMobileSidebar) window.closeMobileSidebar();
         ['submit-pr', 'history'].forEach(t => {
             const view = document.getElementById('view-' + t);
             const nav = document.getElementById('nav-' + t);
-            const mob = document.getElementById('mob-' + t);
-            if (view) view.classList.add('hidden');
+            if (view) { view.classList.remove('active'); view.classList.add('hidden'); }
             if (nav) nav.classList.remove('active');
-            if (mob) mob.classList.remove('active');
         });
         
         const targetView = document.getElementById('view-' + tab);
         const targetNav = document.getElementById('nav-' + tab);
-        const targetMob = document.getElementById('mob-' + tab);
-        if (targetView) targetView.classList.remove('hidden');
+        if (targetView) { targetView.classList.remove('hidden'); targetView.classList.add('active'); }
         if (targetNav) targetNav.classList.add('active');
-        if (targetMob) targetMob.classList.add('active');
         
         const titles = { 'submit-pr': 'แบบฟอร์มขอซื้อ (PR)', 'history': 'ประวัติคำขอสั่งซื้อ' };
         document.getElementById('page-title').innerText = titles[tab];
-        document.getElementById('page-title-mobile').innerText = titles[tab];
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
         if (tab === 'history') loadInitialData(true);
@@ -324,8 +386,8 @@
         },
         bindEvents: () => {
             const logout = () => { localStorage.removeItem(APP_CONFIG.STORAGE_KEY); localStorage.removeItem('akra_user_data'); window.location.href = APP_CONFIG.PORTAL_URL; };
-            document.getElementById('logout-btn-desktop').onclick = logout;
-            document.getElementById('logout-btn-mobile').onclick = logout;
+            const logoutBtn = document.getElementById('logout-btn-desktop');
+            if(logoutBtn) logoutBtn.onclick = logout;
         }
     };
     document.addEventListener('DOMContentLoaded', AuthGuard.init);
@@ -424,7 +486,7 @@
         const container = document.getElementById('pr-history-container');
         if(!container) return;
         if (!history || history.length === 0) {
-            container.innerHTML = '<div class="bg-white p-12 rounded-[2rem] border-2 border-dashed border-slate-100 text-center text-slate-300 text-xs font-bold uppercase tracking-widest italic">ยังไม่มีประวัติการส่งคำขอสั่งซื้อ</div>';
+            container.innerHTML = '<div class="bg-white p-12 rounded-3xl border-2 border-dashed border-slate-100 text-center text-slate-300 text-xs font-bold uppercase tracking-widest">ยังไม่มีประวัติการส่งคำขอสั่งซื้อ</div>';
             return;
         }
 
@@ -439,24 +501,24 @@
         let htmlStr = '';
         historyArray.forEach(h => {
             let statusBadge = '';
-            if(h.status === 'Pending') statusBadge = '<span class="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="clock" class="w-3 h-3 inline mb-0.5"></i> รอพิจารณา</span>';
-            else if(h.status === 'Approved') statusBadge = '<span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="check-circle" class="w-3 h-3 inline mb-0.5"></i> อนุมัติแล้ว</span>';
-            else if(h.status === 'Rejected') statusBadge = '<span class="text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-100 px-3 py-1 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="x-circle" class="w-3 h-3 inline mb-0.5"></i> ไม่อนุมัติ</span>';
-            else statusBadge = `<span class="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-xl shadow-sm uppercase tracking-tighter">${h.status}</span>`;
+            if(h.status === 'Pending') statusBadge = '<span class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="clock" class="w-3.5 h-3.5 inline mb-0.5"></i> รอพิจารณา</span>';
+            else if(h.status === 'Approved') statusBadge = '<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="check-circle" class="w-3.5 h-3.5 inline mb-0.5"></i> อนุมัติแล้ว</span>';
+            else if(h.status === 'Rejected') statusBadge = '<span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl shadow-sm uppercase tracking-tighter"><i data-lucide="x-circle" class="w-3.5 h-3.5 inline mb-0.5"></i> ไม่อนุมัติ</span>';
+            else statusBadge = `<span class="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl shadow-sm uppercase tracking-tighter">${h.status}</span>`;
 
             const itemsListHtml = h.items.map((item, i) => `
-                <div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-50 last:border-0 group">
+                <div class="flex justify-between items-center text-xs py-2 border-b border-slate-50 last:border-0 group">
                     <span class="text-slate-600 font-bold group-hover:text-brand-blue transition-colors">${i+1}. ${item.product}</span>
                     <span class="text-brand-blue font-bold tracking-tight">${item.quantity} <span class="text-[10px] font-bold text-slate-400 uppercase">${item.unit || ''}</span></span>
                 </div>
             `).join('');
 
             htmlStr += `
-            <div class="glass-card p-5 md:p-6 flex flex-col gap-4 animate-fade-in group">
+            <div class="glass-card p-5 md:p-6 flex flex-col gap-4 animate-in fade-in duration-500 group">
                 <div class="flex justify-between items-start">
                     <div class="flex flex-col gap-1.5">
-                        <span class="text-[9px] font-bold text-brand-blue bg-[#f4f7fe] px-2.5 py-1 rounded-lg border border-indigo-50 shadow-inner w-fit uppercase tracking-widest">${h.prNumber || 'DRAFT-PR'}</span>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter"><i data-lucide="calendar" class="w-3 h-3 inline mb-0.5 opacity-50"></i> ${h.date}</span>
+                        <span class="text-[10px] font-bold text-brand-blue bg-[#f4f7fe] px-2.5 py-1 rounded-lg border border-indigo-50 shadow-inner w-fit uppercase tracking-widest">${h.prNumber || 'DRAFT-PR'}</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"><i data-lucide="calendar" class="w-3.5 h-3.5 inline mb-0.5 opacity-50"></i> ${h.date}</span>
                     </div>
                     <div>${statusBadge}</div>
                 </div>
@@ -466,7 +528,7 @@
                 </div>
                 
                 <div class="flex justify-between items-end px-1">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">ผู้ขอ: <span class="text-[#2B3674]">${h.requester}</span> • <span class="text-brand-blue">${h.warehouse} HUB</span></p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">ผู้ขอ: <span class="text-[#2B3674]">${h.requester}</span> • <span class="text-brand-blue">${h.warehouse} HUB</span></p>
                 </div>
             </div>`;
         });
@@ -483,27 +545,27 @@
     function addEmptyItemRow() {
         const container = document.getElementById('pr-items-container');
         const div = document.createElement('div');
-        div.className = "item-row bg-[#f4f7fe]/40 p-4 md:p-5 rounded-2xl border border-indigo-50 relative group transition-all hover:bg-white hover:shadow-xl hover:shadow-indigo-900/5 animate-fade-in";
+        div.className = "item-row bg-[#f4f7fe]/40 p-4 md:p-5 rounded-2xl border border-indigo-50 relative group transition-all hover:bg-white hover:shadow-xl hover:shadow-indigo-900/5 animate-in fade-in duration-500";
         div.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
                 <div class="md:col-span-5 relative">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">สินค้า (PRODUCT)</label>
-                    <input type="text" class="input-field p-product-input m-0 bg-white font-bold" placeholder="พิมพ์ชื่อสินค้า..." autocomplete="off">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">สินค้า (PRODUCT)</label>
+                    <input type="text" class="input-ci p-product-input m-0 bg-white font-bold" placeholder="พิมพ์ชื่อสินค้า..." autocomplete="off">
                     <input type="hidden" class="p-sku-input">
                     <ul class="suggestion-box absolute z-50 w-full bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto hidden mt-2 divide-y divide-slate-50 custom-scrollbar"></ul>
                 </div>
                 <div class="grid grid-cols-3 md:grid-cols-7 md:col-span-7 gap-3 md:gap-4">
                     <div class="col-span-1 md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">จำนวน</label>
-                        <input type="number" class="input-field p-qty-input m-0 bg-white text-brand-blue font-bold tracking-tight text-lg !font-['Plus_Jakarta_Sans']" placeholder="0" min="1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">จำนวน</label>
+                        <input type="number" class="input-ci p-qty-input m-0 bg-white text-brand-blue font-bold tracking-tight text-lg !font-['Plus_Jakarta_Sans']" placeholder="0" min="1">
                     </div>
                     <div class="col-span-1 md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">หน่วย</label>
-                        <input type="text" class="input-field p-unit-input m-0 bg-[#f4f7fe] text-slate-400 font-bold cursor-not-allowed uppercase" placeholder="-" readonly tabindex="-1">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">หน่วย</label>
+                        <input type="text" class="input-ci p-unit-input m-0 bg-[#f4f7fe] text-slate-400 font-bold cursor-not-allowed uppercase" placeholder="-" readonly tabindex="-1">
                     </div>
                     <div class="col-span-1 md:col-span-3">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">หมายเหตุ</label>
-                        <input type="text" class="input-field p-remark-input m-0 bg-white text-slate-600 font-medium" placeholder="เช่น ด่วน">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">หมายเหตุ</label>
+                        <input type="text" class="input-ci p-remark-input m-0 bg-white text-slate-600 font-medium" placeholder="เช่น ด่วน">
                     </div>
                 </div>
             </div>
