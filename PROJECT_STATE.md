@@ -110,6 +110,7 @@
 - [x] **Knowledge Capture**: Updated `CLAUDE.md` to prioritize the new Technical Ledger for session continuity.
 
 ### 🎨 UI/UX Consolidation (2026-05-09)
+- [x] **AKRA W5 Thai Translation**: Completed full translation of labels, buttons, placeholders, and system messages to Thai while maintaining Premium Minimal DNA.
 - [x] **Premium Minimal Gold Standard:** ปรับโฉมแอปทั้งระบบ (Portal, KPI, PR, PO, GR, W5, Return&Claim, Transfers) ให้ตรงตามมาตรฐานสูงสุด (Gold Standard) โดยอ้างอิงจาก `Return&Claim.html` 100%
 - [x] **Pixel-Perfect Alignment:** ซิงค์ CSS Variables, Component Classes (.glass-card, .input-ci), และ Layout Shell ให้เป็นพิมพ์เขียวเดียวกันทุกไฟล์
 - [x] **No Italic / No Black Weight:** เคลียร์สไตล์ตัวเอียงและฟ้อนต์หนาพิเศษออกทั้งหมด ใช้ความหนาแบบพอดี (font-bold/semibold) เพื่อความสะอาดตาและเป็นมืออาชีพ

@@ -56,6 +56,10 @@ The following directories were renamed/moved. Update any paths you have cached:
 
 **Files that did NOT move:** All `.html` app files, `supabase-client.js`, `CLAUDE.md`, `GEMINI.md`, `PROJECT_STATE.md`, `_sql_migration/` (entire directory unchanged), `Error/` (unchanged).
 
+## 🌐 Localization Standards
+- **Language:** All application interfaces (labels, buttons, placeholders, system messages, and notifications) MUST be in **Thai**. 
+- **Typography:** Use 'Prompt' as the primary font for Thai text to maintain the Premium Minimal DNA.
+
 ## 🔄 Core Workflow
 
 ### 1. Unified Authentication (SSO)

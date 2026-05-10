@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKRA W5 - Warehouse Management</title>
+    <title>AKRA W5 - ระบบจัดการคลังสินค้า</title>
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -131,7 +131,7 @@
         <div class="w-16 h-16 bg-brand-blue rounded-3xl flex items-center justify-center animate-bounce shadow-xl">
             <i data-lucide="warehouse" class="text-white w-8 h-8"></i>
         </div>
-        <p class="mt-6 text-brand-blue font-bold tracking-widest uppercase text-xs">Initializing W5 Terminal...</p>
+        <p class="mt-6 text-brand-blue font-bold tracking-widest uppercase text-xs">กำลังเริ่มต้นเทอร์มินัล W5...</p>
     </div>
 
     <!-- Mobile Sidebar Overlay -->
@@ -145,31 +145,31 @@
             </div>
             <div class="whitespace-nowrap">
                 <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA W5</h1>
-                <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Warehouse Terminal</p>
+                <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">เทอร์มินัลคลังสินค้า</p>
             </div>
         </div>
         
         <nav class="flex-grow px-3 py-4 space-y-1 overflow-y-auto hide-scrollbar overflow-x-hidden">
             <button @click="activeTab = 'dashboard'" :class="{active: activeTab === 'dashboard'}" class="nav-link">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0"></i>
-                <span class="whitespace-nowrap">Dashboard Overview</span>
+                <span class="whitespace-nowrap">แผงควบคุมภาพรวม</span>
             </button>
             <button @click="activeTab = 'inventory'" :class="{active: activeTab === 'inventory'}" class="nav-link">
                 <i data-lucide="package" class="w-5 h-5 shrink-0"></i>
-                <span class="whitespace-nowrap">Inventory Stock</span>
+                <span class="whitespace-nowrap">รายการสินค้าคงคลัง</span>
             </button>
             <button @click="activeTab = 'transaction'" :class="{active: activeTab === 'transaction'}" class="nav-link">
                 <i data-lucide="arrow-left-right" class="w-5 h-5 shrink-0"></i>
-                <span class="whitespace-nowrap">Quick Terminal</span>
+                <span class="whitespace-nowrap">เทอร์มินัลด่วน (รับ/เบิก)</span>
             </button>
             <button @click="activeTab = 'picklist'" :class="{active: activeTab === 'picklist'}" class="nav-link relative">
                 <i data-lucide="clipboard-check" class="w-5 h-5 shrink-0"></i>
-                <span class="whitespace-nowrap">Pending Picklists</span>
+                <span class="whitespace-nowrap">รายการรอจัดสินค้า</span>
                 <span v-if="pickList.length > 0" class="absolute right-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">{{ pickList.length }}</span>
             </button>
             <button v-if="isAdmin" @click="activeTab = 'manage'" :class="{active: activeTab === 'manage'}" class="nav-link">
                 <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
-                <span class="whitespace-nowrap">Master Registry</span>
+                <span class="whitespace-nowrap">ทะเบียนสินค้าหลัก</span>
             </button>
         </nav>
 
@@ -180,7 +180,7 @@
                 </div>
                 <div class="flex-1 overflow-hidden">
                     <p class="text-xs font-bold text-white truncate">{{ loggedInUser }}</p>
-                    <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>Online</p>
+                    <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>ออนไลน์</p>
                 </div>
                 <i data-lucide="log-out" class="w-4 h-4 text-white/40"></i>
             </div>
@@ -200,7 +200,7 @@
             </div>
 
             <div class="flex items-center space-x-2 md:space-x-4 shrink-0">
-                <button @click="loadData(false)" class="p-2 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="Refresh Data">
+                <button @click="loadData(false)" class="p-2 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล">
                     <i data-lucide="refresh-cw" class="w-5 h-5" :class="{'animate-spin': isSilentLoading}"></i>
                 </button>
                 
@@ -220,33 +220,33 @@
             <div v-show="activeTab === 'dashboard'" class="animate-fade-in space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="glass-card p-6 border-t-4 border-[#171C8F]">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Items in Stock</p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">จำนวนสินค้าทั้งหมดในสต็อก</p>
                         <h3 class="text-3xl font-bold text-[#171C8F]">{{ totalItemsInStock.toLocaleString() }}</h3>
                     </div>
                     <div class="glass-card p-6 border-t-4 border-[#E35205]">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Low Stock Items</p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">สินค้าสต็อกต่ำ</p>
                         <h3 class="text-3xl font-bold text-[#E35205]">{{ lowStockItems.length }}</h3>
                     </div>
                     <div class="glass-card p-6 border-t-4 border-[#171C8F]">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Today's Transactions</p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">ธุรกรรมวันนี้</p>
                         <h3 class="text-3xl font-bold text-[#171C8F]">{{ todayHistoryCount }}</h3>
                     </div>
                 </div>
 
                 <div class="glass-card overflow-hidden">
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 uppercase tracking-tight">Recent Transactions</h3>
-                        <button @click="exportHistoryToCSV" class="text-xs font-bold text-brand-blue hover:text-brand-orange transition-colors">Export CSV</button>
+                        <h3 class="font-bold text-slate-800 uppercase tracking-tight">ธุรกรรมล่าสุด</h3>
+                        <button @click="exportHistoryToCSV" class="text-xs font-bold text-brand-blue hover:text-brand-orange transition-colors">ส่งออก CSV</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50/50 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                                 <tr>
-                                    <th class="px-6 py-4">Date/Time</th>
-                                    <th class="px-6 py-4">Type</th>
-                                    <th class="px-6 py-4">Product</th>
-                                    <th class="px-6 py-4 text-right">Qty</th>
-                                    <th class="px-6 py-4">User</th>
+                                    <th class="px-6 py-4">วันที่/เวลา</th>
+                                    <th class="px-6 py-4">ประเภท</th>
+                                    <th class="px-6 py-4">สินค้า</th>
+                                    <th class="px-6 py-4 text-right">จำนวน</th>
+                                    <th class="px-6 py-4">ผู้ใช้งาน</th>
                                     <th class="px-6 py-4"></th>
                                 </tr>
                             </thead>
@@ -258,7 +258,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <span :class="log.type === 'in' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'" class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border border-current/20">
-                                            {{ log.type === 'in' ? 'Receive' : 'Withdraw' }}
+                                            {{ log.type === 'in' ? 'รับสินค้า' : 'เบิกสินค้า' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 font-bold text-slate-700">{{ log.productName }}</td>
@@ -283,10 +283,10 @@
                 <div class="glass-card p-4 flex flex-col md:flex-row gap-4 justify-between items-center sticky top-0 z-30 bg-white/90 backdrop-blur-md">
                     <div class="relative w-full md:w-96">
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                        <input type="text" v-model="searchTransactionList" class="input-ci pl-10" placeholder="Search product name or SKU...">
+                        <input type="text" v-model="searchTransactionList" class="input-ci pl-10" placeholder="ค้นหาชื่อสินค้า หรือ SKU...">
                     </div>
                     <div class="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>{{ filteredTransactionListProducts.length }} Products Found</span>
+                        <span>พบ {{ filteredTransactionListProducts.length }} รายการสินค้า</span>
                     </div>
                 </div>
 
@@ -306,7 +306,7 @@
                         
                         <div class="mt-6 pt-6 border-t border-slate-50 flex justify-between items-end">
                             <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Available Stock</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">สินค้าคงเหลือในสต็อก</p>
                                 <p :class="p.stock < 10 ? 'text-rose-600' : 'text-[#171C8F]'" class="text-3xl font-bold tracking-tight">
                                     {{ p.stock }} <span class="text-sm font-medium text-slate-400 ml-1">{{ p.unit }}</span>
                                 </p>
@@ -324,25 +324,25 @@
                 <section class="glass-card overflow-hidden">
                     <div class="p-6 bg-brand-blue text-white">
                         <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="zap" class="w-5 h-5 text-brand-orange"></i> Quick Terminal
+                            <i data-lucide="zap" class="w-5 h-5 text-brand-orange"></i> เทอร์มินัลด่วน (รับ/เบิก)
                         </h2>
-                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Direct Stock Adjustment</p>
+                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">ปรับปรุงยอดสต็อกโดยตรง</p>
                     </div>
                     
                     <div class="p-8 space-y-8">
                         <!-- Type Switcher -->
                         <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl max-w-md mx-auto">
-                            <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Withdraw</button>
-                            <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Receive</button>
+                            <button @click="form.type = 'out'" :class="form.type === 'out' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">เบิกสินค้า</button>
+                            <button @click="form.type = 'in'" :class="form.type === 'in' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'" class="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">รับสินค้า</button>
                         </div>
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <!-- Product Search -->
                             <div class="relative">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Search Product</label>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">ค้นหาสินค้า</label>
                                 <div class="relative group">
                                     <i data-lucide="search" class="absolute left-4 top-4 w-5 h-5 text-slate-400"></i>
-                                    <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="Type name or code..." class="input-ci pl-12 h-14 text-base">
+                                    <input type="text" v-model="searchTransaction" @focus="showDropdown = true" @input="handleSearchInput" placeholder="พิมพ์ชื่อหรือรหัสสินค้า..." class="input-ci pl-12 h-14 text-base">
                                     <button v-if="searchTransaction" @click="clearSelection" class="absolute right-4 top-4 text-slate-300 hover:text-rose-500">
                                         <i data-lucide="x-circle" class="w-5 h-5"></i>
                                     </button>
@@ -353,7 +353,7 @@
                                     <div v-for="p in filteredTransactionProducts" :key="p.id" @click="selectTransactionProduct(p)" class="p-4 border-b border-slate-50 hover:bg-brand-blue/[0.03] cursor-pointer flex justify-between items-center transition-colors">
                                         <div class="min-w-0 flex-1">
                                             <p class="text-sm font-semibold text-slate-700 truncate pr-4">{{ p.name }}</p>
-                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Current: {{ p.stock }} {{ p.unit }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">ปัจจุบัน: {{ p.stock }} {{ p.unit }}</p>
                                         </div>
                                         <i data-lucide="plus" class="w-4 h-4 text-brand-blue opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                     </div>
@@ -364,7 +364,7 @@
                             <div class="space-y-6">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="relative">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Quantity</label>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">จำนวน</label>
                                         <input type="number" v-model.number="form.qty" class="input-ci h-14 text-2xl font-bold text-center" placeholder="0">
                                         <span class="absolute right-4 top-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ getSelectedProductUnit() }}</span>
                                     </div>
@@ -372,13 +372,13 @@
                                         <button @click="verifyTransaction" :disabled="isSubmitting" class="btn-primary h-14 w-full text-sm tracking-widest">
                                             <i v-if="isSubmitting" data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
                                             <i v-else data-lucide="check-circle" class="w-5 h-5"></i>
-                                            <span>{{ isSubmitting ? 'Processing...' : 'Submit Entry' }}</span>
+                                            <span>{{ isSubmitting ? 'กำลังดำเนินการ...' : 'บันทึกรายการ' }}</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <button v-if="form.type === 'out'" @click="verifyAddPickList" class="w-full py-5 rounded-2xl border-2 border-brand-orange border-dashed text-brand-orange font-bold text-xs uppercase tracking-widest hover:bg-brand-orange/5 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Create Picklist (Reserve for Pickup)
+                                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> สร้างรายการจัดสินค้า (จองสำหรับการเบิก)
                                 </button>
                             </div>
                         </div>
@@ -391,9 +391,9 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="font-bold text-brand-blue text-lg uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="clipboard-check" class="w-5 h-5 text-brand-orange"></i> Pending Picklists
+                            <i data-lucide="clipboard-check" class="w-5 h-5 text-brand-orange"></i> รายการรอจัดสินค้า
                         </h2>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Items waiting to be picked</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">รายการที่รอการจัดสินค้า</p>
                     </div>
                 </div>
 
@@ -401,32 +401,32 @@
                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <i data-lucide="clipboard-check" class="w-10 h-10 text-slate-200"></i>
                     </div>
-                    <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">No pending items found</p>
+                    <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">ไม่พบรายการที่ค้างอยู่</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div v-for="item in pickList" :key="item.pick_id" class="glass-card overflow-hidden flex flex-col">
                         <div class="p-6 flex-grow">
                             <div class="flex justify-between items-start mb-4">
-                                <span class="text-[10px] font-bold bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full uppercase tracking-widest">Awaiting Pick</span>
+                                <span class="text-[10px] font-bold bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full uppercase tracking-widest">รอการจัดสินค้า</span>
                                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ formatDate(item.created_at) }}</span>
                             </div>
                             <h3 class="font-bold text-slate-800 text-lg leading-tight mb-2">{{ item.product_name }}</h3>
                             <div class="flex items-center gap-2 text-slate-400">
                                 <i data-lucide="user" class="w-3 h-3"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Requested by {{ item.requested_by }}</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">ร้องขอโดย {{ item.requested_by }}</span>
                             </div>
                         </div>
                         <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex justify-between items-center">
                             <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Qty</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">จำนวนเป้าหมาย</p>
                                 <p class="text-2xl font-bold text-brand-orange tracking-tight">{{ item.qty }} <span class="text-xs font-medium text-slate-400 ml-1">{{ getProductUnit(item.product_id) }}</span></p>
                             </div>
                             <div class="flex gap-2">
                                 <button @click="confirmRemovePickList(item)" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100">
                                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                                 </button>
-                                <button @click="openPickModal(item)" class="bg-brand-blue text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all">Process</button>
+                                <button @click="openPickModal(item)" class="bg-brand-blue text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:bg-brand-blue/90 transition-all">ดำเนินการ</button>
                             </div>
                         </div>
                     </div>
@@ -438,25 +438,25 @@
                 <section class="glass-card overflow-hidden">
                     <div class="p-6 bg-slate-800 text-white">
                         <h2 class="font-bold text-lg uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="database" class="w-5 h-5 text-purple-400"></i> Master Registry
+                            <i data-lucide="database" class="w-5 h-5 text-purple-400"></i> ทะเบียนสินค้าหลัก
                         </h2>
-                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">Inventory Structure Management</p>
+                        <p class="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">การจัดการโครงสร้างคลังสินค้า</p>
                     </div>
                     <div class="p-10 space-y-10">
                         <div class="space-y-6">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Register New Product</h3>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">ลงทะเบียนสินค้าใหม่</h3>
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div class="md:col-span-3">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Product Name</label>
-                                    <input type="text" v-model="newProductName" placeholder="Full Product Description..." class="input-ci h-12">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">ชื่อสินค้า</label>
+                                    <input type="text" v-model="newProductName" placeholder="คำอธิบายสินค้าแบบเต็ม..." class="input-ci h-12">
                                 </div>
                                 <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Base Unit</label>
-                                    <input type="text" v-model="newProductUnit" placeholder="e.g. Pcs" class="input-ci h-12 text-center">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">หน่วยนับ</label>
+                                    <input type="text" v-model="newProductUnit" placeholder="เช่น ชิ้น" class="input-ci h-12 text-center">
                                 </div>
                             </div>
                             <button @click="addProduct" class="w-full h-16 bg-slate-800 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3">
-                                <i data-lucide="plus-circle" class="w-6 h-6"></i> Add to Registry
+                                <i data-lucide="plus-circle" class="w-6 h-6"></i> เพิ่มในทะเบียนสินค้าหลัก
                             </button>
                         </div>
                     </div>
@@ -471,26 +471,26 @@
             <div :class="activeTab === 'dashboard' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             </div>
-            <span :class="activeTab === 'dashboard' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Dash</span>
+            <span :class="activeTab === 'dashboard' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">แผงควบคุม</span>
         </button>
         <button @click="activeTab = 'inventory'" class="flex flex-col items-center justify-center gap-1 group">
             <div :class="activeTab === 'inventory' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
                 <i data-lucide="package" class="w-5 h-5"></i>
             </div>
-            <span :class="activeTab === 'inventory' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Stock</span>
+            <span :class="activeTab === 'inventory' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">สต็อก</span>
         </button>
         <button @click="activeTab = 'transaction'" class="flex flex-col items-center justify-center gap-1 group">
             <div :class="activeTab === 'transaction' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
                 <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
             </div>
-            <span :class="activeTab === 'transaction' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Trans</span>
+            <span :class="activeTab === 'transaction' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">ธุรกรรม</span>
         </button>
         <button @click="activeTab = 'picklist'" class="flex flex-col items-center justify-center gap-1 group relative">
             <div v-if="pickList.length > 0" class="absolute top-2 right-1/2 translate-x-4 w-4 h-4 bg-brand-orange text-white text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">{{ pickList.length }}</div>
             <div :class="activeTab === 'picklist' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-slate-400'" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-active:scale-90">
                 <i data-lucide="clipboard-check" class="w-5 h-5"></i>
             </div>
-            <span :class="activeTab === 'picklist' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">Picks</span>
+            <span :class="activeTab === 'picklist' ? 'text-brand-blue font-bold' : 'text-slate-400 font-medium'" class="text-[9px] uppercase tracking-widest">จัดสินค้า</span>
         </button>
     </nav>
     
@@ -501,23 +501,23 @@
         <div v-if="pickModal.show" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
             <div class="glass-card w-full max-w-sm p-8 animate-fade-in shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-brand-orange"></div>
-                <h3 class="text-xl font-bold text-slate-800 mb-2 tracking-tight uppercase">Confirm Pick-up</h3>
+                <h3 class="text-xl font-bold text-slate-800 mb-2 tracking-tight uppercase">ยืนยันการจัดสินค้า</h3>
                 <p class="text-xs font-medium text-slate-400 mb-8 uppercase tracking-widest leading-relaxed">{{ pickModal.item?.product_name }}</p>
                 
                 <div class="space-y-4 mb-8">
                     <div class="flex justify-between items-center px-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Requested Qty</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">จำนวนที่ร้องขอ</span>
                         <span class="text-sm font-bold text-slate-700">{{ pickModal.item?.qty }} {{ getProductUnit(pickModal.item?.product_id) }}</span>
                     </div>
                     <div class="relative">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Actual Picked Qty</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">จำนวนที่จัดได้จริง</label>
                         <input type="number" v-model.number="pickModal.actualQty" class="input-ci text-2xl font-bold text-center text-brand-blue bg-slate-50 border-slate-100">
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="pickModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
-                    <button @click="submitPick" class="flex-1 btn-primary py-4 uppercase tracking-widest text-[10px]">Confirm Pick</button>
+                    <button @click="pickModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">ยกเลิก</button>
+                    <button @click="submitPick" class="flex-1 btn-primary py-4 uppercase tracking-widest text-[10px]">ยืนยันการจัดสินค้า</button>
                 </div>
             </div>
         </div>
@@ -528,28 +528,28 @@
         <div v-if="adjustModal.show" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
             <div class="glass-card w-full max-w-sm p-8 animate-fade-in shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
-                <h3 class="text-xl font-bold text-slate-800 mb-1 tracking-tight uppercase">Stock Correction</h3>
-                <p class="text-[10px] text-purple-500 font-bold uppercase tracking-widest mb-8">Admin Level Access</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-1 tracking-tight uppercase">ปรับปรุงยอดสต็อก</h3>
+                <p class="text-[10px] text-purple-500 font-bold uppercase tracking-widest mb-8">สิทธิ์การเข้าถึงระดับผู้ดูแลระบบ</p>
                 
                 <div class="bg-slate-50 p-5 rounded-2xl mb-8 border border-slate-100">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Product</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">สินค้าเป้าหมาย</p>
                     <p class="text-sm font-bold text-slate-700 leading-tight">{{ adjustModal.name }}</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-8 mb-8 text-center px-2">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Current</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">ปัจจุบัน</p>
                         <p class="text-xl font-bold text-slate-300 line-through tracking-tight">{{ adjustModal.oldStock }}</p>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-brand-blue uppercase tracking-widest mb-2">New Entry</p>
+                        <p class="text-[10px] font-bold text-brand-blue uppercase tracking-widest mb-2">รายการใหม่</p>
                         <input type="number" v-model.number="adjustModal.newStock" class="input-ci text-center text-xl font-bold border-brand-blue/20 bg-white">
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="adjustModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
-                    <button @click="saveAdjustStock" class="flex-1 bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition-all uppercase tracking-widest text-[10px] shadow-lg shadow-slate-800/20">Apply Change</button>
+                    <button @click="adjustModal.show = false" class="flex-1 py-4 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">ยกเลิก</button>
+                    <button @click="saveAdjustStock" class="flex-1 bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition-all uppercase tracking-widest text-[10px] shadow-lg shadow-slate-800/20">บันทึกการเปลี่ยนแปลง</button>
                 </div>
             </div>
         </div>
@@ -564,7 +564,7 @@
                 </div>
                 <h3 class="font-bold text-slate-800 text-lg mb-2 tracking-tight uppercase">{{ messageBox.title }}</h3>
                 <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">{{ messageBox.message }}</p>
-                <button @click="messageBox.show = false" class="btn-primary w-full py-4 uppercase tracking-widest text-[10px]" :class="{'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20': messageBox.isError}">Acknowledge</button>
+                <button @click="messageBox.show = false" class="btn-primary w-full py-4 uppercase tracking-widest text-[10px]" :class="{'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20': messageBox.isError}">รับทราบ</button>
             </div>
         </div>
     </transition>
@@ -576,8 +576,8 @@
                 <h3 class="font-bold text-slate-800 text-lg mb-2 tracking-tight uppercase">{{ confirmDialog.title }}</h3>
                 <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">{{ confirmDialog.message }}</p>
                 <div class="flex gap-3">
-                    <button @click="confirmDialog.show = false" class="flex-1 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">Cancel</button>
-                    <button @click="executeConfirmDialog" class="flex-1 py-4 rounded-xl text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-current/20" :class="confirmDialog.btnClass">Authorize</button>
+                    <button @click="confirmDialog.show = false" class="flex-1 font-bold text-slate-400 uppercase tracking-widest text-[10px] hover:bg-slate-50 rounded-xl transition-all">ยกเลิก</button>
+                    <button @click="executeConfirmDialog" class="flex-1 py-4 rounded-xl text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-current/20" :class="confirmDialog.btnClass">อนุมัติ</button>
                 </div>
             </div>
         </div>
@@ -655,7 +655,7 @@
     createApp({
         data() {
             return {
-                loggedInUser: 'Authenticating...',
+                loggedInUser: 'กำลังตรวจสอบสิทธิ์...',
                 isAdmin: false,
                 activeTab: 'dashboard',
                 isPC: window.innerWidth >= 768,
@@ -669,7 +669,7 @@
                 searchTransactionList: '',
                 searchManage: '',
                 newProductName: '',
-                newProductUnit: 'Pcs',
+                newProductUnit: 'ชิ้น',
                 sidebarMobileOpen: false,
                 
                 showDropdown: false,
@@ -698,13 +698,13 @@
             },
             activeTabTitle() {
                 const titles = {
-                    dashboard: 'W5 Dashboard',
-                    inventory: 'Inventory Stock',
-                    transaction: 'Quick Terminal',
-                    picklist: 'Pending Picklists',
-                    manage: 'Master Registry'
+                    dashboard: 'แผงควบคุม W5',
+                    inventory: 'รายการสินค้าคงคลัง',
+                    transaction: 'เทอร์มินัลด่วน',
+                    picklist: 'รายการรอจัดสินค้า',
+                    manage: 'ทะเบียนสินค้าหลัก'
                 };
-                return titles[this.activeTab] || 'W5 Terminal';
+                return titles[this.activeTab] || 'เทอร์มินัล W5';
             },
             filteredTransactionProducts() {
                 if (!this.searchTransaction) return [];
@@ -735,7 +735,7 @@
         },
         methods: {
             confirmLogout() {
-                this.showConfirmUI('Sign Out', 'Are you sure you want to end your session?', 'bg-rose-600', () => {
+                this.showConfirmUI('ออกจากระบบ', 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?', 'bg-rose-600', () => {
                     localStorage.removeItem(APP_CONFIG.STORAGE_KEY); 
                     localStorage.removeItem('akra_user_data');
                     window.location.href = APP_CONFIG.PORTAL_URL;
@@ -806,19 +806,19 @@
                 this.$nextTick(() => lucide.createIcons());
             },
             clearSelection() { this.form.productId = ''; this.searchTransaction = ''; this.showDropdown = true; },
-            getSelectedProductUnit() { return this.products.find(p => p.id === this.form.productId)?.unit || 'Pcs'; },
-            getProductUnit(id) { return this.products.find(p => p.id === id)?.unit || 'Pcs'; },
+            getSelectedProductUnit() { return this.products.find(p => p.id === this.form.productId)?.unit || 'ชิ้น'; },
+            getProductUnit(id) { return this.products.find(p => p.id === id)?.unit || 'ชิ้น'; },
 
             verifyTransaction() {
-                if (!this.form.productId) return this.showAlert('Incomplete Data', 'Please select a target product');
-                if (!this.form.qty || this.form.qty <= 0) return this.showAlert('Incomplete Data', 'Invalid quantity specified');
+                if (!this.form.productId) return this.showAlert('ข้อมูลไม่ครบถ้วน', 'โปรดเลือกสินค้าที่ต้องการ');
+                if (!this.form.qty || this.form.qty <= 0) return this.showAlert('ข้อมูลไม่ครบถ้วน', 'ระบุจำนวนไม่ถูกต้อง');
                 
                 const p = this.products.find(x => x.id === this.form.productId);
                 if (this.form.type === 'out' && p.stock < this.form.qty) {
-                    return this.showAlert('Insufficient Stock', `Inventory only contains ${p.stock} ${p.unit}`);
+                    return this.showAlert('สินค้าคงคลังไม่เพียงพอ', `ในสต็อกมีเพียง ${p.stock} ${p.unit}`);
                 }
                 
-                this.showConfirmUI('Verify Transaction', `Are you sure you want to ${this.form.type === 'in' ? 'receive' : 'withdraw'} ${p.name} x${this.form.qty} ${p.unit}?`, 'bg-brand-blue', this.confirmTransaction);
+                this.showConfirmUI('ยืนยันธุรกรรม', `คุณแน่ใจหรือไม่ว่าต้องการ${this.form.type === 'in' ? 'รับสินค้า' : 'เบิกสินค้า'} ${p.name} จำนวน x${this.form.qty} ${p.unit}?`, 'bg-brand-blue', this.confirmTransaction);
             },
 
             async confirmTransaction() {
@@ -829,19 +829,19 @@
                 });
                 
                 if (res.success) {
-                    this.triggerToast('Entry Secured');
+                    this.triggerToast('บันทึกรายการสำเร็จ');
                     this.clearSelection();
                     this.form.qty = null;
                     if(window.sendAppLog) window.sendAppLog('W5_Transaction', `${this.form.type} ${p.name} x${this.form.qty}`);
                     await this.loadData(true);
                 } else {
-                    this.showAlert('Error', res.message);
+                    this.showAlert('เกิดข้อผิดพลาด', res.message);
                 }
                 this.isSubmitting = false;
             },
 
             async verifyAddPickList() {
-                if (!this.form.productId) return this.showAlert('Incomplete Data', 'Select product first');
+                if (!this.form.productId) return this.showAlert('ข้อมูลไม่ครบถ้วน', 'เลือกสินค้าก่อน');
                 const p = this.products.find(x => x.id === this.form.productId);
                 
                 this.isSubmitting = true;
@@ -855,7 +855,7 @@
                 });
 
                 if (res.success) {
-                    this.triggerToast('Picklist Created');
+                    this.triggerToast('สร้างรายการจัดสินค้าสำเร็จ');
                     this.activeTab = 'picklist';
                     await this.loadData(true);
                 }
@@ -873,7 +873,7 @@
                     pickerUser: this.loggedInUser
                 });
                 if (res.success) {
-                    this.triggerToast('Pickup Finalized');
+                    this.triggerToast('จัดสินค้าเสร็จสิ้น');
                     this.pickModal.show = false;
                     await this.loadData(true);
                 }
@@ -881,9 +881,9 @@
             },
 
             confirmRemovePickList(item) {
-                this.showConfirmUI('Delete Entry', 'Cancel this picklist and release reserved stock?', 'bg-rose-600', async () => {
+                this.showConfirmUI('ลบรายการ', 'ต้องการยกเลิกรายการจัดสินค้านี้และคืนยอดสต็อกที่จองไว้หรือไม่?', 'bg-rose-600', async () => {
                     const res = await AKRA_API.call('removePickList', { pickId: item.pick_id });
-                    if (res.success) { this.triggerToast('Entry Purged'); await this.loadData(true); }
+                    if (res.success) { this.triggerToast('ลบรายการสำเร็จ'); await this.loadData(true); }
                 });
             },
 
@@ -893,7 +893,7 @@
                     productId: this.adjustModal.id, productName: this.adjustModal.name, newStock: this.adjustModal.newStock, user: this.loggedInUser
                 });
                 if (res.success) {
-                    this.triggerToast('Registry Updated');
+                    this.triggerToast('อัปเดตทะเบียนสินค้าสำเร็จ');
                     this.adjustModal.show = false;
                     await this.loadData(true);
                 }
@@ -906,7 +906,7 @@
                 });
                 if (res.success) {
                     this.newProductName = '';
-                    this.triggerToast('Product Registered');
+                    this.triggerToast('ลงทะเบียนสินค้าสำเร็จ');
                     await this.loadData(true);
                 }
             },
@@ -927,7 +927,7 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
             exportHistoryToCSV() {
-                let csv = "\uFEFFDate,Time,Type,Product,Qty,User\n";
+                let csv = "\uFEFFวันที่,เวลา,ประเภท,สินค้า,จำนวน,ผู้ใช้งาน\n";
                 this.history.forEach(h => {
                     csv += `${this.formatDisplayDate(h.date)},${this.formatDisplayTime(h.time)},${h.type},"${h.productName}",${h.qty},${h.user}\n`;
                 });
@@ -938,13 +938,13 @@
                 link.click();
             },
             confirmUndo(log) {
-                this.showConfirmUI('Rollback Action', 'Revert this transaction and restore stock balance?', 'bg-rose-600', async () => {
+                this.showConfirmUI('คืนค่ารายการ', 'ต้องการคืนค่าธุรกรรมนี้และปรับปรุงยอดสต็อกกลับเป็นเหมือนเดิมหรือไม่?', 'bg-rose-600', async () => {
                     const rev = log.type === 'in' ? 'out' : 'in';
                     const res = await AKRA_API.call('transaction', { 
-                        productId: log.productId, productName: log.productName + ' [REVERTED]', 
+                        productId: log.productId, productName: log.productName + ' [คืนค่ารายการ]', 
                         type: rev, qty: log.qty, user: this.loggedInUser 
                     });
-                    if (res.success) { this.triggerToast('Reversal Success'); await this.loadData(true); }
+                    if (res.success) { this.triggerToast('คืนค่ารายการสำเร็จ'); await this.loadData(true); }
                 });
             }
         }
