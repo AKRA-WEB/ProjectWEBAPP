@@ -490,19 +490,30 @@
                     if (id.includes(search) || user.name.toLowerCase().includes(search)) {
                         const div = document.createElement('button');
                         div.type = 'button';
-                        div.className = `w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 border-2 border-transparent hover:bg-white hover:shadow-sm group ${AdminInteractive.editingUserId === id ? 'bg-white border-brand-orange/30 shadow-md' : ''}`;
+                        div.className = `w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 border-2 group ${AdminInteractive.editingUserId === id ? 'bg-white border-brand-orange shadow-xl shadow-orange-500/10' : 'border-transparent hover:bg-white hover:border-slate-100 hover:shadow-md'}`;
                         div.onclick = () => AdminInteractive.editUser(id);
                         
+                        // Generate Role Badges
+                        const roleBadges = user.roles.map(r => {
+                            let color = 'bg-slate-100 text-slate-400';
+                            if (r === 'ADMIN') color = 'bg-rose-50 text-rose-500 border-rose-100';
+                            if (r === 'AKRA') color = 'bg-indigo-50 text-indigo-500 border-indigo-100';
+                            if (r === 'WAREHOUSE') color = 'bg-amber-50 text-amber-500 border-amber-100';
+                            return `<span class="px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase border ${color}">${r}</span>`;
+                        }).join('');
+
                         div.innerHTML = `
-                            <div class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-400 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-colors">
+                            <div class="h-12 w-12 rounded-2xl ${AdminInteractive.editingUserId === id ? 'bg-brand-orange text-white' : 'bg-brand-blue/5 text-brand-blue'} flex items-center justify-center font-black text-lg transition-all shadow-inner border border-white/50">
                                 ${user.name.charAt(0).toUpperCase()}
                             </div>
                             <div class="flex-grow min-w-0">
-                                <p class="font-bold text-sm text-slate-700 truncate">${user.name}</p>
-                                <p class="text-[10px] font-mono text-slate-400 uppercase tracking-tighter">ID: ${id}</p>
+                                <p class="font-bold text-sm text-[#2B3674] truncate group-hover:text-brand-blue transition-colors">${user.name}</p>
+                                <p class="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tighter mt-0.5 italic">EID: ${id}</p>
                             </div>
-                            <div class="flex gap-0.5">
-                                ${user.roles.map(r => `<span class="w-1.5 h-1.5 rounded-full bg-brand-orange/40"></span>`).join('')}
+                            <div class="flex flex-col gap-1 items-end shrink-0">
+                                <div class="flex gap-1 flex-wrap justify-end max-w-[80px]">
+                                    ${roleBadges}
+                                </div>
                             </div>
                         `;
                         container.appendChild(div);
@@ -511,10 +522,10 @@
             },
 
             setupNewUser: () => {
-                AdminInteractive.editingUserId = null;
+                AdminInteractive.editingUserId = 'NEW'; // Flag for UI highlighting
                 AdminInteractive.editingRoles = [];
                 document.getElementById('interactive-form').reset();
-                document.getElementById('form-title').innerText = "เพิ่มพนักงานใหม่";
+                document.getElementById('form-title').innerText = "Onboard New Employee";
                 document.getElementById('user-id-input').readOnly = false;
                 document.getElementById('btn-delete-user').classList.add('hidden');
                 
@@ -524,6 +535,7 @@
 
                 document.getElementById('empty-selection-state').classList.add('hidden');
                 document.getElementById('interactive-form').classList.remove('hidden');
+                document.getElementById('interactive-form').classList.add('fade-in');
                 document.getElementById('user-id-input').focus();
             },
 
@@ -534,7 +546,7 @@
                 AdminInteractive.editingUserId = id;
                 AdminInteractive.editingRoles = [...user.roles];
 
-                document.getElementById('form-title').innerText = "แก้ไขข้อมูลพนักงาน";
+                document.getElementById('form-title').innerText = "Edit Employee Profile";
                 document.getElementById('user-id-input').value = id;
                 document.getElementById('user-id-input').readOnly = true;
                 document.getElementById('user-name-input').value = user.name;
@@ -546,6 +558,7 @@
 
                 document.getElementById('empty-selection-state').classList.add('hidden');
                 document.getElementById('interactive-form').classList.remove('hidden');
+                document.getElementById('interactive-form').classList.add('fade-in');
             },
 
             toggleEditRole: (roleVal) => {
