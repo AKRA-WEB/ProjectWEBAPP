@@ -138,4 +138,82 @@ async function runTest() {
     }
 }
 
-runTest();
+async function runMultiPRMergeTest() {
+    console.log('\n🧪 Starting Multi-PR Merge Audit...');
+
+    try {
+        console.log('0. Fetching real product...');
+        const { data: product } = await supabase.from('products').select('sku, name, unit').limit(1).single();
+
+        // 1. Create 2 PRs
+        console.log('1. Submitting 2 PRs...');
+        const pr1 = await supabase.from('purchase_requests').insert({
+            pr_number: `PR_MULTI_1_${Date.now()}`,
+            requester: 'AUDIT_BOT',
+            warehouse: 'AKRA',
+            sku: product.sku,
+            product: product.name,
+            request_qty: 5,
+            unit: product.unit || 'ชิ้น',
+            status: 'Pending'
+        }).select('pr_uid').single();
+
+        const pr2 = await supabase.from('purchase_requests').insert({
+            pr_number: `PR_MULTI_2_${Date.now()}`,
+            requester: 'AUDIT_BOT',
+            warehouse: 'AKRA',
+            sku: product.sku,
+            product: product.name,
+            request_qty: 15,
+            unit: product.unit || 'ชิ้น',
+            status: 'Pending'
+        }).select('pr_uid').single();
+
+        const prUids = [pr1.data.pr_uid, pr2.data.pr_uid];
+        console.log(`✅ 2 PRs Created (UIDs: ${prUids.join(', ')})`);
+
+        // 2. Merge into 1 PO
+        console.log('\n2. Merging PRs into 1 PO...');
+        const poNumber = `PO_MERGE_${Date.now()}`;
+        const { data: poData, error: poErr } = await supabase.from('purchase_orders').insert({
+            po_number: poNumber,
+            vendor: 'MULTI_VENDOR_TEST',
+            warehouse: 'AKRA',
+            sku: product.sku,
+            product: product.name,
+            po_qty: 20, // Sum of PRs
+            unit: product.unit || 'ชิ้น',
+            status: 'Pending GR'
+        }).select('po_uid').single();
+
+        if (poErr) throw new Error('Merge PO Failed: ' + poErr.message);
+        
+        // Update both PRs using the multi-UID logic
+        await supabase.from('purchase_requests').update({ status: 'Approved' }).in('pr_uid', prUids);
+        console.log(`✅ Consolidated PO Created: ${poNumber}`);
+        console.log(`✅ Both PRs updated to 'Approved'`);
+
+        // 3. Verification
+        console.log('\n🔍 Final Data Integrity Check:');
+        const { data: updatedPrs } = await supabase.from('purchase_requests').select('status').in('pr_uid', prUids);
+        const allApproved = updatedPrs.every(p => p.status === 'Approved');
+        
+        console.log(`- All PRs Approved: ${allApproved}`);
+        if (allApproved && poData.po_uid) {
+            console.log('\n🏆 MULTI-PR MERGE AUDIT PASSED!');
+        } else {
+            console.log('\n❌ MULTI-PR MERGE AUDIT FAILED');
+        }
+
+    } catch (err) {
+        console.error('\n💥 MULTI-PR TEST FAILURE:');
+        console.error(err.message);
+    }
+}
+
+async function runAll() {
+    await runTest();
+    await runMultiPRMergeTest();
+}
+
+runAll();

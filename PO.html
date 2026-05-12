@@ -324,6 +324,26 @@
                         <span id="badge-pr" class="bg-rose-500 text-white py-1 px-4 rounded-full text-[10px] font-bold shadow-lg shadow-rose-500/20 uppercase tracking-widest">0 Pending</span>
                     </div>
                 </div>
+
+                <!-- 🔗 Consolidation Engine (Multi-PR Merge Action Bar) -->
+                <div id="pr-merge-action-bar" class="hidden bg-brand-blue text-white p-6 rounded-[1.5rem] mb-10 shadow-2xl shadow-indigo-900/30 animate-fade-in flex flex-col sm:flex-row justify-between items-center gap-6 border-b-[6px] border-b-brand-orange relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner">
+                            <i data-lucide="layers" class="w-7 h-7 text-white"></i>
+                        </div>
+                        <div>
+                            <p id="selected-pr-count" class="text-2xl font-bold tracking-tight uppercase leading-none">0 Items Selected</p>
+                            <p class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-2">consignment ready for PO generation</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 w-full sm:w-auto relative z-10">
+                        <button onclick="clearPRSelection()" class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white transition-all">Clear All</button>
+                        <button onclick="mergeSelectedPRs()" class="btn-create py-4 px-12 text-xs font-bold uppercase tracking-widest bg-white !text-brand-blue hover:bg-slate-50 shadow-xl active:scale-95 border-none">
+                            <i data-lucide="git-merge" class="w-4 h-4"></i> Merge Consignment
+                        </button>
+                    </div>
+                </div>
                 <div id="pr-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
@@ -496,6 +516,7 @@
     var groupedPOs = [];
     var groupedMatchData = {};
     var groupedAPVData = {}; 
+    var selectedPrUids = []; // TRACK SELECTED PRs FOR MERGE
     var isVendorEventsAttached = false; 
     var confirmCallback = null;
     let autoRefreshInterval;
@@ -810,9 +831,19 @@
                 li.onmousedown = function(e) {
                     e.preventDefault(); 
                     inputEl.value = p.name;
-                    if (p.vendor) { document.getElementById('create-po-vendor').value = p.vendor; }
                     const row = inputEl.closest('.create-po-item-row');
-                    row.querySelector('.c-qty').focus();
+                    if (row) {
+                        const skuInput = row.querySelector('.c-sku');
+                        if (skuInput) skuInput.value = p.sku || '';
+                    }
+                    
+                    if (p.vendor) { 
+                        const vendorInput = document.getElementById('create-po-vendor');
+                        if (vendorInput) vendorInput.value = p.vendor; 
+                    }
+                    
+                    const qtyInput = row ? row.querySelector('.c-qty') : null;
+                    if (qtyInput) qtyInput.focus();
                     suggestionBox.classList.add('hidden');
                 };
                 suggestionBox.appendChild(li);
@@ -846,16 +877,24 @@
             
             let itemsHtml = '<div class="space-y-3 mt-5 mb-6 flex-grow">';
             group.items.forEach((pr, i) => {
+                const isSelected = selectedPrUids.includes(pr.prUid);
                 itemsHtml += `
-                    <div class="bg-[#f4f7fe]/50 p-4 rounded-2xl border border-indigo-50 flex justify-between items-start transition-all group-hover:bg-white relative">
-                        <div class="flex-1 pr-3">
-                            <p class="font-bold text-[#2B3674] text-sm leading-tight mb-1.5">${i+1}. ${pr.product}</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">REQ: <span class="text-brand-blue">${pr.requester}</span> • REF: <span class="text-slate-600">${pr.prNumber || '-'}</span></p>
-                            ${pr.remark ? `<div class="bg-amber-50 px-2 py-1 rounded-lg mt-2 inline-block border border-amber-100"><p class="text-[9px] text-amber-600 font-bold uppercase tracking-tight">Note: ${pr.remark}</p></div>` : ''}
+                    <div class="pr-item-row ${isSelected ? 'bg-indigo-50/80 border-indigo-200' : 'bg-[#f4f7fe]/50 border-indigo-50'} p-4 rounded-2xl border flex justify-between items-start transition-all hover:bg-white relative cursor-pointer group/item" onclick="togglePrSelection('${pr.prUid}')">
+                        <div class="flex items-start gap-4 flex-1">
+                            <div class="mt-1">
+                                <div class="w-5 h-5 rounded-md border-2 ${isSelected ? 'bg-brand-blue border-brand-blue' : 'bg-white border-slate-200'} flex items-center justify-center transition-all">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-white ${isSelected ? 'block' : 'hidden'}"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 pr-3">
+                                <p class="font-bold text-[#2B3674] text-sm leading-tight mb-1.5">${pr.product}</p>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">REF: <span class="text-slate-600">${pr.prNumber || '-'}</span> • <span class="text-brand-blue">${pr.requester}</span></p>
+                                ${pr.remark ? `<div class="bg-amber-50 px-2 py-1 rounded-lg mt-2 inline-block border border-amber-100"><p class="text-[8px] text-amber-600 font-bold uppercase tracking-tight">Note: ${pr.remark}</p></div>` : ''}
+                            </div>
                         </div>
                         <div class="text-right flex flex-col items-end">
-                            <div class="font-bold text-brand-blue text-xl leading-none tracking-tight">${pr.quantity} <span class="text-[10px] font-bold text-slate-400 uppercase ml-0.5">${pr.unit || ''}</span></div>
-                            <button onclick="rejectPR('${pr.prUid}')" class="w-8 h-8 flex items-center justify-center bg-white text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl mt-3 transition-all active:scale-90 border border-slate-50 shadow-sm"><i data-lucide="x" class="w-4 h-4"></i></button>
+                            <div class="font-bold text-brand-blue text-lg leading-none tracking-tight">${pr.quantity} <span class="text-[9px] font-bold text-slate-400 uppercase ml-0.5">${pr.unit || ''}</span></div>
+                            <button onclick="event.stopPropagation(); rejectPR('${pr.prUid}')" class="w-7 h-7 flex items-center justify-center bg-white text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-lg mt-3 transition-all active:scale-90 border border-slate-50 shadow-sm opacity-0 group-hover/item:opacity-100"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>
                 `;
@@ -874,12 +913,80 @@
                 </div>
                 ${itemsHtml}
                 <button onclick="approveGroupPR('${group.vendor}', '${group.warehouse}', '${groupPrUids}')" class="btn-create w-full justify-center py-4 text-xs font-bold uppercase tracking-widest shadow-xl shadow-indigo-900/10">
-                  <i data-lucide="check-square" class="w-4 h-4"></i> Approve & Create PO
+                  <i data-lucide="check-square" class="w-4 h-4"></i> Single Group PO
                 </button>
             `;
             container.appendChild(card);
         });
         lucide.createIcons({ root: container });
+    }
+
+    function togglePrSelection(prUid) {
+        const index = selectedPrUids.indexOf(prUid);
+        if (index > -1) {
+            selectedPrUids.splice(index, 1);
+        } else {
+            selectedPrUids.push(prUid);
+        }
+        updateMergeActionBar();
+        renderTab1_PR();
+    }
+
+    function clearPRSelection() {
+        selectedPrUids = [];
+        updateMergeActionBar();
+        renderTab1_PR();
+    }
+
+    function updateMergeActionBar() {
+        const bar = document.getElementById('pr-merge-action-bar');
+        const countEl = document.getElementById('selected-pr-count');
+        if (!bar || !countEl) return;
+
+        if (selectedPrUids.length > 0) {
+            bar.classList.remove('hidden');
+            bar.classList.add('flex');
+            countEl.innerText = `${selectedPrUids.length} ITEM${selectedPrUids.length > 1 ? 'S' : ''} SELECTED`;
+        } else {
+            bar.classList.add('hidden');
+            bar.classList.remove('flex');
+        }
+    }
+
+    async function mergeSelectedPRs() {
+        if (selectedPrUids.length === 0) return;
+        
+        const selectedItems = appData.prList.filter(p => selectedPrUids.includes(p.prUid));
+        
+        // Group by Vendor to check if they match
+        const vendors = [...new Set(selectedItems.map(item => {
+            const prodObj = appData.products.find(p => p.name === item.product);
+            return (prodObj && prodObj.vendor) ? prodObj.vendor : 'ไม่ระบุผู้จำหน่าย';
+        }))];
+
+        if (vendors.length > 1) {
+            const confirm = await Swal.fire({
+                title: 'พบผู้จำหน่ายหลายเจ้า',
+                text: `คุณเลือกรายการจากผู้จำหน่าย ${vendors.length} ราย การรวมบิลจะทำให้รายการทั้งหมดไปอยู่ภายใต้ผู้จำหน่ายรายเดียว คุณต้องการดำเนินการต่อหรือไม่?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันการรวม',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: 'var(--brand-blue)',
+                cancelButtonColor: '#f4f7fe',
+            });
+            if (!confirm.isConfirmed) return;
+        }
+
+        const primaryVendor = vendors[0] === 'ไม่ระบุผู้จำหน่าย' ? '' : vendors[0];
+        
+        // Find the most common warehouse or use the first one
+        const warehouseCounts = {};
+        selectedItems.forEach(i => warehouseCounts[i.warehouse] = (warehouseCounts[i.warehouse] || 0) + 1);
+        const primaryWarehouse = Object.keys(warehouseCounts).sort((a,b) => warehouseCounts[b] - warehouseCounts[a])[0];
+        
+        // Open the approveGroupPR modal with these UIDs
+        approveGroupPR(primaryVendor, primaryWarehouse, selectedPrUids.join(','));
     }
 
     function approveGroupPR(vendor, warehouse, prUidsStr) {
@@ -1106,9 +1213,35 @@
         groupedMatchData = {};
         if(appData.grCompleted) {
             appData.grCompleted.forEach(item => {
-                const key = `${item.poNumber}_${item.vendor}_${item.warehouse}`;
-                if(!groupedMatchData[key]) groupedMatchData[key] = { poNumber: item.poNumber, vendor: item.vendor, warehouse: item.warehouse, ata: item.ata, receiver: item.receiverName, items: [] };
-                groupedMatchData[key].items.push(item);
+                const key = `${item.poNumber || 'DRAFT'}_${item.vendor}_${item.warehouse}`;
+                
+                // Extract last receipt info
+                let ata = '-';
+                let receiver = '-';
+                if (item.goods_receipts && item.goods_receipts.length > 0) {
+                    const latest = item.goods_receipts.sort((a,b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                    ata = latest.ata || '-';
+                    receiver = latest.receiver_name || '-';
+                }
+
+                if(!groupedMatchData[key]) {
+                    groupedMatchData[key] = { 
+                        poNumber: item.poNumber, 
+                        vendor: item.vendor, 
+                        warehouse: item.warehouse, 
+                        ata: ata, 
+                        receiver: receiver, 
+                        items: [] 
+                    };
+                }
+                
+                // Total received so far
+                const totalReceived = (item.goods_receipts || []).reduce((sum, g) => sum + (parseFloat(g.gr_qty) || 0), 0);
+                
+                groupedMatchData[key].items.push({
+                    ...item,
+                    totalReceived: totalReceived
+                });
             });
         }
     }
@@ -1302,42 +1435,95 @@
         lucide.createIcons();
     }
 
-    function confirmClosePO(gIdx) {
+    async function confirmClosePO(gIdx) {
         const group = Object.values(groupedMatchData)[gIdx];
         
         let allHavePO = true;
         let missingPOProduct = "";
+        let hasMismatches = false;
 
-        try {
-            const itemsToClose = group.items.map(item => {
-                const grQtyInput = document.getElementById(`match-grqty-${item.poUid}`);
-                const remarkInput = document.getElementById(`match-remark-${item.poUid}`);
-                const poInput = document.getElementById(`match-item-po-${item.poUid}`);
-                
-                const revisedGrQty = grQtyInput ? parseFloat(grQtyInput.value) : (parseFloat(item.grQty) || 0);
-                const remark = remarkInput ? remarkInput.value.trim() : '';
-                const itemPoNumber = poInput ? poInput.value.trim() : (item.poNumber || '');
+        const itemsToProcess = group.items.map(item => {
+            const grQtyInput = document.getElementById(`match-grqty-${item.poUid}`);
+            const remarkInput = document.getElementById(`match-remark-${item.poUid}`);
+            const poInput = document.getElementById(`match-item-po-${item.poUid}`);
+            
+            const revisedGrQty = grQtyInput ? parseFloat(grQtyInput.value) : (parseFloat(item.grQty) || 0);
+            const poQty = parseFloat(item.quantity) || 0;
+            const remark = remarkInput ? remarkInput.value.trim() : '';
+            const itemPoNumber = poInput ? poInput.value.trim() : (item.poNumber || '');
 
-                if (!itemPoNumber) {
-                    allHavePO = false;
-                    missingPOProduct = item.product;
-                }
-
-                return { poUid: item.poUid, revisedGrQty: revisedGrQty, matchRemark: remark, poNumber: itemPoNumber };
-            });
-
-            if (!allHavePO) {
-                return showNotification(`กรุณาระบุเลข PO สำหรับรายการ "${missingPOProduct}" ให้ครบถ้วนก่อนส่งตั้งหนี้`, 'warning');
+            if (!itemPoNumber) {
+                allHavePO = false;
+                missingPOProduct = item.product;
             }
 
-            showConfirmModal(`ยืนยันการตรวจสอบและ Approve บิลใช่หรือไม่?\n\n* ระบบจะบันทึกเลข PO แยกตามรายสินค้าลงในระบบ\n* ข้อมูลจะถูกล็อคและไม่สามารถแก้ไขยอดรับได้อีก`, () => {
-                AKRA_API.call('closePO', { items: itemsToClose }).then(res => {
-                    if (res.success) { showNotification("บันทึกสำเร็จ!"); loadInitialData(); }
-                });
-            });
-        } catch(e) {
-            showNotification(e.message, 'warning'); 
+            if (revisedGrQty < poQty) hasMismatches = true;
+
+            return { 
+                poUid: item.poUid, 
+                revisedGrQty: revisedGrQty, 
+                poQty: poQty,
+                matchRemark: remark, 
+                poNumber: itemPoNumber,
+                product: item.product,
+                backorderQty: 0
+            };
+        });
+
+        if (!allHavePO) {
+            return showNotification(`กรุณาระบุเลข PO สำหรับรายการ "${missingPOProduct}" ให้ครบถ้วน`, 'warning');
         }
+
+        if (hasMismatches) {
+            const mismatches = itemsToProcess.filter(i => i.revisedGrQty < i.poQty);
+            let mismatchHtml = '<div class="text-left mt-4 space-y-2">';
+            mismatches.forEach(m => {
+                mismatchHtml += `
+                    <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                        <p class="text-[11px] font-bold text-rose-600 uppercase tracking-tight">${m.product}</p>
+                        <p class="text-xs font-bold text-slate-500">Ordered: ${m.poQty} | Received: ${m.revisedGrQty} <span class="text-rose-500">(Missing: ${m.poQty - m.revisedGrQty})</span></p>
+                    </div>
+                `;
+            });
+            mismatchHtml += '</div>';
+
+            const result = await Swal.fire({
+                title: 'พบยอดรับสินค้าไม่ครบ',
+                html: mismatchHtml + '<p class="mt-6 font-bold text-slate-400 text-[10px] uppercase">คุณต้องการจัดการรายการที่ขาดอย่างไร?</p>',
+                icon: 'warning',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'เปิด Backorder (รอรับงวดหน้า)',
+                denyButtonText: 'ปิดยอดเลย (สินค้าขาด/ยกเลิก)',
+                cancelButtonText: 'ยกเลิกรายการนี้',
+                confirmButtonColor: 'var(--brand-blue)',
+                denyButtonColor: 'var(--brand-orange)',
+            });
+
+            if (result.isDismissed) return;
+
+            itemsToProcess.forEach(item => {
+                if (item.revisedGrQty < item.poQty) {
+                    if (result.isConfirmed) {
+                        item.backorderQty = item.poQty - item.revisedGrQty;
+                        item.matchRemark = `[BACKORDER: ${item.backorderQty}] ` + (item.matchRemark || '');
+                    } else if (result.isDenied) {
+                        item.matchRemark = `[SHORT: ${item.poQty - item.revisedGrQty} CLOSED] ` + (item.matchRemark || '');
+                    }
+                }
+            });
+        }
+
+        showConfirmModal(`ยืนยันการตรวจสอบและส่งไปหน้า APV ใช่หรือไม่?\nข้อมูลจะถูกล็อคและไม่สามารถแก้ไขได้อีก`, () => {
+            AKRA_API.call('closePO', { items: itemsToProcess }).then(res => {
+                if (res.success) { 
+                    showNotification("บันทึกสำเร็จ!"); 
+                    loadInitialData(); 
+                } else {
+                    showNotification("เกิดข้อผิดพลาด: " + res.message, "error");
+                }
+            });
+        });
     }
 
     function applyQuickFillPO(gIdx) {

@@ -403,26 +403,54 @@ const AKRA_API = {
         const { items } = payload;
         try {
             for (const item of items) {
-                // 1. Update PO Status and metadata
-                const { data: poData, error: poError } = await akraSupabase
+                // 1. Fetch current PO data to replicate for backorder
+                const { data: currentPO, error: fetchErr } = await akraSupabase
                     .from('purchase_orders')
-                    .update({ 
-                        status: 'PO Closed - Ready for APV', 
-                        po_number: item.poNumber, 
-                        remark: item.matchRemark 
-                    })
+                    .select('*')
                     .eq('po_uid', item.poUid)
-                    .select('ref_pr_uid')
                     .single();
-                
+
+                if (fetchErr) throw fetchErr;
+
+                // 2. Update current PO Status and SYNC po_qty with revisedGrQty for accurate APV
+                const { error: poError } = await akraSupabase
+                    .from('purchase_orders')
+                    .update({
+                        status: 'PO Closed - Ready for APV',
+                        po_number: item.poNumber,
+                        po_qty: item.revisedGrQty, // Sync with actual received for billing
+                        remark: item.matchRemark
+                    })
+                    .eq('po_uid', item.poUid);
+
                 if (poError) throw poError;
 
-                // 2. Update GR Qty
+                // 3. Update GR Qty in goods_receipts (should be 1:1 or sum)
+                // Note: If multiple GRs exist for one PO line, we update the latest or sum?
+                // For simplicity, we assume we are verifying the total received for this line.
                 await akraSupabase.from('goods_receipts').update({ gr_qty: item.revisedGrQty }).eq('ref_po_uid', item.poUid);
 
-                // 3. If PO linked to PR, ensure PR is marked as Bought/Approved
-                if (poData && poData.ref_pr_uid) {
-                    await akraSupabase.from('purchase_requests').update({ status: 'Approved' }).eq('pr_uid', poData.ref_pr_uid);
+                // 4. Handle Backorder if requested
+                if (item.backorderQty && parseFloat(item.backorderQty) > 0) {
+                    const backorderRecord = {
+                        ...currentPO,
+                        po_uid: undefined, // Let Supabase generate new UUID
+                        id: undefined,      // Let Supabase generate new Serial ID
+                        status: 'Pending GR',
+                        po_qty: parseFloat(item.backorderQty),
+                        remark: `[BACKORDER from ${item.poNumber || 'Original PO'}] ${item.matchRemark || ''}`
+                    };
+                    delete backorderRecord.po_uid;
+                    delete backorderRecord.id;
+                    delete backorderRecord.created_at;
+
+                    const { error: boErr } = await akraSupabase.from('purchase_orders').insert(backorderRecord);
+                    if (boErr) console.error("Backorder Creation Failed:", boErr);
+                }
+
+                // 5. If PO linked to PR, ensure PR is marked as Approved
+                if (currentPO.ref_pr_uid) {
+                    await akraSupabase.from('purchase_requests').update({ status: 'Approved' }).eq('pr_uid', currentPO.ref_pr_uid);
                 }
             }
             return { success: true };
@@ -431,7 +459,6 @@ const AKRA_API = {
             return { success: false, message: e.message };
         }
     },
-
     deletePO: async (payload) => {
         const { poUids } = payload;
         const { error } = await akraSupabase.from('purchase_orders').delete().in('po_uid', poUids);
