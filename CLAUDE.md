@@ -11,6 +11,24 @@ AKRA Web Apps — a migration from Google Apps Script + Google Sheets to **Supab
 
 ---
 
+## 📂 Project Structure Refined (2026-05-12)
+- **Root:** All core `.html` sub-apps (PR, PO, GR, W5, KPI, Transfers, Return&Claim).
+- `conductor/`: Active implementation plans and `index.md` (Master Registry).
+- `conductor/archive/`: Completed plans and historical records.
+- `docs/`: 
+    - `WORKFLOW.md`: **MANDATORY** development guidelines and standards.
+    - `applied_solutions.md`: Technical ledger for bug fixes and engineering methods.
+- `src/`: API and Persistence documentation.
+- `tools/scripts/`: Diagnostic and maintenance Node.js scripts.
+
+## 🎨 The "Gold Standard" Rule
+Every UI change MUST follow the **Premium Minimal** DNA defined in `Return&Claim.html`.
+- **CSS Variables:** Use `--brand-blue: #171C8F;` and `--brand-orange: #E35205;`.
+- **Typography:** `Prompt` (Thai) + `Plus Jakarta Sans` (Eng/Numbers).
+- **Interactions:** Use `fadeSlideUp` animation and CI-themed SweetAlert2.
+
+---
+
 ## Collaborative Workflow (Multi-Agent Setup)
 
 This project uses a **3-party command chain**:
