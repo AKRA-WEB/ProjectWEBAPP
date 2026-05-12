@@ -133,9 +133,6 @@
       </div>
   </div>
 
-  <!-- 📱 Sidebar Overlay (For Mobile) -->
-  <div id="sidebar-overlay" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
-
   <!-- 🧭 Sidebar (Desktop & Mobile Drawer) -->
   <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
       
@@ -148,6 +145,94 @@
           <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
               <i data-lucide="shopping-bag" class="text-white w-5 h-5"></i>
           </div>
+          <div>
+              <h1 class="text-white font-bold text-lg leading-none tracking-tight">PO Pro</h1>
+              <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Purchase Order System</p>
+          </div>
+      </div>
+      
+      <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar" id="desktop-nav">
+          <div class="pt-2 pb-3 px-4 text-[10px] font-bold text-white/50 uppercase tracking-widest">ระบบจัดซื้อ</div>
+          
+          <button onclick="switchTab('pr-list')" id="nav-pr-list" class="nav-link w-full active bg-white/10 text-[#E35205] font-bold shadow-sm">
+              <i data-lucide="inbox" class="mr-3"></i><span>รายการรอขอซื้อ (PR)</span>
+          </button>
+          
+          <button onclick="switchTab('pending-pos')" id="nav-pending-pos" class="nav-link w-full">
+              <i data-lucide="file-text" class="mr-3"></i><span>รายการจัดซื้อ (PO)</span>
+          </button>
+          
+          <button onclick="switchTab('gr-completed')" id="nav-gr-completed" class="nav-link w-full">
+              <i data-lucide="package-check" class="mr-3"></i><span>รับของสำเร็จ (GR)</span>
+          </button>
+
+          <div class="pt-6 pb-3 px-4 text-[10px] font-bold text-white/50 uppercase tracking-widest border-t border-white/5 mt-4">ระบบการเงิน</div>
+
+          <button onclick="switchTab('apv')" id="nav-apv" class="nav-link w-full">
+              <i data-lucide="landmark" class="mr-3"></i><span>ใบตั้งหนี้ (APV)</span>
+          </button>
+      </nav>
+
+      <div class="p-5 border-t border-white/10 mt-auto bg-[#171C8F]">
+          <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+              <div id="user-initials-sidebar" class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">PO</div>
+              <div class="flex-1 overflow-hidden">
+                  <p class="text-xs font-bold text-white truncate" id="display-username-sidebar">Administrator</p>
+                  <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>Online</p>
+              </div>
+          </div>
+          <button id="logout-btn-desktop" class="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-rose-500/20 text-white/50 hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-white/10">
+              <i data-lucide="log-out" class="w-4 h-4"></i> ออกจากระบบ
+          </button>
+      </div>
+  </aside>
+
+  <!-- App Content Wrapper -->
+  <div id="app-content" class="hidden flex-1 flex flex-col h-screen overflow-hidden relative">
+    
+    <!-- Standardized Header -->
+    <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
+        <div class="flex items-center gap-3">
+            <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate" id="page-title">รายการรอขอซื้อ (PR)</h2>
+        </div>
+
+        <div class="flex items-center space-x-2 md:space-x-3">
+            <button onclick="loadInitialData(true)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+            <div class="hidden sm:flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                <div class="text-right">
+                    <p id="display-username" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
+                    <p class="text-[9px] font-bold text-emerald-500 flex items-center justify-end"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5"></span>Online</p>
+                </div>
+                <div id="user-initials" class="w-8 h-8 bg-[#171C8F] rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">PO</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav md:hidden">
+        <button onclick="switchTab('pr-list')" id="mob-pr-list" class="mobile-link active !text-[#171C8F]">
+            <i data-lucide="inbox" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">PR</span>
+        </button>
+        <button onclick="switchTab('pending-pos')" id="mob-pending-pos" class="mobile-link">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">PO</span>
+        </button>
+        <button onclick="switchTab('apv')" id="mob-apv" class="mobile-link">
+            <i data-lucide="landmark" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">APV</span>
+        </button>
+        <button id="logout-btn-mobile" class="mobile-link text-rose-300">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">ออก</span>
+        </button>
+    </nav>
+
+    <!-- Scrollable Viewport -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-12 bg-[#F4F7FE]">
           <div>
               <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA Pro</h1>
               <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Procurement Engine</p>
@@ -402,7 +487,7 @@
         PORTAL_URL: "./index.html",
         REQUIRED_ROLES: ["ADMIN", "AKRA", "PURCHASING"], 
         APP_NAME: "ระบบจัดซื้อ (PO)",
-        STORAGE_KEY: "akra_session_token"
+        STORAGE_KEY: "akra_po_session_token"
     };
 
     var DATA_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwA1Z2MS6ac_sNrXz3jpX1iHkBj3nY04kcWZdOxgkCGr8sklLgWyLAuq2Ib6wx7x_w/exec";
@@ -413,37 +498,44 @@
     var groupedAPVData = {}; 
     var isVendorEventsAttached = false; 
     var confirmCallback = null;
+    let autoRefreshInterval;
 
     var UI = {
         showLoading: () => {
             document.body.classList.add('loading-active');
-            document.getElementById('auth-loading').classList.remove('hidden');
-            document.getElementById('auth-error').classList.add('hidden');
-            document.getElementById('app-content').classList.add('hidden');
+            const loading = document.getElementById('auth-loading');
+            const error = document.getElementById('auth-error');
+            const content = document.getElementById('app-content');
+            if(loading) loading.classList.remove('hidden');
+            if(error) error.classList.add('hidden');
+            if(content) content.classList.add('hidden');
         },
         showError: (message) => {
             document.body.classList.remove('loading-active');
-            document.getElementById('auth-loading').classList.add('hidden');
-            const errorSection = document.getElementById('auth-error');
-            errorSection.classList.remove('hidden');
-            document.getElementById('error-message').innerText = message;
+            const loading = document.getElementById('auth-loading');
+            const error = document.getElementById('auth-error');
+            const errMsg = document.getElementById('error-message');
+            if(loading) loading.classList.add('hidden');
+            if(error) error.classList.remove('hidden');
+            if(errMsg) errMsg.innerText = message;
         },
         showApp: (user) => {
             document.body.classList.remove('loading-active');
-            document.getElementById('auth-loading').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
+            const loading = document.getElementById('auth-loading');
+            const content = document.getElementById('app-content');
+            if(loading) loading.classList.add('hidden');
+            if(content) content.classList.remove('hidden');
             
             // Populate Header
-            document.getElementById('display-username').innerText = user.name;
+            const nameEl = document.getElementById('display-username');
+            if(nameEl) nameEl.innerText = user.name;
             const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('user-initials').innerText = initials || 'PO';
+            const initialsEl = document.getElementById('user-initials');
+            if(initialsEl) initialsEl.innerText = initials || 'PO';
             
             // Populate Sidebar
             if(document.getElementById('display-username-sidebar')) document.getElementById('display-username-sidebar').innerText = user.name;
             if(document.getElementById('user-initials-sidebar')) document.getElementById('user-initials-sidebar').innerText = initials || 'PO';
-
-            initMobileMenu();
-            lucide.createIcons();
         }
     };
 
@@ -480,11 +572,8 @@
         };
     }
 
-    let autoRefreshInterval;
-
     var AuthGuard = {
         init: async () => {
-            lucide.createIcons();
             UI.showLoading();
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -495,11 +584,8 @@
                         const sessionData = { name: data.user.name, id: data.user.id, roles: data.user.roles };
                         localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify(sessionData));
                         localStorage.setItem('akra_user_data', JSON.stringify(sessionData));
-                        window.currentUser = sessionData;
-                        UI.showApp(sessionData);
-                        AuthGuard.bindEvents();
-                        if (window.loadInitialData) await loadInitialData();
                         window.history.replaceState({}, document.title, window.location.pathname);
+                        AuthGuard.startApp(sessionData);
                         return;
                     }
                 }
@@ -508,17 +594,10 @@
                 let session = JSON.parse(cached);
                 const hasPermission = APP_CONFIG.REQUIRED_ROLES.length === 0 || session.roles.some(r => APP_CONFIG.REQUIRED_ROLES.includes(r));
                 if (!hasPermission) { UI.showError("คุณไม่มีสิทธิ์เข้าถึง"); return; }
-                window.currentUser = session;
-                UI.showApp(session);
-                AuthGuard.bindEvents();
-                if (window.loadInitialData) {
-                    await loadInitialData();
-                    if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = setInterval(() => {
-                        loadInitialData(true);
-                    }, 15000); 
-                }
+                
+                AuthGuard.startApp(session);
             } catch (error) {
+                console.error("Auth Guard Protocol Failure:", error);
                 UI.showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
             }
         },
@@ -531,6 +610,22 @@
             };
             document.getElementById('logout-btn-desktop')?.addEventListener('click', logout);
             document.getElementById('logout-btn-mobile')?.addEventListener('click', logout);
+        },
+
+        startApp: async (user) => {
+            window.currentUser = user;
+            UI.showApp(user);
+            AuthGuard.bindEvents();
+            initMobileMenu();
+            
+            if (window.loadInitialData) {
+                await loadInitialData();
+                if(autoRefreshInterval) clearInterval(autoRefreshInterval);
+                autoRefreshInterval = setInterval(() => {
+                    loadInitialData(true);
+                }, 15000); 
+            }
+            lucide.createIcons();
         }
     };
 

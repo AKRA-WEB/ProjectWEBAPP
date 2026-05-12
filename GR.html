@@ -12,6 +12,8 @@
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -65,43 +67,52 @@
     /* Input error state */
     .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; }
 
-    .sidebar-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 1rem;
-      color: #A3AED0;
-      transition: all 0.3s;
-      cursor: pointer;
+    .nav-link { 
+        width: 100%; 
+        display: flex; 
+        align-items: center; 
+        padding: 0.75rem 1rem; 
+        border-radius: 0.75rem; 
+        color: rgba(255, 255, 255, 0.7); 
+        transition: all 0.3s; 
+        border: 1px solid transparent;
+        margin-bottom: 0.25rem;
     }
-    .sidebar-item.active {
-      background: var(--brand-orange);
-      color: white;
-      box-shadow: 0 10px 20px rgba(227, 82, 5, 0.2);
-    }
-    .sidebar-item:hover:not(.active) {
-      background: #E8E9F4;
-      color: var(--brand-blue);
+    .nav-link:hover { color: white; background: rgba(255, 255, 255, 0.1); }
+    .nav-link.active { 
+        background: rgba(255, 255, 255, 0.1); 
+        color: var(--brand-orange); 
+        font-weight: 700; 
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
     }
 
-    .bottom-nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.25rem;
-      color: #A3AED0;
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
+    .bottom-nav { 
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        right: 0; 
+        background: white; 
+        border-top: 1px solid var(--border-color); 
+        display: flex; 
+        justify-content: space-around; 
+        z-index: 100; 
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.03); 
+        padding-bottom: env(safe-area-inset-bottom, 0); 
     }
-    .bottom-nav-item.active {
-      color: var(--brand-orange);
+    .mobile-link { 
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.75rem 0;
+        color: #A3AED0;
+        transition: all 0.2s;
     }
+    .mobile-link.active { color: var(--brand-blue); }
+    .mobile-link i, .mobile-link svg { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+    .mobile-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
     /* Status Badges */
     .badge-base {
@@ -115,35 +126,28 @@
       align-items: center;
       gap: 0.35rem;
     }
-
-
-    .toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 10000; display: flex; flex-direction: column; gap: 0.75rem; }
-    .toast { min-width: 280px; max-width: 380px; padding: 1rem; border-radius: 1.25rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.875rem; animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; background: white; border: 1px solid var(--border-color); }
-    
-    .loading-active { overflow: hidden; }
-    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .hide-scroll::-webkit-scrollbar { display: none; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E9EDF7; border-radius: 10px; }
   </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex overflow-hidden leading-relaxed loading-active">
+<body class="antialiased h-screen flex">
 
-  <!-- Auth UI -->
+  <!-- Auth Loading Overlay -->
   <div id="auth-loading" class="fixed inset-0 bg-white z-[9999] flex flex-col justify-center items-center">
-      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#171C8F] mb-4"></div>
-      <p class="text-[#171C8F] font-bold uppercase tracking-widest">Verifying...</p>
+      <div class="animate-spin rounded-full h-16 w-16 border-4 border-slate-100 border-t-[#171C8F]"></div>
+      <p class="text-slate-400 font-medium text-xs mt-6 tracking-widest animate-pulse">กำลังตรวจสอบข้อมูล...</p>
   </div>
 
+  <!-- Security Error Overlay -->
   <div id="auth-error" class="fixed inset-0 bg-white z-[9999] hidden flex flex-col justify-center items-center p-6 text-center">
-      <div class="glass-card p-8 max-w-md border-rose-100 shadow-xl">
-          <i data-lucide="shield-alert" class="w-16 h-16 text-rose-500 mx-auto mb-4"></i>
-          <h2 class="text-xl font-bold text-brand-navy mb-2 uppercase">Access Denied</h2>
-          <p id="error-message" class="text-slate-500 mb-6 font-medium">คุณไม่มีสิทธิ์เข้าใช้งานแอปพลิเคชันนี้</p>
-          <button onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="w-full py-3 bg-brand-blue text-white rounded-xl font-bold uppercase tracking-widest hover:bg-brand-blue-hover transition shadow-lg active:scale-95">Return to Portal</button>
+      <div class="glass-card p-10 max-w-sm shadow-2xl border-rose-50 border">
+          <i data-lucide="lock" class="text-rose-500 w-16 h-16 mx-auto mb-6"></i>
+          <h2 class="text-xl font-bold text-slate-800 mb-2">ไม่สามารถเข้าถึงได้</h2>
+          <p id="error-message" class="text-slate-400 text-sm mb-8 px-4">ระบบไม่พบสิทธิ์การใช้งานของคุณ</p>
+          <button onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="w-full h-12 bg-[#171C8F] text-white rounded-2xl font-bold transition active:scale-95 shadow-lg">กลับสู่หน้าหลัก</button>
       </div>
   </div>
+
+  <!-- 📱 Sidebar Overlay (For Mobile) -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
 
   <!-- 🧭 Sidebar (Desktop & Mobile Drawer) -->
   <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
@@ -155,20 +159,23 @@
 
       <div class="p-6 flex items-center space-x-3 border-b border-white/10 md:border-none">
           <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
-              <i data-lucide="package-search" class="text-white w-5 h-5"></i>
+              <i data-lucide="package" class="text-white w-5 h-5"></i>
           </div>
           <div>
-              <h1 class="text-white font-bold text-lg leading-none tracking-tight">WMS Pro</h1>
-              <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Receiving (GR)</p>
+              <h1 class="text-white font-bold text-lg leading-none tracking-tight">GR Pro</h1>
+              <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Receiving Terminal</p>
           </div>
       </div>
       
-      <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar" id="desktop-nav">
-          <button onclick="showView('receiving-list-view')" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all active bg-white/10 text-[#E35205] font-bold shadow-sm" id="nav-manifest">
-              <i data-lucide="layout-grid" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">Manifest (รอรับ)</span>
+      <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar">
+          <div class="pt-2 pb-3 px-4 text-[10px] font-bold text-white/50 uppercase tracking-widest">คลังสินค้า</div>
+          
+          <button onclick="openReceiving()" id="nav-receiving" class="nav-link w-full active bg-white/10 text-[#E35205] font-bold shadow-sm">
+              <i data-lucide="inbox" class="mr-3"></i><span>รับสินค้า</span>
           </button>
-          <button onclick="showView('receiving-detail-view')" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all border border-transparent" id="nav-process">
-              <i data-lucide="file-text" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">Process (จัดการบิล)</span>
+          
+          <button onclick="openManifest()" id="nav-manifest" class="nav-link w-full">
+              <i data-lucide="clipboard-list" class="mr-3"></i><span>ใบส่งของ</span>
           </button>
       </nav>
 
@@ -176,212 +183,180 @@
           <div class="flex items-center space-x-3 bg-white/5 border border-white/10 p-3 rounded-xl">
               <div id="user-avatar" class="w-8 h-8 rounded-lg bg-[#E35205] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">GR</div>
               <div class="flex-1 overflow-hidden">
-                  <p class="text-xs font-bold text-white truncate" id="display-username">Administrator</p>
-                  <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>System Online</p>
+                  <p class="text-xs font-bold text-white truncate" id="display-username">...</p>
+                  <p class="text-[10px] text-emerald-300 flex items-center mt-0.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_#34d399]"></span>Online</p>
               </div>
           </div>
+          <button id="logout-btn" class="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-rose-500/20 text-white/50 hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-white/10">
+              <i data-lucide="log-out" class="w-4 h-4"></i> ออกจากระบบ
+          </button>
       </div>
   </aside>
 
-  <!-- App Content -->
+  <!-- App Content Wrapper -->
   <div id="app-content" class="hidden flex-1 flex flex-col h-screen overflow-hidden relative">
-      
-      <!-- Top Bar -->
-      <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
-          <div class="flex items-center gap-3">
-              <!-- Hamburger Menu Button -->
-              <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
-                  <i data-lucide="menu" class="w-6 h-6"></i>
-              </button>
-              <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate" id="active-tab-title">รายการรอรับสินค้าเข้าคลัง</h2>
-          </div>
-          <div class="flex items-center space-x-2 md:space-x-3 shrink-0">
-              <button onclick="openReceiving(true)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
-              <button id="logout-btn" class="flex items-center gap-1.5 bg-rose-500/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border border-rose-400/50">
-                  <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">ออกจากระบบ</span>
-              </button>
-          </div>
-      </header>
-
-      <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 w-full custom-scrollbar pb-32 md:pb-8">
-        <div class="max-w-[1400px] mx-auto">
-          
-          <!-- Manifest View -->
-          <section id="receiving-list-view" class="view-content active">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                  <h2 class="text-2xl font-bold text-[#171C8F] tracking-tight uppercase">Manifest <span class="text-[#E35205]">Pending</span></h2>
-                  <p class="text-xs text-slate-500 mt-1">รายการรอรับสินค้าเข้าคลัง</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold text-[#E35205] bg-[#E35205]/10 px-3 py-1.5 rounded-lg border border-[#E35205]/20 shadow-sm" id="pending-count">0 Manifests</span>
-              </div>
-            </div>
-
-            <!-- Filters -->
-            <div class="mb-8 flex flex-col lg:flex-row gap-4">
-              <div class="relative flex-1">
-                  <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                  <input type="text" id="r-search-input" oninput="renderPOListForReceiving()" placeholder="ค้นหา SKU, Vendor, หรือ PO#..." class="w-full pl-11 pr-4 py-3.5 input-ci rounded-xl font-bold text-sm">
-              </div>
-              <div class="flex gap-4">
-                <select id="r-status-filter" onchange="renderPOListForReceiving()" class="px-4 py-3.5 input-ci rounded-xl font-bold text-[#171C8F] uppercase text-xs min-w-[160px] cursor-pointer">
-                  <option value="">📌 ALL STATUS</option>
-                  <option value="Overdue">🚨 OVERDUE</option>
-                  <option value="Draft GR">📦 DRAFTING</option>
-                  <option value="Pending Review">⏳ PROCESSING</option>
-                  <option value="Pending GR">🕒 AWAITING</option>
-                </select>
-                <select id="r-warehouse-filter" onchange="renderPOListForReceiving()" class="px-4 py-3.5 input-ci rounded-xl font-bold text-[#171C8F] uppercase text-xs min-w-[140px] cursor-pointer">
-                  <option value="">🏢 ALL HUBS</option>
-                  <option value="W1">W1 (WHITE)</option><option value="W2">W2 (ORANGE)</option><option value="W3">W3 (YELLOW)</option>
-                  <option value="W4">W4 (GREEN)</option><option value="W5">W5 (GRAY)</option><option value="C1">C1 (SKY)</option><option value="C2">C2 (DEEP)</option>
-                </select>
-              </div>
-            </div>
-            
-            <!-- List Grid -->
-            <div id="po-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-          </section>
-
-          <!-- Detail View -->
-          <section id="receiving-detail-view" class="view-content">
-            <div class="max-w-4xl mx-auto">
-              <button type="button" onclick="showView('receiving-list-view')" class="inline-flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-[#E35205] transition-all group">
-                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center border border-slate-200 group-hover:bg-[#E35205] group-hover:text-white transition-all shadow-sm">
-                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                </div>
-                Return to Manifest List
-              </button>
-
-              <div class="glass-card overflow-hidden border-t-8 border-t-[#E35205]">
-                <div class="p-6 md:p-8">
-                  <!-- Form Header -->
-                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-10 border-b border-slate-200">
-                    <div class="flex items-center gap-5" id="r-display-vendor-header">
-                      <!-- Vendor Info Injection -->
-                    </div>
-                    <div id="r-display-status" class="shrink-0 flex items-center gap-3">
-                      <!-- Status Badge Injection -->
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 flex items-center justify-between shadow-sm">
-                      <div class="flex flex-col">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-none">PO REFERENCE</span>
-                        <span class="text-xl font-bold text-[#171C8F] uppercase tracking-tight leading-none" id="r-display-po">-</span>
-                      </div>
-                      <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-none">ORDER DATE</span>
-                        <p class="text-sm font-bold text-slate-600 leading-none" id="r-display-date">-</p>
-                      </div>
-                    </div>
-                    
-                    <div class="bg-[#E35205]/5 p-6 rounded-3xl border border-[#E35205]/20 shadow-sm transition-all focus-within:ring-4 focus-within:ring-[#E35205]/10">
-                      <label class="block text-[10px] font-bold text-[#E35205] uppercase tracking-widest mb-2 ml-1 leading-none">วันที่มาส่ง (ATA) <span class="text-rose-500">*</span></label>
-                      <input type="date" id="r-ata" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#171C8F] tracking-tight">
-                    </div>
-                  </div>
-                  
-                  <form id="form-receiving" class="space-y-12" novalidate>
-                    <input type="hidden" id="r-group-index">
-
-                    <!-- Manifest Items -->
-                    <div>
-                      <div class="flex items-center justify-between mb-6 px-1">
-                        <h3 class="font-bold text-[#171C8F] uppercase tracking-tight flex items-center gap-3 text-lg">
-                          <i data-lucide="list-checks" class="w-6 h-6 text-[#171C8F]"></i>
-                          Manifest Processing
-                        </h3>
-                        <button type="button" onclick="readAllPOItems()" class="w-10 h-10 flex items-center justify-center bg-[#E35205] text-white rounded-2xl shadow-lg shadow-[#E35205]/20 hover:scale-110 active:scale-90 transition-all">
-                            <i data-lucide="volume-2" class="w-5 h-5"></i>
-                        </button>
-                      </div>
-                      <div id="r-items-container" class="space-y-4"></div>
-                    </div>
-
-                    <!-- Extra Items Section -->
-                    <div class="bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-200">
-                      <h3 class="font-bold text-[#171C8F] uppercase tracking-tight mb-6 flex items-center gap-3 text-lg">
-                        <i data-lucide="gift" class="w-6 h-6 text-[#E35205]"></i>
-                        Extra / Bonus Stock
-                      </h3>
-                      <div id="r-extra-items-container" class="space-y-4 mb-6"></div>
-                      <button type="button" onclick="addExtraItemRow()" class="w-full h-20 border-2 border-dashed border-slate-200 text-slate-400 bg-white hover:bg-slate-50 hover:text-[#171C8F] hover:border-[#171C8F]/30 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-3 shadow-sm group">
-                        <i data-lucide="plus-circle" class="w-5 h-5 group-hover:scale-125 transition-transform"></i> 
-                        Append Bonus Item
-                      </button>
-                    </div>
-
-                    <!-- Lift Fee Hook -->
-                    <div id="r-lift-fee-section"></div>
-
-                    <!-- Remarks & Receiver -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 leading-none">หมายเหตุท้ายบิล (REMARKS)</label>
-                        <textarea id="r-remark" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-600 min-h-[80px] resize-none" placeholder="ระบุข้อมูลที่จำเป็นสำหรับการตั้งหนี้..."></textarea>
-                      </div>
-                      <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm transition-all focus-within:ring-4 focus-within:ring-[#171C8F]/5">
-                        <label class="block text-[10px] font-bold text-[#171C8F] uppercase tracking-widest mb-3 ml-1 leading-none">ผู้รับสินค้า (RECEIVER) <span class="text-rose-500">*</span></label>
-                        <input type="text" id="r-receiver" required class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#171C8F] tracking-tight" placeholder="REQUIRED">
-                      </div>
-                    </div>
-
-                    <!-- Action Bar -->
-                    <div class="pt-10 flex flex-col md:flex-row gap-4">
-                      <button type="button" id="btn-draft" class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest bg-white text-slate-500 hover:text-[#171C8F] border border-slate-200 shadow-sm rounded-2xl transition-all order-2 md:order-1 flex-1 active:scale-95">
-                        <i data-lucide="save" class="w-4 h-4 inline mb-0.5 mr-2"></i> Save Draft
-                      </button>
-                      <button type="button" id="btn-review" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-[#E35205] text-white rounded-2xl shadow-xl shadow-[#E35205]/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-[#B54104]">
-                        <i data-lucide="send" class="w-5 h-5 inline mb-1 mr-2"></i> Submit for Review
-                      </button>
-                      <button type="button" id="btn-confirm-receive" class="px-12 py-5 text-sm font-bold uppercase tracking-widest bg-emerald-500 text-white rounded-2xl shadow-xl shadow-emerald-500/30 active:scale-95 transition-all order-1 md:order-2 flex-[2] hover:bg-emerald-600 hidden">
-                        <i data-lucide="check-circle" class="w-5 h-5 inline mb-1 mr-2"></i> Confirm Final Entry
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </section>
-
+    
+    <!-- Standardized Header -->
+    <header class="bg-white/90 backdrop-blur-xl h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 border-b border-slate-200 sticky top-0 w-full shadow-sm">
+        <div class="flex items-center gap-3">
+            <button id="mobile-menu-btn" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-[#171C8F] hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <h2 class="font-bold text-lg text-[#171C8F] tracking-tight truncate uppercase" id="page-title">Goods Receipt</h2>
         </div>
-      </main>
 
-      <!-- Bottom Nav (Mobile Only) -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-200 flex items-center justify-around px-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-          <div onclick="showView('receiving-list-view')" class="bottom-nav-item active" id="mobile-nav-manifest">
-              <i data-lucide="layout-grid" class="w-6 h-6"></i>
-              <span>Manifest</span>
+        <div class="flex items-center space-x-2 md:space-x-3">
+            <button onclick="loadInitialData(true)" class="p-2.5 text-slate-400 hover:text-[#E35205] hover:bg-[#E35205]/10 rounded-lg transition-all" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+            <div class="hidden sm:flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                <div class="text-right">
+                    <p id="display-username-header" class="text-[11px] font-bold text-[#2B3674] leading-none mb-0.5">...</p>
+                    <p class="text-[9px] font-bold text-emerald-500 flex items-center justify-end"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5"></span>Online</p>
+                </div>
+                <div class="w-8 h-8 bg-[#171C8F] rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">AK</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around md:hidden z-50 h-16 shadow-[0_-10px_25px_rgba(0,0,0,0.03)]">
+        <button onclick="openReceiving()" id="mob-receiving" class="flex-1 flex flex-col items-center justify-center gap-1 text-[#A3AED0] active">
+            <i data-lucide="inbox" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">รับของ</span>
+        </button>
+        <button onclick="openManifest()" id="mob-manifest" class="flex-1 flex flex-col items-center justify-center gap-1 text-[#A3AED0]">
+            <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">ใบส่งของ</span>
+        </button>
+        <button id="logout-btn-mobile" class="flex-1 flex flex-col items-center justify-center gap-1 text-rose-300">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">ออก</span>
+        </button>
+    </nav>
+
+    <!-- Scrollable Viewport -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-12 bg-[#F4F7FE]">
+
+    <!-- [View] Receiving -->
+    <div id="view-receiving" class="view-content active space-y-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <!-- Search & Filter Card -->
+            <div class="glass-card p-6 md:p-8">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1 relative">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" id="search-po" placeholder="ค้นหาเลขที่ PO หรือชื่อซัพพลายเออร์..." class="input-ci pl-12 h-14 text-base w-full" oninput="filterPOs()">
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <select id="filter-status" class="input-ci h-14 font-bold text-[#171C8F] px-6" onchange="filterPOs()">
+                            <option value="ALL">ทั้งหมด</option>
+                            <option value="OVERDUE">เกินกำหนด (7 วัน+)</option>
+                            <option value="PENDING">รอรับสินค้า</option>
+                            <option value="DRAFT">บันทึกร่าง</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-card p-5 border-l-4 border-l-orange-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Overdue POs</p>
+                    <h3 id="stat-overdue" class="text-3xl font-bold text-orange-600">0</h3>
+                </div>
+                <div class="glass-card p-5 border-l-4 border-l-[#171C8F]">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Pending</p>
+                    <h3 id="stat-pending" class="text-3xl font-bold text-[#171C8F]">0</h3>
+                </div>
+                <div class="glass-card p-5 border-l-4 border-l-emerald-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items In Draft</p>
+                    <h3 id="stat-draft" class="text-3xl font-bold text-emerald-600">0</h3>
+                </div>
+                <div class="glass-card p-5 border-l-4 border-l-slate-300">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Vendors</p>
+                    <h3 id="stat-vendors" class="text-3xl font-bold text-slate-600">0</h3>
+                </div>
+            </div>
+
+            <!-- List Container -->
+            <div id="po-list-container" class="space-y-4">
+                <!-- Data will be injected here -->
+                <div class="glass-card p-20 text-center flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#171C8F] mb-4"></div>
+                    <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">กำลังเตรียมรายการรับสินค้า...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [View] Manifest -->
+    <div id="view-manifest" class="view-content space-y-6">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <div class="glass-card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-[#171C8F] uppercase tracking-widest text-xs flex items-center gap-2">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i> รายการใบส่งของล่าสุด
+                    </h3>
+                    <button onclick="loadInitialData(true)" class="p-2 text-slate-400 hover:text-[#171C8F]"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                </div>
+                <div class="overflow-x-auto hide-scrollbar">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b border-slate-100">
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่</th>
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">เลขที่ PO</th>
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ซัพพลายเออร์</th>
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">รายการ</th>
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ผู้รับ</th>
+                                <th class="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manifest-table-body" class="text-sm font-medium text-slate-600">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </main>
+  </div>
+
+  <!-- [MODAL] Receiving Process -->
+  <div id="modal-receive" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 md:p-8">
+      <div class="absolute inset-0 bg-[#171C8F]/20 backdrop-blur-md" onclick="closeModal()"></div>
+      <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-20 animate-in fade-in zoom-in-95 duration-300">
+          <div class="p-6 md:p-8 bg-[#171C8F] text-white flex justify-between items-center">
+              <div>
+                  <h3 id="modal-po-no" class="text-2xl font-black tracking-tighter">PO-XXXXXX</h3>
+                  <p id="modal-vendor" class="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em] mt-1">VENDOR NAME</p>
+              </div>
+              <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
           </div>
-          <div onclick="showView('receiving-detail-view')" class="bottom-nav-item" id="mobile-nav-process">
-              <i data-lucide="file-text" class="w-6 h-6"></i>
-              <span>Process</span>
-          </div>
-          <div onclick="openReceiving(true)" class="bottom-nav-item">
-              <div class="w-12 h-12 bg-[#E35205] rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-[#E35205]/30 text-white border-4 border-white">
-                  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          
+          <div class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 custom-scrollbar">
+              <div id="modal-items-container" class="space-y-6">
+                  <!-- Product cards will be injected -->
+              </div>
+
+              <!-- Extra Items Section -->
+              <div class="pt-8 border-t border-slate-100">
+                  <div class="flex justify-between items-center mb-6">
+                      <h4 class="font-bold text-slate-800 flex items-center gap-2"><i data-lucide="plus-circle" class="text-[#E35205] w-5 h-5"></i> รายการสินค้าเพิ่มเติม (ของแถม/สินค้าเกิน)</h4>
+                      <button onclick="addExtraItemRow()" class="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-slate-100 hover:bg-slate-100 transition-all">+ เพิ่มรายการ</button>
+                  </div>
+                  <div id="extra-items-container" class="space-y-4"></div>
               </div>
           </div>
-          <div onclick="window.location.href=APP_CONFIG.PORTAL_URL" class="bottom-nav-item">
-              <i data-lucide="home" class="w-6 h-6"></i>
-              <span>Portal</span>
-          </div>
-          <div id="logout-btn-mobile" class="bottom-nav-item">
-              <i data-lucide="power" class="w-6 h-6"></i>
-              <span>Sign Out</span>
-          </div>
-      </nav>
-  </div>
 
-  <div id="data-loader" class="fixed inset-0 bg-white/80 z-[9000] hidden flex-col justify-center items-center backdrop-blur-sm">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#E35205] mb-4"></div>
-      <p class="text-[#E35205] font-bold uppercase tracking-widest text-[10px]" id="data-loader-text">Syncing...</p>
+          <div class="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row gap-4">
+              <button onclick="saveDraft()" id="btn-save-draft" class="flex-1 h-14 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all shadow-sm">บันทึกร่าง (พักรายการ)</button>
+              <button onclick="submitReceiving()" id="btn-submit-gr" class="flex-[2] h-14 bg-[#171C8F] text-white rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-[#11146B] transition-all shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-3">
+                  <i data-lucide="check-circle" class="w-5 h-5"></i> ยืนยันการรับสินค้าเข้าระบบ
+              </button>
+          </div>
+      </div>
   </div>
-  <div id="toast-container" class="toast-container"></div>
 
   <script>
     var APP_CONFIG = {
@@ -389,7 +364,7 @@
         PORTAL_URL: "./index.html",
         REQUIRED_ROLES: ["ADMIN", "AKRA", "WAREHOUSE"], 
         APP_NAME: "ระบบรับสินค้า (GR)",
-        STORAGE_KEY: "akra_session_token"
+        STORAGE_KEY: "akra_gr_session_token"
         };
 
     var DATA_SCRIPT_URL = "";
@@ -404,9 +379,40 @@
     }
 
     var UI = {
-        showLoading: () => { document.body.classList.add('loading-active'); document.getElementById('auth-loading').classList.remove('hidden'); document.getElementById('auth-error').classList.add('hidden'); document.getElementById('app-content').classList.add('hidden'); },
-        showError: (message) => { document.body.classList.remove('loading-active'); document.getElementById('auth-loading').classList.add('hidden'); const errorSection = document.getElementById('auth-error'); errorSection.classList.remove('hidden'); document.getElementById('error-message').innerText = message; },
-        showApp: (username) => { document.body.classList.remove('loading-active'); document.getElementById('auth-loading').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); document.getElementById('display-username').innerText = username; }
+        showLoading: () => { 
+            document.body.classList.add('loading-active'); 
+            const loading = document.getElementById('auth-loading');
+            const error = document.getElementById('auth-error');
+            const content = document.getElementById('app-content');
+            if(loading) loading.classList.remove('hidden'); 
+            if(error) error.classList.add('hidden'); 
+            if(content) content.classList.add('hidden'); 
+        },
+        showError: (message) => { 
+            document.body.classList.remove('loading-active'); 
+            const loading = document.getElementById('auth-loading');
+            const error = document.getElementById('auth-error');
+            const errMsg = document.getElementById('error-message');
+            if(loading) loading.classList.add('hidden'); 
+            if(error) error.classList.remove('hidden'); 
+            if(errMsg) errMsg.innerText = message; 
+        },
+        showApp: (user) => { 
+            document.body.classList.remove('loading-active'); 
+            const loading = document.getElementById('auth-loading');
+            const content = document.getElementById('app-content');
+            if(loading) loading.classList.add('hidden'); 
+            if(content) content.classList.remove('hidden'); 
+            
+            const nameEl = document.getElementById('display-username');
+            if (nameEl) nameEl.innerText = user.name || user;
+            
+            const nameHeader = document.getElementById('display-username-header');
+            if (nameHeader) nameHeader.innerText = user.name || user;
+            
+            const avatarEl = document.getElementById('user-avatar');
+            if (avatarEl) avatarEl.innerText = (user.name || "GR").substring(0, 2).toUpperCase();
+        }
     };
 
     let autoRefreshInterval;
@@ -426,7 +432,7 @@
                         localStorage.setItem('akra_user_data', JSON.stringify(sessionData));
                         
                         window.history.replaceState({}, document.title, window.location.pathname);
-                        AuthGuard.startApp(data.user);
+                        AuthGuard.startApp(sessionData);
                         return;
                     }
                 }
@@ -438,6 +444,7 @@
                 
                 AuthGuard.startApp(session);
             } catch (error) {
+                console.error("Auth Guard Protocol Failure:", error);
                 UI.showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
             }
         },
@@ -455,646 +462,390 @@
         },
         startApp: (user) => {
             window.currentUser = user.name;
-            UI.showApp(user.name);
+            UI.showApp(user);
             AuthGuard.bindEvents();
             
-            // Initialize UI with user data
-            if (document.getElementById('display-username')) document.getElementById('display-username').innerText = user.name;
-            if (document.getElementById('user-avatar')) document.getElementById('user-avatar').innerText = user.name.substring(0, 2).toUpperCase();
-
             initMobileMenu();
             openReceiving();
+            loadInitialData();
             lucide.createIcons();
         }
     };
-    document.addEventListener('DOMContentLoaded', AuthGuard.init);
 
-    function showDataLoading(text = 'กำลังโหลด...') { document.getElementById('data-loader-text').innerText = text; document.getElementById('data-loader').classList.remove('hidden'); document.getElementById('data-loader').classList.add('flex'); }
-    function hideDataLoading() { document.getElementById('data-loader').classList.add('hidden'); document.getElementById('data-loader').classList.remove('flex'); }
-    function showNotification(msg, type='success') {
-        const c = document.getElementById('toast-container'); if(!c) return;
-        const t = document.createElement('div'); t.className = `toast ${type}`;
-        let icon = type === 'success' ? `<i data-lucide="check-circle" class="w-6 h-6 text-emerald-500 flex-shrink-0"></i>` : (type === 'warning' ? `<i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-500 flex-shrink-0"></i>` : `<i data-lucide="x-circle" class="w-6 h-6 text-red-500 flex-shrink-0"></i>`);
-        t.innerHTML = `${icon}<div class="flex-1"><p class="text-sm font-medium text-gray-800">${msg}</p></div>`;
-        c.appendChild(t); lucide.createIcons({root: t});
-        setTimeout(() => { t.classList.add('closing'); t.addEventListener('animationend', () => t.remove()); }, 4000);
-    }
-    
-    function showView(viewId) { 
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel(); 
-        
-        // Update Sections
-        document.querySelectorAll('main section').forEach(section => {
-            section.classList.remove('active');
-        }); 
-        document.getElementById(viewId).classList.add('active'); 
-        
-        // Update Sidebar Active State
-        const navManifest = document.getElementById('nav-manifest');
-        const navProcess = document.getElementById('nav-process');
-        
-        if (navManifest && navProcess) {
-            navManifest.classList.remove('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
-            navManifest.classList.add('text-white/70', 'border-transparent');
-            navProcess.classList.remove('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
-            navProcess.classList.add('text-white/70', 'border-transparent');
+    function initMobileMenu() {
+        const sidebar = document.getElementById('main-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const closeBtn = document.getElementById('close-sidebar-btn');
 
-            if (viewId === 'receiving-list-view') {
-                navManifest.classList.remove('text-white/70', 'border-transparent');
-                navManifest.classList.add('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
-                document.getElementById('active-tab-title').innerText = 'รายการรอรับสินค้าเข้าคลัง';
+        function toggleSidebar() {
+            const isOpen = sidebar.classList.contains('translate-x-0');
+            if (isOpen) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
             } else {
-                navProcess.classList.remove('text-white/70', 'border-transparent');
-                navProcess.classList.add('bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
-                document.getElementById('active-tab-title').innerText = 'รายละเอียดการรับสินค้า';
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
             }
         }
 
-        // Update Bottom Nav Active State
-        document.querySelectorAll('.bottom-nav-item').forEach(item => {
-            item.classList.remove('active', 'text-[#E35205]');
-            item.classList.add('text-slate-400');
-            const span = item.querySelector('span');
-            if (span) {
-                if ((viewId === 'receiving-list-view' && span.innerText === 'Manifest') || 
-                    (viewId === 'receiving-detail-view' && span.innerText === 'Process')) {
-                    item.classList.add('active', 'text-[#E35205]');
-                    item.classList.remove('text-slate-400');
-                }
-            }
-        });
-
-        window.scrollTo(0, 0); 
-    }
-
-    function getWarehouseBadge(warehouse) {
-        const base = "text-[10px] font-bold px-2.5 py-1 rounded-md border shadow-sm uppercase tracking-wider";
-        switch(warehouse) {
-            case 'W1': return `<span class="${base} bg-white text-slate-500 border-slate-200">W1 WHITE</span>`;
-            case 'W2': return `<span class="${base} bg-[#E35205] text-white border-[#E35205] shadow-[#E35205]/20">W2 ORANGE</span>`;
-            case 'W3': return `<span class="${base} bg-amber-400 text-amber-900 border-amber-500 shadow-amber-400/20">W3 YELLOW</span>`;
-            case 'W4': return `<span class="${base} bg-emerald-500 text-white border-emerald-600 shadow-emerald-500/20">W4 GREEN</span>`;
-            case 'W5': return `<span class="${base} bg-slate-500 text-white border-slate-600 shadow-slate-500/20">W5 GRAY</span>`;
-            case 'C1': return `<span class="${base} bg-sky-400 text-white border-sky-500 shadow-sky-400/20">C1 SKY</span>`;
-            case 'C2': return `<span class="${base} bg-[#171C8F] text-white border-[#171C8F] shadow-[#171C8F]/20">C2 DEEP</span>`;
-            default: return `<span class="${base} bg-slate-100 text-slate-600 border-slate-200">${warehouse} HUB</span>`;
-        }
-    }
-
-    async function apiCall(action, payload = null) {
-      return await AKRA_API.call(action, payload);
-    }
-
-    async function openReceiving(isManualRefresh = false) {
-        const cachedData = localStorage.getItem('CACHE_GR_DATA');
-        if (cachedData && !isManualRefresh) {
-            try {
-                appData = JSON.parse(cachedData);
-                groupPendingPOs();
-                renderPOListForReceiving();
-                showView('receiving-list-view');
-                showNotification('Syncing with live data...', 'warning');
-            } catch(e) { showDataLoading('Syncing manifest...'); }
-        } else {
-            showDataLoading('Syncing manifest...');
-        }
-
-        const response = await AKRA_API.call('getInitialData');
+        if(menuBtn) menuBtn.onclick = toggleSidebar;
+        if(closeBtn) closeBtn.onclick = toggleSidebar;
+        if(overlay) overlay.onclick = toggleSidebar;
         
-        if (!cachedData || isManualRefresh) hideDataLoading();
-
-        if (response.success) { 
-            localStorage.setItem('CACHE_GR_DATA', JSON.stringify(response));
-            appData = response; 
-            groupPendingPOs(); 
-            renderPOListForReceiving(); 
-            
-            if (!cachedData && !isManualRefresh) showView('receiving-list-view'); 
-        } else if (!cachedData) { 
-            showNotification('Manifest sync failed', 'error'); 
-        }
-    }
-
-    function groupPendingPOs() {
-      const groups = {};
-      if(appData.pendingPOs) {
-          appData.pendingPOs.forEach(po => {
-            const key = po.poNumber + '|' + po.vendor + '|' + po.poDate + '|' + po.warehouse + '|' + po.status;
-            if (!groups[key]) groups[key] = { poNumber: po.poNumber, vendor: po.vendor, poDate: po.poDate, warehouse: po.warehouse, status: po.status, items: [] };
-            groups[key].items.push(po);
-          });
-      }
-      groupedPOs = Object.values(groups).sort((a, b) => {
-        let getScore = (group) => {
-            if (group.items.some(i => i.displayStatus === 'Overdue')) return 4;
-            if (group.items.some(i => i.status === 'Pending Review')) return 3;
-            if (group.items.some(i => i.status === 'Draft GR')) return 2;
-            return 1;
+        window.closeMobileSidebar = () => {
+            if(window.innerWidth < 1024 && sidebar.classList.contains('translate-x-0')) toggleSidebar();
         };
-        return getScore(b) - getScore(a);
-      });
     }
 
-    function renderPOListForReceiving() {
+    function openReceiving() {
+        if(window.closeMobileSidebar) window.closeMobileSidebar();
+        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-receiving').classList.add('active');
+        
+        document.getElementById('nav-receiving').classList.add('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+        document.getElementById('nav-receiving').classList.remove('text-white/70');
+        document.getElementById('nav-manifest').classList.remove('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+        document.getElementById('nav-manifest').classList.add('text-white/70');
+
+        document.getElementById('mob-receiving').classList.add('active', '!text-[#171C8F]');
+        document.getElementById('mob-manifest').classList.remove('active', '!text-[#171C8F]');
+
+        document.getElementById('page-title').innerText = "ระบบรับสินค้า (GR)";
+        lucide.createIcons();
+    }
+
+    function openManifest() {
+        if(window.closeMobileSidebar) window.closeMobileSidebar();
+        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-manifest').classList.add('active');
+        
+        document.getElementById('nav-manifest').classList.add('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+        document.getElementById('nav-manifest').classList.remove('text-white/70');
+        document.getElementById('nav-receiving').classList.remove('active', 'bg-white/10', 'text-[#E35205]', 'font-bold', 'shadow-sm');
+        document.getElementById('nav-receiving').classList.add('text-white/70');
+
+        document.getElementById('mob-manifest').classList.add('active', '!text-[#171C8F]');
+        document.getElementById('mob-receiving').classList.remove('active', '!text-[#171C8F]');
+
+        document.getElementById('page-title').innerText = "รายการใบส่งของ";
+        renderManifest();
+        lucide.createIcons();
+    }
+
+    async function loadInitialData(isSilent = false) {
+        if (!isSilent) showDataLoading('กำลังโหลดข้อมูล...');
+        try {
+            const [poRes, prodRes, manifestRes] = await Promise.all([
+                AKRA_API.call('getPendingPOs'),
+                AKRA_API.call('getProducts'),
+                AKRA_API.call('getGRManifest')
+            ]);
+            
+            if (poRes.success) appData.pendingPOs = poRes.pos;
+            if (prodRes.success) appData.products = prodRes.products;
+            if (manifestRes.success) appData.manifest = manifestRes.manifest;
+            
+            processPOs();
+            renderPOList();
+            updateStats();
+        } catch (error) {
+            console.error("Data Load Error:", error);
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถโหลดข้อมูลจากเซิร์ฟเวอร์ได้' });
+        } finally {
+            hideDataLoading();
+        }
+    }
+
+    function showDataLoading(msg) {
+        Swal.fire({
+            title: msg,
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+    }
+
+    function hideDataLoading() { Swal.close(); }
+
+    function processPOs() {
+        const groups = {};
+        appData.pendingPOs.forEach(po => {
+            if (!groups[po.po_no]) {
+                groups[po.po_no] = {
+                    po_no: po.po_no,
+                    vendor: po.vendor_name,
+                    date: po.created_at,
+                    items: [],
+                    status: po.status
+                };
+            }
+            groups[po.po_no].items.push(po);
+        });
+        groupedPOs = Object.values(groups).sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderPOList() {
         const container = document.getElementById('po-list-container');
-        const filterWh = document.getElementById('r-warehouse-filter').value; 
-        const filterStatus = document.getElementById('r-status-filter').value; 
-        const search = document.getElementById('r-search-input').value.trim().toLowerCase();
+        if (!container) return;
         
-        const displayGroups = groupedPOs.filter(g => {
-            const hasOverdue = g.items.some(i => i.displayStatus === 'Overdue'); 
-            const isDraft = g.items.some(i => i.status === 'Draft GR');
-            const isPendingReview = g.items.some(i => i.status === 'Pending Review');
-            
-            if(filterWh && g.warehouse !== filterWh) return false;
-            if(filterStatus === 'Overdue' && !hasOverdue) return false;
-            if(filterStatus === 'Draft GR' && !isDraft) return false;
-            if(filterStatus === 'Pending Review' && !isPendingReview) return false;
-            if(filterStatus === 'Pending GR' && (hasOverdue || isDraft || isPendingReview)) return false;
-            
-            if(search && !g.vendor.toLowerCase().includes(search) && !g.items.some(i => i.product.toLowerCase().includes(search)) && !(g.poNumber||'').toLowerCase().includes(search)) return false;
-            return true;
-        });
+        if (groupedPOs.length === 0) {
+            container.innerHTML = `<div class="glass-card p-16 text-center text-slate-400 font-bold uppercase tracking-[0.2em] text-xs">ไม่พบรายการ PO ที่ค้างรับ</div>`;
+            return;
+        }
 
-        document.getElementById('pending-count').innerText = `${displayGroups.length} Manifests`;
-        let htmlStr = '';
-
-        displayGroups.forEach(group => {
-            const idx = groupedPOs.indexOf(group);
-            const hasOverdue = group.items.some(i => i.displayStatus === 'Overdue'); 
-            const isDraft = group.items.some(i => i.status === 'Draft GR');
-            const isPendingReview = group.items.some(i => i.status === 'Pending Review');
-
-            let cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-slate-200 group relative overflow-hidden animate-fade-in transition-all";
-            let statusBadge = `<span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded border border-slate-100">AWAITING</span>`;
-            
-            if (hasOverdue && !isPendingReview) {
-                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-rose-500 bg-rose-50/5 group relative overflow-hidden animate-fade-in transition-all";
-                statusBadge = `<span class="text-[10px] font-bold text-rose-500 bg-white px-2 py-1 rounded border border-rose-100 shadow-sm flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> OVERDUE</span>`;
-            } else if (isPendingReview) {
-                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-[#E35205] bg-[#E35205]/5 group relative overflow-hidden animate-fade-in transition-all";
-                statusBadge = `<span class="text-[10px] font-bold text-[#E35205] bg-white px-2 py-1 rounded border border-[#E35205]/10 shadow-sm flex items-center gap-1"><i data-lucide="send" class="w-3 h-3"></i> REVIEWING</span>`;
-            } else if (isDraft) {
-                cardClass = "glass-card p-5 flex flex-col h-[380px] cursor-pointer border-t-4 border-t-[#171C8F] bg-[#171C8F]/5 group relative overflow-hidden animate-fade-in transition-all";
-                statusBadge = `<span class="text-[10px] font-bold text-[#171C8F] bg-white px-2 py-1 rounded border border-[#171C8F]/10 shadow-sm flex items-center gap-1"><i data-lucide="save" class="w-3 h-3"></i> DRAFTING</span>`;
-            }
-            
-            let productsHtml = '<div class="space-y-2.5 mt-5 flex-1 overflow-hidden">';
-            group.items.slice(0,4).forEach((item, i) => {
-                productsHtml += `
-                  <div class="flex items-start gap-2.5">
-                    <span class="text-[10px] font-bold text-slate-300 mt-0.5">${i+1}.</span>
-                    <p class="font-bold text-[#2B3674] text-xs leading-tight line-clamp-2 uppercase">${item.product}</p>
-                  </div>`;
-            });
-            if(group.items.length > 4) productsHtml += `<p class="text-[9px] font-bold text-[#E35205] mt-2 uppercase tracking-widest ml-5">+ ${group.items.length - 4} More SKUs</p>`;
-            productsHtml += '</div>';
-
-            htmlStr += `
-            <div class="${cardClass}" onclick="openReceivingDetail(${idx})">
-                <div class="absolute -right-2 -top-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <i data-lucide="package" class="w-20 h-20"></i>
-                </div>
-                
-                <div class="flex justify-between items-start mb-5 pb-4 border-b border-slate-50">
-                    <div class="flex flex-col">
-                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Reference No.</span>
-                      <span class="text-lg font-bold text-[#171C8F] uppercase tracking-tight">${group.poNumber || 'UNLINKED'}</span>
-                    </div>
-                    ${statusBadge}
-                </div>
-
-                ${productsHtml}
-
-                <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-3.5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex flex-col">
-                            <p class="font-bold text-[#2B3674] text-[11px] uppercase truncate max-w-[150px]">${group.vendor}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase">${group.poDate}</p>
+        container.innerHTML = groupedPOs.map(po => {
+            const isOverdue = (new Date() - new Date(po.date)) / (1000 * 60 * 60 * 24) > 7;
+            const statusClass = isOverdue ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-[#F4F7FE] text-[#171C8F] border-slate-100';
+            return `
+                <div class="glass-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:border-[#171C8F]/30 cursor-pointer transition-all active:scale-[0.99]" onclick="openReceiveModal('${po.po_no}')">
+                    <div class="flex items-center gap-5">
+                        <div class="w-14 h-14 rounded-2xl ${isOverdue ? 'bg-orange-100 text-orange-600' : 'bg-[#F4F7FE] text-[#171C8F]'} flex items-center justify-center shrink-0">
+                            <i data-lucide="${isOverdue ? 'alert-triangle' : 'file-text'}" class="w-7 h-7"></i>
                         </div>
-                        ${getWarehouseBadge(group.warehouse)}
-                    </div>
-                    
-                    <div class="w-full py-2.5 bg-slate-50 rounded-xl flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:bg-[#E35205] group-hover:text-white transition-all shadow-sm">
-                       Process Manifest
-                    </div>
-                </div>
-            </div>`;
-        });
-        container.innerHTML = htmlStr; lucide.createIcons({ root: container });
-    }
-
-    function openReceivingDetail(index) {
-        const group = groupedPOs[index];
-        
-        document.getElementById('r-display-vendor-header').innerHTML = `
-            <div class="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner text-brand-orange transition-all group">
-              <i data-lucide="building-2" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
-            </div>
-            <div class="flex flex-col">
-                <span class="font-bold text-brand-navy text-2xl leading-none uppercase tracking-tight">${group.vendor}</span>
-                <div class="mt-3 flex items-center gap-3">
-                  ${getWarehouseBadge(group.warehouse)}
-                  <span class="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-                  <span class="text-[10px] font-bold text-brand-gray uppercase tracking-widest">${group.items.length} SKUs Ordered</span>
-                </div>
-            </div>
-        `;
-        document.getElementById('r-display-date').innerText = group.poDate;
-        document.getElementById('r-display-po').innerText = `${group.poNumber || 'UNLINKED'}`;
-        document.getElementById('r-group-index').value = index;
-        
-        let firstItem = group.items.find(i => i.status === 'Draft GR' || i.status === 'Pending Review') || group.items[0];
-        
-        const localDate = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        document.getElementById('r-ata').value = localDate;
-        
-        document.getElementById('r-receiver').value = firstItem?.receiverName || window.currentUser;
-        document.getElementById('r-remark').value = firstItem?.remark || '';
-
-        const hasOverdue = group.items.some(i => i.displayStatus === 'Overdue');
-        const hasPendingReview = group.items.some(i => i.status === 'Pending Review');
-        const hasDraft = group.items.some(i => i.status === 'Draft GR');
-        
-        const statusEl = document.getElementById('r-display-status');
-        if (hasOverdue && !hasPendingReview) { statusEl.innerHTML = `<span class="badge-base bg-rose-50 text-rose-500 border border-rose-100 shadow-sm !py-2 !px-4">CRITICAL OVERDUE</span>`; }
-        else if (hasPendingReview) { statusEl.innerHTML = `<span class="badge-base bg-brand-orange text-white shadow-lg shadow-orange-500/20 !py-2 !px-4">UNDER REVIEW</span>`; }
-        else if (hasDraft) { statusEl.innerHTML = `<span class="badge-base bg-brand-blue text-white shadow-lg shadow-blue-500/20 !py-2 !px-4">ACTIVE DRAFT</span>`; }
-        else { statusEl.innerHTML = `<span class="badge-base bg-slate-50 text-brand-gray border border-slate-100 !py-2 !px-4">READY TO RECEIVE</span>`; }
-
-        const liftFeeSection = document.getElementById('r-lift-fee-section');
-        if (group.warehouse === 'W2') {
-            const creditKeywords = ['tfm', 'สาลีไทย', 'เกตุวานิช', 'kvc', 'แหลมทอง', 'เพียวฟู้ดส์', 'purefoods', 'พ่อโจ้'];
-            let defaultLiftFee = 'จ่ายสด';
-            if (creditKeywords.some(v => group.vendor.toLowerCase().includes(v))) { defaultLiftFee = 'เชื่อ'; }
-
-            let previousRounds = '';
-            let previousPayment = defaultLiftFee;
-            if (firstItem?.remark) {
-                const matchNew = firstItem.remark.match(/\[ค่าลิฟท์\s*(\d+)?\s*รอบ\s*(จ่ายสด|เชื่อ)\]/);
-                if(matchNew) { previousRounds = matchNew[1] || ''; previousPayment = matchNew[2]; } 
-                else { const matchOld = firstItem.remark.match(/\[ค่าลิฟท์:\s*(จ่ายสด|เชื่อ)\]/); if(matchOld) previousPayment = matchOld[1]; }
-            }
-            
-            liftFeeSection.innerHTML = `
-                <div class="bg-brand-navy/5 p-6 md:p-8 rounded-4xl border border-brand-navy/10 shadow-inner mb-12" id="lift-fee-container">
-                    <label class="block text-[11px] font-bold text-brand-navy uppercase tracking-wider mb-6 ml-1 opacity-50">Forklift / Lift Fee (W2 HUB EXCLUSIVE)</label>
-                    <div class="flex flex-col md:flex-row md:items-center gap-6">
-                        <div class="flex items-center gap-5 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm grow focus-within:ring-4 focus-within:ring-brand-blue/5 transition-all">
-                            <div class="w-12 h-12 bg-brand-blue/5 rounded-2xl flex items-center justify-center text-brand-blue">
-                              <i data-lucide="truck" class="w-6 h-6"></i>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-black text-lg tracking-tighter text-[#171C8F]">${po.po_no}</h4>
+                                ${isOverdue ? '<span class="bg-orange-600 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">OVERDUE</span>' : ''}
                             </div>
-                            <div class="flex-1">
-                              <span class="text-[9px] font-bold text-brand-gray uppercase tracking-widest mb-1 block">ROUNDS</span>
-                              <input type="number" id="lift-fee-rounds" class="w-full outline-none bg-transparent text-xl font-bold text-brand-navy tracking-tight" placeholder="0" min="0" value="${previousRounds}">
-                            </div>
+                            <p class="text-sm font-bold text-slate-800 truncate">${po.vendor}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${po.items.length} รายการ — ออกเมื่อ ${new Date(po.date).toLocaleDateString('th-TH')}</p>
                         </div>
-                        <div class="flex gap-4 shrink-0">
-                            <label class="flex-1 md:flex-none flex items-center gap-4 cursor-pointer bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm hover:border-brand-blue transition-all group">
-                                <input type="radio" name="lift-fee" value="จ่ายสด" ${previousPayment === 'จ่ายสด' ? 'checked' : ''} class="w-5 h-5 text-brand-blue border-slate-200 focus:ring-brand-blue">
-                                <div class="flex flex-col">
-                                  <span class="text-[10px] font-bold text-brand-navy uppercase tracking-widest leading-none">CASH</span>
-                                  <span class="text-[8px] font-bold text-brand-gray uppercase mt-1 leading-none">จ่ายสด</span>
-                                </div>
-                            </label>
-                            <label class="flex-1 md:flex-none flex items-center gap-4 cursor-pointer bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm hover:border-brand-blue transition-all group">
-                                <input type="radio" name="lift-fee" value="เชื่อ" ${previousPayment === 'เชื่อ' ? 'checked' : ''} class="w-5 h-5 text-brand-blue border-slate-200 focus:ring-brand-blue">
-                                <div class="flex flex-col">
-                                  <span class="text-[10px] font-bold text-brand-navy uppercase tracking-widest leading-none">CREDIT</span>
-                                  <span class="text-[8px] font-bold text-brand-gray uppercase mt-1 leading-none">ลงชื่อเชื่อ</span>
-                                </div>
-                            </label>
-                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <button class="flex-1 md:flex-none px-6 h-12 bg-[#F4F7FE] text-[#171C8F] rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#171C8F] hover:text-white transition-all">ตรวจสอบ</button>
+                        <button class="w-12 h-12 bg-[#E35205] text-white rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 active:scale-90 transition-all"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                     </div>
                 </div>
             `;
-        } else {
-            liftFeeSection.innerHTML = '';
-        }
-
-        const container = document.getElementById('r-items-container');
-        let htmlStr = '';
-        
-        group.items.forEach((item, i) => {
-            const isSavedData = item.status === 'Draft GR' || item.status === 'Pending Review';
-            htmlStr += `
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm po-item-row hover:border-[#E35205]/30 transition-all animate-fade-in group" data-pouid="${item.poUid}">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 pb-5 border-b border-slate-50">
-                    <div class="flex items-start gap-4 flex-1">
-                      <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center font-bold text-[#171C8F] text-lg shadow-inner border border-white shrink-0">${i+1}</div>
-                      <div class="flex flex-col gap-1 overflow-hidden">
-                        <span class="font-bold text-[#2B3674] text-base tracking-tight leading-tight uppercase truncate">${item.product}</span>
-                        <div class="flex items-center gap-3">
-                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Target SKU: ${item.sku || '-'}</span>
-                          <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
-                          <span class="text-[9px] font-bold text-[#171C8F] uppercase tracking-widest">${item.unit || 'UNIT'}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 shrink-0">
-                      <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-right min-w-[90px]">
-                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">PO DEMAND</p>
-                        <p class="text-lg font-bold text-[#171C8F] tracking-tight leading-none">${item.quantity} <span class="text-[9px] uppercase font-bold opacity-50 ml-1">${item.unit || ''}</span></p>
-                      </div>
-                      <button type="button" data-text="${item.product} จำนวน ${item.quantity} ${item.unit || ''}" onclick="speakText(this.dataset.text)" class="w-12 h-12 flex items-center justify-center bg-orange-50 text-[#E35205] hover:bg-[#E35205] hover:text-white rounded-xl transition-all shadow-sm active:scale-95 border border-[#E35205]/10">
-                          <i data-lucide="volume-2" class="w-5 h-5"></i>
-                      </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-orange-50/30 p-3 rounded-xl border border-orange-100/50 shadow-inner transition-all focus-within:border-[#E35205]">
-                      <label class="block text-[9px] font-bold text-[#E35205] uppercase tracking-widest mb-1 leading-none">Received Qty</label>
-                      <input type="number" class="w-full bg-transparent border-none outline-none text-xl font-bold text-[#E35205] tracking-tight placeholder:text-[#E35205]/20" placeholder="0" value="${isSavedData ? (item.grQty||'') : ''}">
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center opacity-60">
-                      <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Unit Measure</label>
-                      <input type="text" class="bg-transparent border-none outline-none text-[10px] font-bold text-slate-500 uppercase" value="${item.unit || '-'}" readonly tabindex="-1">
-                    </div>
-                    <div class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-all">
-                      <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Expiry (EXP)</label>
-                      <input type="text" class="w-full bg-transparent border-none outline-none text-sm font-bold text-[#2B3674] tracking-widest placeholder:text-slate-200" placeholder="DD/MM/YYYY" value="${isSavedData ? (item.exp||'') : ''}">
-                    </div>
-                    <div class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-[#171C8F]/5">
-                      <label class="block text-[9px] font-bold text-[#171C8F] uppercase tracking-widest mb-1 leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
-                      <input type="text" class="w-full bg-transparent border-none outline-none text-sm font-bold text-[#171C8F] uppercase tracking-widest placeholder:text-slate-200" placeholder="LOC-X-01" value="${isSavedData ? (item.locIn||'') : ''}">
-                    </div>
-                    <input type="hidden" value="${item.oldStock || '0'}">
-                </div>
-            </div>`;
-        });
-        container.innerHTML = htmlStr;
-
-        document.getElementById('r-extra-items-container').innerHTML = '';
-        document.getElementById('btn-draft').onclick = (e) => submitReceiving(e, 'Draft GR');
-        document.getElementById('btn-review').onclick = (e) => submitReceiving(e, 'Pending Review');
-        document.getElementById('btn-confirm-receive').onclick = (e) => submitReceiving(e, 'GR Completed');
-        
-        if (hasPendingReview) {
-            document.getElementById('btn-confirm-receive').classList.remove('hidden');
-            document.getElementById('btn-draft').classList.add('hidden');
-            document.getElementById('btn-review').classList.add('hidden');
-        } else {
-            document.getElementById('btn-confirm-receive').classList.add('hidden');
-            document.getElementById('btn-draft').classList.remove('hidden');
-            document.getElementById('btn-review').classList.remove('hidden');
-        }
-        
-        showView('receiving-detail-view');
-        lucide.createIcons({ root: document.getElementById('receiving-detail-view') });
+        }).join('');
+        lucide.createIcons();
     }
-        container.innerHTML = htmlStr;
 
-        document.getElementById('r-extra-items-container').innerHTML = '';
-        document.getElementById('btn-draft').onclick = (e) => submitReceiving(e, 'Draft GR');
-        document.getElementById('btn-review').onclick = (e) => submitReceiving(e, 'Pending Review');
-        document.getElementById('btn-confirm-receive').onclick = (e) => submitReceiving(e, 'GR Completed');
+    function updateStats() {
+        const overdueCount = groupedPOs.filter(po => (new Date() - new Date(po.date)) / (1000 * 60 * 60 * 24) > 7).length;
+        document.getElementById('stat-overdue').innerText = overdueCount;
+        document.getElementById('stat-pending').innerText = groupedPOs.length;
+        document.getElementById('stat-vendors').innerText = [...new Set(groupedPOs.map(po => po.vendor))].length;
+    }
+
+    function filterPOs() {
+        const q = document.getElementById('search-po').value.toLowerCase();
+        const status = document.getElementById('filter-status').value;
         
-        if (hasPendingReview) {
-            document.getElementById('btn-confirm-receive').classList.remove('hidden');
-            document.getElementById('btn-draft').classList.add('hidden');
-            document.getElementById('btn-review').classList.add('hidden');
-        } else {
-            document.getElementById('btn-confirm-receive').classList.add('hidden');
-            document.getElementById('btn-draft').classList.remove('hidden');
-            document.getElementById('btn-review').classList.remove('hidden');
-        }
+        const container = document.getElementById('po-list-container');
+        const filtered = groupedPOs.filter(po => {
+            const matchQuery = po.po_no.toLowerCase().includes(q) || po.vendor.toLowerCase().includes(q);
+            const isOverdue = (new Date() - new Date(po.date)) / (1000 * 60 * 60 * 24) > 7;
+            
+            if (status === 'OVERDUE') return matchQuery && isOverdue;
+            return matchQuery;
+        });
         
-        showView('receiving-detail-view');
-        lucide.createIcons({ root: document.getElementById('receiving-detail-view') });
+        // Temporarily override groupedPOs to render filtered list
+        const original = [...groupedPOs];
+        groupedPOs = filtered;
+        renderPOList();
+        groupedPOs = original;
+    }
+
+    let activePO = null;
+    function openReceiveModal(poNo) {
+        activePO = groupedPOs.find(p => p.po_no === poNo);
+        if (!activePO) return;
+        
+        document.getElementById('modal-po-no').innerText = activePO.po_no;
+        document.getElementById('modal-vendor').innerText = activePO.vendor;
+        
+        const container = document.getElementById('modal-items-container');
+        container.innerHTML = activePO.items.map((item, idx) => `
+            <div class="glass-card p-6 border-l-8 border-l-[#171C8F] relative group">
+                <div class="flex justify-between items-start gap-4 mb-6">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Item #${idx+1}</p>
+                        <h4 class="font-bold text-slate-800 text-lg leading-tight">${item.product_name}</h4>
+                    </div>
+                    <button onclick="speakItem(${idx})" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-[#171C8F] transition-all flex items-center justify-center shrink-0">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">จำนวนตามสั่ง (PO)</label>
+                        <div class="h-12 flex items-center px-4 bg-slate-50 rounded-xl font-black text-[#171C8F] border border-slate-100">
+                            ${item.quantity} ${item.unit || ''}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">จำนวนที่รับจริง</label>
+                        <input type="number" step="any" class="gr-qty input-ci h-12 text-center text-lg font-bold" data-poid="${item.po_uid}" value="${item.quantity}" oninput="validateQty(this, ${item.quantity})">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">ตำแหน่งจัดเก็บ (Loc)</label>
+                        <input type="text" class="gr-loc input-ci h-12 uppercase font-bold text-center" placeholder="เช่น A-01-1">
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('extra-items-container').innerHTML = '';
+        document.getElementById('modal-receive').classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    function closeModal() {
+        document.getElementById('modal-receive').classList.add('hidden');
+        activePO = null;
     }
 
     function addExtraItemRow() {
-        const container = document.getElementById('r-extra-items-container'); 
-        const div = document.createElement('div');
-        div.className = "extra-item-row bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm relative animate-fade-in group hover:border-brand-blue/30 transition-all";
-        div.innerHTML = `
-            <button type="button" onclick="this.closest('.extra-item-row').remove()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all shadow-sm group">
-              <i data-lucide="x" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
-            </button>
-            <div class="pr-12 mb-8">
-                <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Extra Product Entry <span class="text-rose-500">*</span></label>
-                <div class="relative">
-                  <input type="text" class="w-full h-14 bg-indigo-50/30 border border-slate-100 px-6 rounded-2xl text-sm font-black text-brand-navy italic focus:bg-white focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all placeholder:font-medium" placeholder="SPECIFY PRODUCT NAME OR SEARCH..." autocomplete="off">
-                  <input type="hidden" class="ex-sku">
-                  <ul class="suggestion-box absolute z-50 w-full bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto hidden mt-2 divide-y divide-slate-50 custom-scrollbar overflow-x-hidden"></ul>
+        const container = document.getElementById('extra-items-container');
+        const row = document.createElement('div');
+        row.className = "glass-card p-6 bg-orange-50/30 border-dashed border-orange-200 relative animate-in fade-in slide-in-from-top-2 duration-300";
+        row.innerHTML = `
+            <button onclick="this.parentElement.remove()" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <div class="md:col-span-6">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">ชื่อสินค้าเพิ่มเติม</label>
+                    <input type="text" class="extra-name input-ci h-12" placeholder="พิมพ์ชื่อสินค้า...">
                 </div>
-            </div>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-indigo-50/50 p-4 rounded-3xl border border-indigo-100 shadow-inner focus-within:border-brand-blue transition-all">
-                  <label class="block text-[10px] font-black text-brand-blue uppercase tracking-widest mb-2 ml-1 italic leading-none">Qty <span class="text-rose-500">*</span></label>
-                  <input type="number" class="w-full bg-transparent border-none outline-none text-2xl font-black text-brand-blue italic tracking-tighter" placeholder="0">
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">จำนวน</label>
+                    <input type="number" class="extra-qty input-ci h-12 text-center" placeholder="0">
                 </div>
-                <div class="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col justify-center opacity-60">
-                  <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Unit</label>
-                  <input type="text" class="bg-transparent border-none outline-none text-xs font-black text-brand-gray uppercase italic ml-1" placeholder="PCS" readonly tabindex="-1">
-                </div>
-                <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all">
-                  <label class="block text-[10px] font-black text-brand-gray uppercase tracking-widest mb-2 ml-1 italic leading-none">Expiry (EXP)</label>
-                  <input type="text" class="w-full bg-transparent border-none outline-none text-base font-black text-brand-navy italic tracking-widest placeholder:DD/MM/YYYY">
-                </div>
-                <div class="p-4 rounded-3xl border border-slate-100 hover:border-slate-300 transition-all focus-within:ring-4 focus-within:ring-brand-blue/5">
-                  <label class="block text-[10px] font-black text-brand-blue uppercase tracking-widest mb-2 ml-1 italic leading-none">Inbound Loc. <span class="text-rose-500">*</span></label>
-                  <input type="text" class="w-full bg-transparent border-none outline-none text-base font-black text-brand-blue uppercase italic tracking-widest placeholder:LOCATION">
+                <div class="md:col-span-4">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">ตำแหน่ง</label>
+                    <input type="text" class="extra-loc input-ci h-12 uppercase text-center" placeholder="Loc">
                 </div>
             </div>
         `;
-        container.appendChild(div);
-        setupAutocomplete(div.querySelector('input[type="text"]')); 
-        lucide.createIcons({ root: div });
+        container.appendChild(row);
+        lucide.createIcons();
     }
 
-    function setupAutocomplete(inputEl) {
-        const suggestionBox = inputEl.nextElementSibling.nextElementSibling;
-        inputEl.addEventListener('input', function() {
-            const val = this.value.trim().toLowerCase(); suggestionBox.innerHTML = '';
-            if (!val || !appData.products || appData.products.length === 0) { suggestionBox.classList.add('hidden'); return; }
-            const filtered = appData.products.filter(p => p.name.toLowerCase().includes(val)).slice(0, 15);
-            if (filtered.length === 0) { suggestionBox.classList.add('hidden'); return; }
+    async function submitReceiving() {
+        if (!activePO) return;
+        
+        const items = [];
+        let hasError = false;
+        
+        document.querySelectorAll('#modal-items-container .gr-qty').forEach((input, i) => {
+            const qty = parseFloat(input.value);
+            const loc = document.querySelectorAll('#modal-items-container .gr-loc')[i].value.trim();
+            const poItem = activePO.items[i];
             
-            filtered.forEach(p => {
-                const li = document.createElement('li'); 
-                li.className = 'px-4 py-3 hover:bg-orange-50 cursor-pointer text-sm font-bold text-slate-600 transition-all flex justify-between items-center border-b border-slate-50 last:border-0';
-                li.innerHTML = `<span>${p.name}</span> <span class="text-[9px] font-black text-slate-300 uppercase italic tracking-widest">${p.unit}</span>`;
-                li.onmousedown = function(e) {
-                    e.preventDefault(); inputEl.value = p.name;
-                    const row = inputEl.closest('.extra-item-row');
-                    row.querySelector('.ex-sku').value = p.sku || ''; 
-                    const inputs = row.querySelectorAll('input');
-                    inputs[2].value = p.unit || ''; 
-                    inputs[3].focus();
-                    suggestionBox.classList.add('hidden');
-                };
-                suggestionBox.appendChild(li);
-            });
-            suggestionBox.classList.remove('hidden');
-        });
-        inputEl.addEventListener('blur', () => setTimeout(() => suggestionBox.classList.add('hidden'), 200));
-        inputEl.addEventListener('focus', function() { if (this.value && suggestionBox.children.length > 0) suggestionBox.classList.remove('hidden'); });
-    }
-
-    async function submitReceiving(e, targetStatus) {
-      if (e) e.preventDefault();
-      const isDraft = targetStatus === 'Draft GR';
-      
-      const ataInput = document.getElementById('r-ata'); 
-      const receiverInput = document.getElementById('r-receiver');
-      if (ataInput) ataInput.classList.remove('input-error'); 
-      if (receiverInput) receiverInput.classList.remove('input-error');
-
-      const ata = ataInput ? ataInput.value : ''; 
-      const receiverName = receiverInput ? receiverInput.value.trim() : ''; 
-      let remark = document.getElementById('r-remark').value.trim();
-      
-      const liftFeeContainer = document.getElementById('lift-fee-container');
-      if (liftFeeContainer) {
-          const selectedLiftFee = document.querySelector('input[name="lift-fee"]:checked');
-          const liftRounds = document.getElementById('lift-fee-rounds').value.trim();
-          const rounds = parseInt(liftRounds);
-          
-          if (selectedLiftFee && !isNaN(rounds) && rounds > 0) {
-              remark = `[ค่าลิฟท์ ${rounds} รอบ ${selectedLiftFee.value}] ` + remark;
-          }
-      }
-
-      if (!isDraft && (!ata || !receiverName)) {
-          if(!ata && ataInput) ataInput.classList.add('input-error'); 
-          if(!receiverName && receiverInput) receiverInput.classList.add('input-error');
-          return showNotification("กรุณาระบุวันที่รับและชื่อผู้รับให้ครบถ้วนก่อนยืนยัน", "warning");
-      }
-
-      const index = document.getElementById('r-group-index').value; 
-      if (index === "" || !groupedPOs[index]) return showNotification("ไม่พบข้อมูลรายการที่เลือก", "error");
-      
-      const group = groupedPOs[index]; 
-      let formHasError = false;
-
-      const poItemsData = [];
-      document.querySelectorAll('.po-item-row').forEach(row => {
-          const poUid = row.dataset.pouid;
-          const inputs = row.querySelectorAll('input');
-          const grQty = inputs[0].value.trim();
-          const unit = inputs[1].value.trim();
-          const exp = inputs[2].value.trim();
-          const locIn = inputs[3].value.trim();
-          const oldStock = inputs[4].value.trim();
-
-          if (!isDraft && grQty && parseFloat(grQty) > 0 && !locIn) {
-              inputs[3].classList.add('input-error'); 
-              formHasError = true;
-          }
-
-          poItemsData.push({ poUid: poUid, grQty, unit, locIn, exp, oldStock });
-      });
-
-      const extraItemsData = [];
-      document.querySelectorAll('.extra-item-row').forEach(row => {
-          const inputs = row.querySelectorAll('input');
-          const product = inputs[0].value.trim();
-          const sku = inputs[1].value.trim();
-          const grQty = inputs[2].value.trim();
-          const unit = inputs[3].value.trim();
-          const exp = inputs[4].value.trim();
-          const locIn = inputs[5].value.trim();
-          const oldStock = inputs[6].value.trim();
-
-          if (product || grQty) {
-              if (!product) { inputs[0].classList.add('input-error'); formHasError = true; }
-              if (!grQty) { inputs[2].classList.add('input-error'); formHasError = true; }
-              if (!isDraft && !locIn) { inputs[5].classList.add('input-error'); formHasError = true; }
-              if (product && grQty) extraItemsData.push({ sku, product, grQty, unit, locIn, exp, oldStock });
-          }
-      });
-
-      if (formHasError) return showNotification("กรุณากรอกข้อมูลโลเคชั่น หรือข้อมูลของแถมให้ครบถ้วน", "warning");
-      
-      const totalReceived = poItemsData.filter(i => i.grQty && parseFloat(i.grQty) > 0).length + extraItemsData.length;
-      if (!isDraft && totalReceived === 0) return showNotification("โปรดใส่จำนวนรับสินค้าอย่างน้อย 1 รายการ", "warning");
-
-      const bulkPayload = {
-          ata: Utilities_formatDateFrontEnd(ata), 
-          receiverName: receiverName, 
-          remark: remark.trim(), 
-          targetStatus: targetStatus,
-          groupInfo: { poDate: group.poDate, vendor: group.vendor, poNumber: group.poNumber, warehouse: group.warehouse },
-          items: poItemsData, 
-          extraItems: extraItemsData
-      };
-
-      let btnId = 'btn-draft';
-      if(targetStatus === 'Pending Review') btnId = 'btn-review';
-      else if(targetStatus === 'GR Completed') btnId = 'btn-confirm-receive';
-
-      const actionBtn = document.getElementById(btnId);
-      if (actionBtn) actionBtn.disabled = true; 
-      
-      showDataLoading(`กำลังบันทึกข้อมูลเข้าคลัง...`);
-
-      try {
-          const res = await AKRA_API.call('bulkReceivePO', bulkPayload);
-          if (actionBtn) actionBtn.disabled = false; 
-          hideDataLoading();
-          
-          if(res.success) { 
-              let msg = "บันทึกสำเร็จ!";
-              if(targetStatus === 'Draft GR') msg = "พักบิล (Draft) เรียบร้อย";
-              else if(targetStatus === 'Pending Review') msg = "ส่งให้ตรวจสอบเรียบร้อยแล้ว!";
-              else msg = "ยืนยันรับสินค้าเข้าคลังสมบูรณ์!";
-              
-              showNotification(msg, "success"); 
-              showView('receiving-list-view');
-              await openReceivingInBackground(); 
-          } 
-          else { 
-              showNotification("เกิดข้อผิดพลาด: " + res.message, "error"); 
-          }
-      } catch (err) {
-          if (actionBtn) actionBtn.disabled = false; 
-          hideDataLoading();
-          showNotification("ระบบขัดข้อง: " + err.message, "error");
-      }
-    }
-
-    async function openReceivingInBackground() {
-        try {
-            const response = await AKRA_API.call('getInitialData');
-            if (response.success) { 
-                localStorage.setItem('CACHE_GR_DATA', JSON.stringify(response));
-                appData = response; 
-                groupPendingPOs(); 
-                renderPOListForReceiving(); 
+            if (qty > 0 && !loc) {
+                input.closest('.glass-card').classList.add('border-rose-500');
+                hasError = true;
+            } else {
+                input.closest('.glass-card').classList.remove('border-rose-500');
             }
-        } catch(e) {}
+            
+            if (qty > 0) {
+                items.push({
+                    po_uid: poItem.po_uid,
+                    qty_received: qty,
+                    loc_in: loc,
+                    is_extra: false
+                });
+            }
+        });
+
+        document.querySelectorAll('#extra-items-container > div').forEach(row => {
+            const name = row.querySelector('.extra-name').value.trim();
+            const qty = parseFloat(row.querySelector('.extra-qty').value);
+            const loc = row.querySelector('.extra-loc').value.trim();
+            
+            if (name && qty > 0 && loc) {
+                items.push({
+                    product_name_extra: name,
+                    qty_received: qty,
+                    loc_in: loc,
+                    is_extra: true
+                });
+            }
+        });
+
+        if (hasError) return showToast("กรุณาระบุตำแหน่งจัดเก็บให้ครบถ้วน", true);
+        if (items.length === 0) return showToast("กรุณาระบุจำนวนสินค้าที่รับ", true);
+
+        const btn = document.getElementById('btn-submit-gr');
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i> กำลังบันทึก...';
+        lucide.createIcons();
+
+        try {
+            const res = await AKRA_API.call('submitGR', { po_no: activePO.po_no, items: items, receiver: window.currentUser });
+            if (res.success) {
+                Swal.fire({ icon: 'success', title: 'บันทึกการรับสินค้าสำเร็จ', text: `เลขที่ใบรับสินค้า: ${res.gr_no}`, confirmButtonColor: '#171C8F' });
+                closeModal();
+                loadInitialData(true);
+            } else throw new Error(res.message);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message });
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> ยืนยันการรับสินค้าเข้าระบบ';
+            lucide.createIcons();
+        }
     }
 
-    function parseDateToInput(ddmmyyyy) { if(!ddmmyyyy) return ''; const p = ddmmyyyy.split('/'); if(p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`; return ddmmyyyy; }
-    function Utilities_formatDateFrontEnd(dateStr) { if(!dateStr) return ''; const p = dateStr.split('-'); if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; return dateStr; }
+    function renderManifest() {
+        const container = document.getElementById('manifest-table-body');
+        if (!container || !appData.manifest) return;
+        
+        container.innerHTML = appData.manifest.map(gr => `
+            <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                <td class="py-4 text-[11px] font-bold text-slate-400">${new Date(gr.created_at).toLocaleDateString('th-TH')}</td>
+                <td class="py-4 font-black text-[#171C8F] tracking-tighter">${gr.po_no}</td>
+                <td class="py-4 text-xs font-bold text-slate-800">${gr.vendor_name || '-'}</td>
+                <td class="py-4 text-xs font-medium text-slate-500">${gr.product_name}</td>
+                <td class="py-4 text-[10px] font-bold text-slate-400 uppercase">${gr.received_by || '-'}</td>
+                <td class="py-4">
+                    <span class="badge-base bg-emerald-50 text-emerald-600 border border-emerald-100">RECEIVED</span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function showToast(msg, isError = false) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        Toast.fire({ icon: isError ? 'error' : 'success', title: msg });
+    }
+
+    function validateQty(input, max) {
+        const val = parseFloat(input.value);
+        if (val > max) input.classList.add('text-orange-600');
+        else input.classList.remove('text-orange-600');
+    }
+
+    function speakItem(idx) {
+        if (!activePO || !activePO.items[idx]) return;
+        const item = activePO.items[idx];
+        const text = `รายการที่ ${idx+1}. ${item.product_name}. จำนวนตามสั่ง ${item.quantity} ${item.unit || ''}.`;
+        speakText(text);
+    }
 
     function speakText(text) {
-        if (!text) return;
-        if ('speechSynthesis' in window) {
-            try {
-                window.speechSynthesis.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'th-TH'; 
-                utterance.rate = 1.0; 
-                const voices = window.speechSynthesis.getVoices();
-                const thaiVoice = voices.find(v => v.lang.includes('th-TH') || v.lang.includes('th_TH'));
-                if (thaiVoice) utterance.voice = thaiVoice;
-                window.speechSynthesis.speak(utterance);
-            } catch (e) { console.error("Speech error:", e); }
-        } else { showNotification('อุปกรณ์ของคุณไม่รองรับการอ่านออกเสียง', 'warning'); }
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'th-TH';
+        msg.rate = 0.9;
+        window.speechSynthesis.speak(msg);
     }
 
-    function readAllPOItems() {
-        const index = document.getElementById('r-group-index').value;
-        if (index === "" || !groupedPOs[index]) return;
-        const group = groupedPOs[index];
-        let fullText = "รายการสินค้าที่ต้องรับ มีดังนี้. ";
-        group.items.forEach((item, i) => { fullText += `รายการที่ ${i+1}. ${item.product} จำนวน ${item.quantity} ${item.unit || ''}. `; });
-        speakText(fullText);
-    }
+    window.onload = () => AuthGuard.init();
   </script>
 </body>
 </html>

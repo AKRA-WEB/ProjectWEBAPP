@@ -37,6 +37,8 @@
     <script src="supabase-client.js"></script>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+
         :root {
             /* CI Colors */
             --brand-blue: #171C8F;
@@ -104,6 +106,13 @@
             box-shadow: 0 0 0 3px rgba(23, 28, 143, 0.08); 
             background: white; 
         }
+
+        /* 🎨 Custom SweetAlert2 (Modern Theme) */
+        div:where(.swal2-container) div:where(.swal2-popup) { background-color: white; color: #2B3674; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #E9EDF7; }
+        div:where(.swal2-container) h2:where(.swal2-title) { color: var(--brand-blue); font-family: 'Prompt', sans-serif; font-weight: 800; }
+        div:where(.swal2-container) div:where(.swal2-html-container) { color: #707EAE; font-family: 'Prompt', sans-serif; font-size: 0.875rem; }
+        div:where(.swal2-container) button:where(.swal2-confirm) { background-color: var(--brand-blue) !important; border-radius: 1rem; font-weight: 700; box-shadow: 0 10px 20px rgba(23, 28, 143, 0.1) !important; }
+        div:where(.swal2-container) button:where(.swal2-cancel) { background-color: #F4F7FE !important; color: #A3AED0 !important; border-radius: 1rem; font-weight: 700; }
 
         .role-card.active {
             border-color: var(--brand-orange);

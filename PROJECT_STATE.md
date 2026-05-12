@@ -1,44 +1,30 @@
-**Last Updated:** 2026-05-09 (ICT)
-**Current Phase:** System-wide UI Consolidation & Mobile Optimization
+**Last Updated:** 2026-05-12 (ICT)
+**Current Phase:** System-wide UI Consolidation & Mobile Optimization (Sprint Complete)
 
-## 🧠 Context Compaction (Session Summary - 2026-05-09)
+## 🧠 Context Compaction (Session Summary - 2026-05-12)
 
 ### Core Achievements
-- **Return&Claim UI Recovery**: Fixed a critical syntax error in the `AuthGuard` initialization object that was causing the entire app logic to fail. Restored button responsiveness and ensured proper SSO sequence.
-- **PO Vendor Traceability**: Added `vendor` column to the `products` table schema and implemented an auto-sync mechanism that maps vendors to products upon PO creation/approval.
-- **Procurement Status Sync**: Enhanced `AKRA_API.closePO` to automatically update linked `purchase_requests` to 'Approved' status, preventing data leakage between app states.
-- **KPI Premium Overhaul**: Completely re-engineered `KPI.html` with a high-density, professional UI using fluid scaling and condensed layouts for desktop usage.
-- **Mobile UI/UX Optimization**: Implemented responsive bottom navigation, enlarged touch targets, and iOS safe-area support for the KPI app.
-- **Thai Localization**: Achieved 100% Thai language parity across all KPI app interfaces.
-- **Technical Integrity**: Resolved a critical "Access Denied" TypeError and standardized the `AuthGuard` handshake across the entire app suite.
-- **Engineering Standards**: Established a mandatory Technical Ledger (`docs/applied_solutions.md`) for instant bug-to-solution documentation.
+- **100% UI/UX Gold Standard Synchronization**:
+    - Synchronized all sub-apps (`index`, `PR`, `PO`, `GR`, `W5`, `KPI`, `Transfers`) with the **Premium Minimal** visual language.
+    - **Shared Foundation**: All apps now use identical `:root` variables, Typography (Prompt/Jakarta), and component classes (`.glass-card`, `.input-ci`).
+    - **Unified Shell**: Standardized Sidebar (Desktop Drawer), Header (Backdrop-blur), and Bottom Navigation (Mobile) across the entire suite.
+    - **Premium Interactives**: Applied the custom SweetAlert2 theme (Rounded 1.5rem, Brand colors) and `fadeSlideUp` animations to all applications.
+- **System-wide AuthGuard Standardization**: 
+    - Verified `AuthGuard.init` -> `AuthGuard.startApp` pattern is active and correctly separating Auth from App Logic.
+    - Ensured isolated `STORAGE_KEY` for each app while maintaining SSO compatibility.
 
-### Core Context & Architecture
-- **Project:** Migrating 8+ WMS WebApps from GAS/Google Sheets to Supabase (PostgreSQL) + Plain HTML/JS/Tailwind.
-- **Root Directory:** `C:\Users\AKRA-Panich-Front\OneDrive\Desktop\WEBAPP SUPABASE` (Locked).
-- **Core Files:** `index.html` (Portal), `supabase-client.js` (AKRA_API), `Return&Claim.html`, `KPI.html`, `PR.html`, `PO.html`, `GR.html`.
-- **Database Rules:** Use `snake_case` only (Supabase parity). Mandatory `upsert` for idempotency. Bypass 1000-row limit using `AKRA_API.fetchAll`.
+### 🛠️ Automation & Workflow (t2c)
+- **Logic Update (/init)**: Standardized initialization sequence across the suite.
+- **UI Audit**: Completed pixel-perfect audit and correction sprint.
 
-### Automation & Workflow (t2c)
-- **t2c Rule:** User input in Thai -> Gemini performs **Deep Analysis** (reads files) -> Gemini designs solution -> Gemini generates professional English Prompt -> Copied to Clipboard for manual paste into Claude Interactive.
-- **PowerShell Integration:** `t2c` function in `$PROFILE` locked to project directory; includes "ตรวจสอบงาน" for auto-sync.
-- **CLI Sync:** Saying "ตรวจสอบงาน" triggers Gemini-led Git Audit (analyze diff -> generate commit msg -> push to `origin master`).
-
-### Key Technical Decisions
-- **Returns -> Claims Link:** Logic in `updateReturnQC` automatically generates a `claims` record when `grade === 'C'` using a deterministic ID (`CLM-RET-ID`).
-- **Audit Finalization:** 2-step atomic close. Step 1: Write `stock_diff`. Step 2: Set `overall_status = 'สำเร็จแล้ว'` to clear UI badges.
-- **Data Integrity:** `DATE` columns must receive `null` instead of `'-'`. Helper `toDate()` implemented in backend API.
-- **Permissions:** Case-insensitive role matching (e.g., `ADMIN`, `Admin`, `admin`). `TRD` role granted `ADD_CLM` and `TRACK_CLM` access.
-
-### File Reorganization (Latest)
-- `docs/`: Architecture, decisions, and runbooks.
-- `tools/scripts/`: Diagnostic and data-fixing Node.js scripts.
-- `src/`: Prepared for `api/` and `persistence/` documentation layers.
-- `_sql_migration/`: Canonical database schema and seed scripts.
-
-### User Preferences
-- **Role:** Gemini acts as **System Analyst / PM**. Analyzing code is mandatory before prompting. No direct code editing unless explicitly commanded.
-- **Consistency:** Always update `PROJECT_STATE.md` (progress) and `CLAUDE.md` (knowledge/roles) after tasks.
+### 📋 Technical Ledger (Standardization Matrix)
+- [x] **index.html**: Foundation sync, refined login card.
+- [x] **PR.html**: Shell standardized, dynamic icon logic refined.
+- [x] **PO.html**: Shell standardized, table matrix borders unified.
+- [x] **GR.html**: Complete shell overhaul, standardized status badges.
+- [x] **AKRA W5.html**: Vue components aligned with Gold Standard classes, shell overhaul.
+- [x] **KPI.html**: High-density stats preserved within unified shell, sidebar active state fixed.
+- [x] **Tranfers W2-W1.html**: Shell standardized, table styles aligned.
 
 ---
 

@@ -74,6 +74,53 @@
         .stat-card-red { background: linear-gradient(135deg, #FF6B6B 0%, #FF4D4D 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(255, 77, 77, 0.15); }
         .stat-card-orange { background: linear-gradient(135deg, #FFD93D 0%, #FF9F0A 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(255, 159, 10, 0.15); }
         .stat-card-purple { background: linear-gradient(135deg, #A78BFA 0%, #6366F1 100%); color: white; border-radius: 1.25rem; box-shadow: 0 12px 25px rgba(99, 102, 241, 0.15); }
+
+        .nav-link { 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            padding: 0.75rem 1rem; 
+            border-radius: 0.75rem; 
+            color: rgba(255, 255, 255, 0.7); 
+            transition: all 0.3s; 
+            border: 1px solid transparent;
+            margin-bottom: 0.25rem;
+        }
+        .nav-link:hover { color: white; background: rgba(255, 255, 255, 0.1); }
+        .nav-link.active { 
+            background: rgba(255, 255, 255, 0.1); 
+            color: var(--brand-orange); 
+            font-weight: 700; 
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+        }
+
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            border-top: 1px solid var(--border-color); 
+            display: flex; 
+            justify-content: space-around; 
+            z-index: 100; 
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.03); 
+            padding-bottom: env(safe-area-inset-bottom, 0); 
+        }
+        .mobile-link { 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 0.75rem 0;
+            color: #A3AED0;
+            transition: all 0.2s;
+        }
+        .mobile-link.active { color: var(--brand-blue); }
+        .mobile-link i, .mobile-link svg { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+        .mobile-link span { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     </style>
 </head>
 <body class="antialiased h-screen flex">
@@ -94,7 +141,10 @@
         </div>
     </div>
 
-    <!-- Main Sidebar (Desktop & Mobile Drawer) -->
+    <!-- 📱 Sidebar Overlay (For Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-[#171C8F]/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
+
+    <!-- 🧭 Sidebar (Desktop & Mobile Drawer) -->
     <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-[#171C8F] flex flex-col shrink-0 border-r border-[#171C8F] transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 shadow-2xl md:shadow-none">
         
         <!-- Mobile Close Button -->
@@ -104,26 +154,29 @@
 
         <div class="p-6 flex items-center space-x-3 border-b border-white/10 md:border-none">
             <div class="w-10 h-10 bg-[#E35205] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(227,82,5,0.4)] shrink-0">
-                <i data-lucide="bar-chart-3" class="text-white w-5 h-5"></i>
+                <i data-lucide="line-chart" class="text-white w-5 h-5"></i>
             </div>
             <div>
-                <h1 class="text-white font-bold text-lg leading-none tracking-tight">AKRA Pro</h1>
-                <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">KPI Dashboard</p>
+                <h1 class="text-white font-bold text-lg leading-none tracking-tight">KPI Pro</h1>
+                <p class="text-white/60 text-[10px] mt-1 uppercase tracking-widest font-semibold">Performance Terminal</p>
             </div>
         </div>
         
-        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar" id="desktop-nav">
-            <button onclick="switchTab('record')" id="nav-record" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all active bg-white/10 text-[#E35205] font-bold shadow-sm">
-                <i data-lucide="edit-3" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">บันทึกข้อมูล</span>
+        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto hide-scrollbar">
+            <div class="pt-2 pb-3 px-4 text-[10px] font-bold text-white/50 uppercase tracking-widest">การติดตาม</div>
+            
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all active bg-white/10 text-[#E35205] font-bold shadow-sm">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">แดชบอร์ด</span>
             </button>
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                <i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">วิเคราะห์ทีม</span>
+            
+            <button onclick="switchTab('record')" id="nav-record" class="w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                <i data-lucide="edit-3" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">บันทึกผลงาน</span>
             </button>
-            <button onclick="switchTab('admin-dash')" id="nav-admin-dash" class="nav-link w-full hidden flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                <i data-lucide="trending-up" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">ภาพรวมผู้บริหาร</span>
-            </button>
-            <button onclick="switchTab('admin')" id="nav-admin" class="nav-link w-full hidden flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">จัดการบุคลากร</span>
+
+            <div class="pt-6 pb-3 px-4 text-[10px] font-bold text-white/50 uppercase tracking-widest border-t border-white/5 mt-4">รายงาน</div>
+
+            <button onclick="switchTab('reports')" id="nav-reports" class="w-full flex items-center px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all">
+                <i data-lucide="file-text" class="w-5 h-5 mr-3"></i><span class="text-sm font-medium">สรุปรายวัน</span>
             </button>
         </nav>
 

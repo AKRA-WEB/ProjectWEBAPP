@@ -64,6 +64,14 @@ There is **no build process**. All dependencies (Tailwind, Supabase JS, Lucide I
 - `akraSupabase` — the raw Supabase client (created once via guard `if (typeof akraSupabase === 'undefined')`)
 - `AKRA_API` — the application API object with named methods for every operation
 
+- **Standardized AuthGuard:** 
+  - All apps MUST follow the `AuthGuard.init` -> `AuthGuard.startApp(user)` pattern.
+  - Authentication logic (SSO, cache check) lives in `init`.
+  - Application-specific initialization (data fetching, UI population) lives in `startApp`.
+  - Use `window.appUser` for the standardized user object.
+  - Use `akra_[app]_session_token` for the app-specific `STORAGE_KEY`.
+- **Command /init:** A system command to ensure all initialization logic across the suite is synchronized and optimized.
+
 All HTML pages call only `AKRA_API.call(action, data)` or named methods directly. No page creates its own Supabase client.
 
 ### Per-Page SPA Pattern
