@@ -14,8 +14,8 @@ This is the central registry for all project tracks and implementation plans. Us
 - 🟢 **Authentication (AuthGuard)**: Standardized across all apps.
 - 🟢 **API Layer (AKRA_API)**: Unified Supabase client.
 - 🟢 **System-wide Audit**: [Report: audit_report_20260512.md](../docs/audit_report_20260512.md)
+- 🟢 **Portal Upgrade**: [Archive: portal_upgrade_v2_plan.md](./archive/portal_upgrade_v2_plan.md)
 - ⚪ **Git Sync & Audit**: [Plan: sync_github.md](./sync_github.md)
-- ⚪ **Portal Upgrade**: [Plan: portal_upgrade_plan.md](./portal_upgrade_plan.md)
 
 ## 📱 Application Overhauls (Logic & Features)
 - 🟢 **GR (Goods Receipt)**: [Archive: GR_overhaul_plan.md](./archive/GR_overhaul_plan.md)

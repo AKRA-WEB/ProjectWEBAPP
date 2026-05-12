@@ -639,28 +639,39 @@
                 if (headerRow.children.length === 1) {
                     AVAILABLE_ROLES.forEach(r => {
                         const th = document.createElement('th');
-                        th.className = "p-4 font-bold text-slate-700 bg-slate-100 text-center border-l border-slate-200 min-w-[100px]";
-                        th.innerHTML = `<i data-lucide="${r.icon}" class="w-4 h-4 mx-auto mb-1 text-brand-orange"></i>${r.label}`;
+                        th.className = "p-5 font-black text-slate-500 bg-[#F4F7FE] text-center border-l border-slate-100 min-w-[120px] uppercase tracking-[0.2em] text-[8px]";
+                        th.innerHTML = `<div class="flex flex-col items-center gap-2"><i data-lucide="${r.icon}" class="w-4 h-4 text-brand-blue/30"></i>${r.label}</div>`;
                         headerRow.appendChild(th);
                     });
                 }
                 tbody.innerHTML = '';
                 state.appConfig.forEach(app => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-brand-blue/5 transition-colors";
+                    tr.className = "hover:bg-brand-blue/5 transition-all group/row";
                     let roleCells = '';
                     AVAILABLE_ROLES.forEach(r => {
                         const hasRole = app.roles.includes(r.val);
                         roleCells += `
-                            <td class="p-4 text-center border-l border-slate-100 align-middle">
+                            <td class="p-4 text-center border-l border-slate-50 align-middle">
                                 <label class="inline-flex items-center cursor-pointer">
                                     <input type="checkbox" class="sr-only peer" ${hasRole ? 'checked' : ''} ${r.val === 'ADMIN' ? 'disabled' : ''} 
                                            onchange="AdminInteractive.toggleMatrixRole('${app.id}', '${r.val}')">
-                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue relative"></div>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-blue relative shadow-inner"></div>
                                 </label>
                             </td>`;
                     });
-                    tr.innerHTML = `<td class="p-4 font-medium text-slate-800 border-r border-slate-200 bg-white"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0"><i data-lucide="${app.icon}" class="w-4 h-4"></i></div><span>${app.name}</span></div></td>${roleCells}`;
+                    tr.innerHTML = `
+                        <td class="p-5 font-bold text-[#2B3674] border-r border-slate-100 bg-white sticky left-0 z-10 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-brand-blue/5 text-brand-blue flex items-center justify-center shrink-0 group-hover/row:bg-brand-blue group-hover/row:text-white transition-all">
+                                    <i data-lucide="${app.icon}" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm uppercase tracking-tight leading-none mb-1">${app.name}</p>
+                                    <p class="text-[8px] font-bold text-slate-300 uppercase tracking-widest leading-none">Module Node</p>
+                                </div>
+                            </div>
+                        </td>${roleCells}`;
                     tbody.appendChild(tr);
                 });
                 lucide.createIcons();
@@ -675,11 +686,23 @@
             },
 
             saveAppConfig: async () => {
+                const btn = document.querySelector('button[onclick="AdminInteractive.saveAppConfig()"]');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
+                lucide.createIcons();
+
                 try {
                     await AKRA_API.postAction({ action: "saveAppConfig", appConfig: state.appConfig });
                     localStorage.setItem(CONFIG.STORAGE_APP_CONFIG, JSON.stringify(state.appConfig));
-                    UI.showToast("บันทึกตารางสิทธิ์สำเร็จ");
-                } catch (error) { UI.showToast("บันทึกไม่สำเร็จ", "error"); }
+                    UI.showToast("Permission Matrix Synchronized Successfully");
+                } catch (error) { 
+                    UI.showToast("Synchronization Failed", "error"); 
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    lucide.createIcons();
+                }
             }
         };
 
