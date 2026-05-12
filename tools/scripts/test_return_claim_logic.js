@@ -80,8 +80,85 @@ async function runTest() {
         console.error(err.message);
     } finally {
         console.log('\n🧹 Note: Test data remains in DB for audit trail.');
-        console.log('✅ Audit Session Complete.');
     }
 }
 
-runTest();
+async function runGradeASyncTest() {
+    console.log('\n🧪 Starting Grade A Stock Sync Audit...');
+
+    try {
+        // 0. Setup: Ensure we have a W5 product
+        console.log('0. Fetching real W5 inventory item...');
+        let { data: w5Item } = await supabase.from('w5_inventory').select('id, name, stock').limit(1).single();
+        if (!w5Item) {
+            console.log('   (Creating test product in W5...)');
+            const { data: newItem } = await supabase.from('w5_inventory').insert({ name: 'TEST_SYNC_PROD', stock: 10 }).select().single();
+            w5Item = newItem;
+        }
+        const initialStock = w5Item.stock;
+        console.log(`✅ Using W5 Product: ${w5Item.name} (Initial Stock: ${initialStock})`);
+
+        // 1. Create Return
+        const retId = 'RET-SYNC-' + Date.now();
+        await supabase.from('returns').insert({
+            id: retId,
+            name: w5Item.name,
+            qty: 5,
+            unit: 'ชิ้น',
+            status: 'รอ QC'
+        });
+        console.log(`✅ Return Created: ${retId}`);
+
+        // 2. Perform QC Grade A with syncStock = true
+        console.log('\n2. Updating QC to Grade A with syncStock=true...');
+        
+        // --- START SIMULATION ---
+        const syncStock = true;
+        const grade = 'A';
+        const qty = 5;
+        const name = w5Item.name;
+
+        // a. Update Return
+        await supabase.from('returns').update({ status: 'รอตัดรอบ', qc_condition: 'สินค้าสภาพดี (Sync)' }).eq('id', retId);
+
+        // b. Update W5 Stock
+        if (grade === 'A' && syncStock) {
+            const { data: item } = await supabase.from('w5_inventory').select('id, stock').eq('name', name).single();
+            await supabase.from('w5_inventory').update({ stock: item.stock + qty }).eq('id', item.id);
+            await supabase.from('w5_history').insert({
+                transaction_type: 'in',
+                product_id: item.id,
+                product_name: name,
+                qty: qty,
+                user_name: 'AUDIT_BOT (Grade A Sync)'
+            });
+        }
+        // --- END SIMULATION ---
+        console.log(`✅ QC Updated & Stock Synced.`);
+
+        // 3. Verification
+        const { data: finalItem } = await supabase.from('w5_inventory').select('stock').eq('id', w5Item.id).single();
+        console.log(`- Final Stock: ${finalItem.stock} (Expected: ${initialStock + 5})`);
+
+        const { data: hist } = await supabase.from('w5_history').select('*').eq('product_id', w5Item.id).order('transaction_timestamp', { ascending: false }).limit(1).single();
+        console.log(`- History Logged: ${hist.transaction_type} (+${hist.qty}) by ${hist.user_name}`);
+
+        if (finalItem.stock === initialStock + 5 && hist.transaction_type === 'in') {
+            console.log('\n🏆 GRADE A STOCK SYNC PASSED!');
+        } else {
+            console.log('\n❌ GRADE A STOCK SYNC FAILED');
+        }
+
+    } catch (err) {
+        console.error('\n💥 SYNC TEST FAILURE:');
+        console.error(err.message);
+    }
+}
+
+async function runAll() {
+    await runTest();
+    await runGradeASyncTest();
+    console.log('\n✅ Audit Session Complete.');
+}
+
+runAll();

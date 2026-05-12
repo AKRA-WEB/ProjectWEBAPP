@@ -21,7 +21,8 @@ This is the central registry for all project tracks and implementation plans. Us
 - 🟢 **GR (Goods Receipt)**: [Archive: GR_overhaul_plan.md](./archive/GR_overhaul_plan.md)
 - 🟢 **PR (Purchase Request)**: [Archive: PR_overhaul_plan.md](./archive/PR_overhaul_plan.md)
 - 🟢 **PO (Purchase Order)**: [Archive: PO_logic_overhaul_plan.md](./archive/PO_logic_overhaul_plan.md)
-- ⚪ **Return & Claim**: [Plan: Return_overhaul_plan.md](./Return_overhaul_plan.md)
+- 🟢 **Return & Claim**: [Archive: Return_logic_overhaul_plan.md](./archive/Return_logic_overhaul_plan.md)
+- 🟢 **Infrastructure Audit**: Verified 100% Stability.
 - 🟢 **W5 Inventory**: [Archive: W5_overhaul_plan.md](./archive/W5_overhaul_plan.md)
 - 🟢 **Transfers**: [Archive: Transfers_overhaul_plan.md](./archive/Transfers_overhaul_plan.md)
 

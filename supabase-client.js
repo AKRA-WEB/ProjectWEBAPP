@@ -829,7 +829,7 @@ const AKRA_API = {
     },
 
     finalizeAudit: async (payload) => {
-        const { taskId, reviews } = payload;
+        const { taskId, reviews, syncToInventory, user } = payload;
         const errors = [];
 
         // Step 1: write stock_diff per row
@@ -839,6 +839,24 @@ const AKRA_API = {
                 stock_diff: item.stockDiff
             }).eq('row_id', item.rowId).eq('task_id', taskId);
             if (error) errors.push(error.message);
+
+            // [NEW] OPTIONAL: Sync to W5 Inventory if requested and diff exists
+            if (syncToInventory && item.stockDiff !== 0) {
+                try {
+                    const { data: w5Item } = await akraSupabase.from('w5_inventory').select('id, stock').eq('name', item.name).single();
+                    if (w5Item) {
+                        const newStock = w5Item.stock + item.stockDiff;
+                        await akraSupabase.from('w5_inventory').update({ stock: newStock }).eq('id', w5Item.id);
+                        await akraSupabase.from('w5_history').insert({
+                            transaction_type: 'adjust',
+                            product_id: w5Item.id,
+                            product_name: item.name,
+                            qty: item.stockDiff,
+                            user_name: user || 'SYSTEM (Audit)'
+                        });
+                    }
+                } catch (e) { console.error("W5 Audit Sync Failed for " + item.name, e); }
+            }
         }
         if (errors.length) return { success: false, message: errors.join('; ') };
 
@@ -851,7 +869,7 @@ const AKRA_API = {
     },
 
     updateReturnQC: async (payload) => {
-        const { id, grade, status, qcCondition, sku, name, qty, unit, reason, user } = payload;
+        const { id, grade, status, qcCondition, sku, name, qty, unit, reason, user, syncStock } = payload;
 
         // 1. Update Return Status
         const { error } = await akraSupabase.from('returns').update({
@@ -860,6 +878,24 @@ const AKRA_API = {
         }).eq('id', id);
 
         if (error) return { success: false, message: error.message };
+
+        // [NEW] Sync to Inventory for Grade A if requested
+        if (grade === 'A' && syncStock) {
+            try {
+                const { data: w5Item } = await akraSupabase.from('w5_inventory').select('id, stock').eq('name', name).single();
+                if (w5Item) {
+                    const newStock = w5Item.stock + parseFloat(qty);
+                    await akraSupabase.from('w5_inventory').update({ stock: newStock }).eq('id', w5Item.id);
+                    await akraSupabase.from('w5_history').insert({
+                        transaction_type: 'in',
+                        product_id: w5Item.id,
+                        product_name: name,
+                        qty: parseFloat(qty),
+                        user_name: user || 'SYSTEM (Return)'
+                    });
+                }
+            } catch (e) { console.error("Grade A Stock Sync Failed", e); }
+        }
 
         // 2. If Grade C (Damaged), automatically create a Claim record.
         // Uses upsert so retrying the same Grade C action is idempotent (no duplicate key error).
@@ -891,12 +927,22 @@ const AKRA_API = {
         return { success: true };
     },
 
-    updateVendor: async (payload) => {
+    updateClaimVendor: async (payload) => {
         const { error } = await akraSupabase.from('claims').update({ vendor: payload.vendor }).eq('id', payload.claimId);
         return { success: !error, message: error?.message };
     },
 
+    batchUpdateClaims: async (payload) => {
+        const { ids, status, remark } = payload;
+        const updateData = { status: status };
+        if (remark) updateData.remark = remark;
+
+        const { error } = await akraSupabase.from('claims').update(updateData).in('id', ids);
+        return { success: !error, message: error?.message };
+    },
+
     lockAuditWH: async (payload) => {
+
         const { taskId, wh, user } = payload;
         const timeStr = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
         const userTime = `${user}|${timeStr}`;
